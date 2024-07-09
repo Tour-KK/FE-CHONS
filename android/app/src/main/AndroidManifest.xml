@@ -1,6 +1,13 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.apitest">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.Read_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_CALENDAR"/>
+    <uses-permission android:name="android.permission.WRITE_CALENDAR"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
       android:name=".MainApplication"
@@ -21,5 +28,17 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+
+      <meta-data
+      android:name="com.google.android.gms.version"
+      android:value="@integer/google_play_services_version" />
+
+      
+
+      <!-- google map api -->
+      <!-- <meta-data                                               
+      android:name="com.google.android.geo.AIzaSyDly23x6ur-FdG8hkSC7N6DjngkbQn3oxo"
+      android:value="AIzaSyDly23x6ur-FdG8hkSC7N6DjngkbQn3oxo" />
+       -->
     </application>
 </manifest>

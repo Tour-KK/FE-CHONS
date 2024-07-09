@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412626397279",
+    "project_id": "konkuktour",
+    "storage_bucket": "konkuktour.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412626397279:android:ec8713338449de424293ea",
+        "android_client_info": {
+          "package_name": "com.apitest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlU4up5x419-dJxqn5Aj4HZvdoeKmEBPg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

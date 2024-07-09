@@ -73,7 +73,6 @@ android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
-
     namespace "com.apitest"
     defaultConfig {
         applicationId "com.apitest"
@@ -103,10 +102,12 @@ android {
         }
     }
 }
-
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation 'com.google.android.gms:play-services-auth:20.1.0'
+    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
+    implementation("com.google.firebase:firebase-analytics")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -115,4 +116,9 @@ dependencies {
     }
 }
 
+// plugins {
+//     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+// }
+
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply plugin: 'com.google.gms.google-services'
