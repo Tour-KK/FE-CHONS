@@ -33,7 +33,7 @@ class ReservationScreen extends Component {
         checkOutDate: '',
 
         places: [                                   // 목록에 띄울 데이터들 관
-            { id: 1, name: "김갑순님의 거주지", address:'강원도 속초시 신림면', reviewScore: "4.2", reviewCount: 48, imageUrl: require('./Image/여행지1.png'), favoriteState: true, price: 43000, reservaionState: false, clearReservation: false },
+            { id: 1, name: "김갑순님의 거주지", address:'강원도 속초시 신림면', reviewScore: "4.2", reviewCount: 48, imageUrl: require('./Image/여행지1.png'), favoriteState: true, price: 43000, reservaionState: true, clearReservation: false },
             { id: 2, name: "김경민님의 거주지", address:'강원도 원주시 신림면', reviewScore: "3.8", reviewCount: 23, imageUrl: require('./Image/여행지2.png'), favoriteState: true, price: 38000, reservaionState: false,  clearReservation: false },
             { id: 3, name: "강진석님의 거주지", address:'강원도 철원군 동송읍', reviewScore: "4.0", reviewCount: 31, imageUrl: require('./Image/여행지3.png'), favoriteState: false, price: 88000, reservaionState: false,  clearReservation: false },
             { id: 4, name: "오진태님의 거주지", address:'강원도 강릉시 옥계면',reviewScore: "4.4", reviewCount: 18, imageUrl: require('./Image/여행지4.png'), favoriteState: false, price: 26000, reservaionState: false,  clearReservation: false },
@@ -45,7 +45,7 @@ class ReservationScreen extends Component {
             { id: 11, name: "박범석님의 거주지", address:'제주특별자치도 서귀포시 남원읍', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지10.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
             { id: 12, name: "황진영님의 거주지", address:'전라남도 광주광역시 북구 오치1동', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지11.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
             { id: 13, name: "박우석님의 거주지", address:'전라남도 나주시 영강동', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지12.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 14, name: "이현숙님의 거주지", address:'충천남도 공주시 우성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지13.png'), favoriteState: false, price: 54000, reservaionState: true,  clearReservation: true },
+            { id: 14, name: "이현숙님의 거주지", address:'충천남도 공주시 우성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지13.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: true },
             { id: 15, name: "황지석님의 거주지", address:'충천남도 아산시 신창면 남성리', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지14.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
             { id: 16, name: "이미연님의 거주지", address:'충천남도 당진시 순성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지15.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
         ],

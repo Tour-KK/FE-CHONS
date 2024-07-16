@@ -32,38 +32,6 @@ class ReviewModifyScreen extends Component {
                 images: [houseIMG1],
                 optionsVisible: false,
             },
-            {
-                id: 2,
-                profileName: '이지수',
-                reviewText: '확실히 강원도에 오래사신분이랑 스테이하니까 이것저것 새로 알게되는 것도 많네요. 어르신 덕분에 잘 쉬다갑니다!',
-                reviewScore: 4.7,
-                images: [houseIMG5, houseIMG6, houseIMG2,],
-                optionsVisible: false,
-            },
-            {
-                id: 3,
-                profileName: '박민철',
-                reviewText: '생각보다 내부가 깔끔했고, 어르신이 요리를 너무 잘하셔서 놀랬어요 자연즐기면서 쉬고싶은분들은 꼭 한번 가보십쇼',
-                reviewScore: 4.,
-                images: [],
-                optionsVisible: false,
-            },
-            {
-                id: 4,
-                profileName: '김지석',
-                reviewText: '숙소는 적당히 쉴만한데 가격이 너무 가성비라 여기서  시골스테이 한번 해보시는거 강추드립니다',
-                reviewScore: 4.4,
-                images: [ houseIMG3, houseIMG4,houseIMG9],
-                optionsVisible: false,
-            },
-            {
-                id: 5,
-                profileName: '오영수',
-                reviewText: '어르신이 너무 적극적으로 여행지나, 맛집등등 이것저것 알려주셔서 정말 편하게 여행도하고 시골생활도 즐기다 왔네요',
-                reviewScore: 4.7,
-                images: [],
-                optionsVisible: false,
-            },
         ]
     };
 

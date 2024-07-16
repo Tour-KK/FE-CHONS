@@ -2,6 +2,9 @@ import React, {Component, useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, Modal } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Hangul from 'hangul-js';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getToken } from './token';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -19,8 +22,6 @@ import houseIMG7 from './Image/여행지7.png';
 import houseIMG8 from './Image/여행지8.png';
 import houseIMG9 from './Image/여행지9.png';
 
-
-
 class SearchScreen extends Component {
     
     state = {
@@ -29,30 +30,31 @@ class SearchScreen extends Component {
         currentFilter: [], 
         currentFilterType: '',
 
+        selectedLocation: '',
+        selectedPrice: '',
+        selectedGuestCount: '',
+        
+        
         places: [                                   // 목록에 띄울 데이터들 관
-            { id: 1, name: "김갑순님의 거주지", address:'강원도 속초시 신림면', reviewScore: "4.2", reviewCount: 48, imageUrl: require('./Image/여행지1.png'), favoriteState: true, price: 43000, reservaionState: false, clearReservation: false },
-            { id: 2, name: "김경민님의 거주지", address:'강원도 원주시 신림면', reviewScore: "3.8", reviewCount: 23, imageUrl: require('./Image/여행지2.png'), favoriteState: true, price: 38000, reservaionState: false,  clearReservation: false },
-            { id: 3, name: "강진석님의 거주지", address:'강원도 철원군 동송읍', reviewScore: "4.0", reviewCount: 31, imageUrl: require('./Image/여행지3.png'), favoriteState: false, price: 88000, reservaionState: false,  clearReservation: false },
-            { id: 4, name: "오진태님의 거주지", address:'강원도 강릉시 옥계면',reviewScore: "4.4", reviewCount: 18, imageUrl: require('./Image/여행지4.png'), favoriteState: true, price: 26000, reservaionState: false,  clearReservation: false },
-            { id: 5, name: "박경숙님의 거주지", address: '경상남도 부산광역시 김해시 진영읍', reviewScore: "4.2", reviewCount: 66, imageUrl: require('./Image/여행지5.png'), favoriteState: false, price: 40000, reservaionState: true,  clearReservation: true },
-            { id: 7, name: "이창민님의 거주지", address:'경상남도 부산광역시 금정구 구서2동',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지6.png'), favoriteState: true, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 9, name: "오경숙님의 거주지", address:'경상북도 울산광역시 울주군 둔기리', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지8.png'), favoriteState: true, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 8, name: "양민우님의 거주지", address:'전라남도 전주시 덕진구', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지7.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 10, name: "이정민님의 거주지", address:'경기도 화성시 남양읍', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지9.png'), favoriteState: true, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 11, name: "박범석님의 거주지", address:'제주도 서귀포시 남원읍', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지10.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 12, name: "황진영님의 거주지", address:'전라남도 광주광역시 북구 오치1동', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지11.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 13, name: "박우석님의 거주지", address:'전라남도 나주시 영강동', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지12.png'), favoriteState: true, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 14, name: "이현숙님의 거주지", address:'충천남도 공주시 우성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지13.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 15, name: "황지석님의 거주지", address:'충천남도 아산시 신창면 남성리', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지14.png'), favoriteState: true, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 16, name: "이미연님의 거주지", address:'충천남도 당진시 순성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지15.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
+            { id: 1, 
+                name: "", 
+                address: "", 
+                reviewScore: "", 
+                reviewCount: "", 
+                imageUrl: houseIMG1,
+                price: 0, 
+                favoriteState: true, 
+                reservaionState: false, 
+                clearReservation: false 
+            },
         ],
 
         filters: [                                // 필터링 목록의 필터링 컨텐츠들
             { key: 'location', text: '지역' },
-            { key: 'period', text: '숙박기간' },
-            // { key: 'attention', text: '관심도' },
+            // { key: 'period', text: '숙박기간' },
             { key: 'price', text: '가격' },
-            { key: 'guestCount', text: '인원수'},
+            // { key: 'guestCount', text: '인원수'},
+            // { key: 'attention', text: '관심도' },
             // { key: 'period', text: '날짜선택' },
             // { key: 'freeContents', text: '무료제공 서비스'}, 
         ],
@@ -76,14 +78,14 @@ class SearchScreen extends Component {
             { id:'16', text: '제주'},
             { id:'17', text: '기타'},
         ],
-        periodFilter: [
-            { id: '1', text: '1박 2일' },
-            { id: '2', text: '2박 3일' },
-            { id: '3', text: '3박 4일' },
-            { id: '4', text: '5박 6일' },
-            { id: '5', text: '6박 7일' },
-            { id: '6', text: '7박 이상' },
-        ],
+        // periodFilter: [
+        //     { id: '1', text: '1박 2일' },
+        //     { id: '2', text: '2박 3일' },
+        //     { id: '3', text: '3박 4일' },
+        //     { id: '4', text: '5박 6일' },
+        //     { id: '5', text: '6박 7일' },
+        //     { id: '6', text: '7박 이상' },
+        // ],
         // attentionFilter: [
         //     { id: '1', text: '소극' },
         //     { id: '2', text: '보통' },
@@ -103,15 +105,25 @@ class SearchScreen extends Component {
         ],
       }
 
+    componentDidMount() {
+        this.getHouseListData();
+
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+            if (this.props.route.params?.refresh) {
+                this.getHouseListData();
+            }
+        });
+    }
+
     // 필터링 버튼 클릭시 필터링 종류에 맞게 모달에 출력하는 filterData를 지정해주고 모달을 보이게 해주는 함수
     setModalVisible = (visible, filterKey = '') => {    
         let filterData = [];
         if (filterKey === 'location') {
             filterData = this.state.locationFilter;
-        } else if (filterKey === 'period') {
-            filterData = this.state.periodFilter;
-        } else if (filterKey === 'attention'){
-            filterData = this.state.attentionFilter;
+        // } else if (filterKey === 'period') {
+        //     filterData = this.state.periodFilter;
+        // } else if (filterKey === 'attention'){
+        //     filterData = this.state.attentionFilter;
         } else if (filterKey === 'price'){
             filterData = this.state.priceFilter;
         } else if (filterKey === 'guestCount'){
@@ -124,9 +136,57 @@ class SearchScreen extends Component {
             currentFilterType: filterKey
         });
     };
+
+    
+    async getHouseListData() {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 리스트들을 불러오는 함수
+        try{
+            const token = await getToken();
+            
+            const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list/user',{
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log(response.data);
+            
+            const data = response.data.map(item => ({
+                id: item.id,
+                name: item.hostName,
+                address: item.address,
+                price: item.pricePerNight,
+                imageUrl: houseIMG1, 
+                reviewScore: item.starAvg, // 서버 데이터에 따라 수정 필요
+                reviewCount: item.reviewNum, // 서버 데이터에 따라 수정 필요
+                favoriteState: item.liked, 
+                reservationState: false, 
+                clearReservation: false 
+            }));
+
+            this.setState({ places: data });
+
+            } catch(error) {
+                if (error.response) {
+                console.log('Error status:', error.response.status);
+                console.log('Error data:', error.response.data);
+                console.log('Error headers:', error.response.headers);
+                } else if (error.request) {
+                console.log('No response received:', error.request);
+                } else {
+                console.log('Error message:', error.message);
+                }
+                console.log('Error config:', error.config);
+            }
+    }
+
     
     placeInfoDelivery = (houseId) => {             // 숙소 컨텐츠 클릭시 해당 숙소 정보를 같이 보내 숙소정보화면으로 이동
         this.props.navigation.navigate('숙소정보', { houseId: houseId });
+    }
+        
+    onChangeInput = (event)=>{                      // 검색하면 inputText에 변경된 값 적용시킬 때 입력한담아두는 함수
+        this.setState({
+            searchText: event 
+        })
     }
 
     selectFilterItem = (text) => {
@@ -139,33 +199,73 @@ class SearchScreen extends Component {
     };
     
 
-    changeFavoriteState = (id) => {                 // 찜버튼 누르면 FavoriteState 상태 바꿔주는 함수
-        const PlacesState = this.state.places.map(place => {
-            if (place.id === id) {                 
+    changeFavoriteState = async (id) => {                    // 즐겨찾기시 체크표시후 서버 api로 상태보내기
+        const updatedPlaces = this.state.places.map(place => {
+            if (place.id === id) {
                 return { ...place, favoriteState: !place.favoriteState };
             }
             return place;
         });
-        this.setState({ places: PlacesState });
-    };
- 
     
-    onChangeInput = (event)=>{                      // 검색하면 inputText에 변경된 값 적용시킬 때 입력한담아두는 함수
-        this.setState({
-            searchText: event 
-        })
-    }
+        this.setState({ places: updatedPlaces });
+    
+        const currentPlace = updatedPlaces.find(place => place.id === id);
+        
+        try {
+            const token = await getToken();  
+            
+            if (currentPlace.favoriteState) {
+                const response = await axios.post(`http://223.130.131.166:8080/api/v1/like/${id}`, {}, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                console.log('즐겨찾기 추가:', response.data);
+            } else {
+                const response = await axios.delete(`http://223.130.131.166:8080/api/v1/like/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                console.log('즐겨찾기 해제:', response.data);
+            }
+        } catch(error) {
+            if (error.response) {
+              console.log('Error status:', error.response.status);
+              console.log('Error data:', error.response.data);
+              console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+              console.log('No response received:', error.request);
+            } else {
+              console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+          }
+    };
+    
 
+    // changeFavoriteState = (id) => {                 // 찜버튼 누르면 FavoriteState 상태 바꿔주는 함수
+    //     const PlacesState = this.state.places.map(place => {
+    //         if (place.id === id) {                 
+    //             return { ...place, favoriteState: !place.favoriteState };
+    //         }
+    //         return place;
+    //     });
+    //     this.setState({ places: PlacesState });
+    // };
+    
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+        this.getHouseListData();
+        });
+    }
 
     
     render() {
         
+ 
         const { searchText, modalVisible, places, filters } = this.state;           
 
         const searchChars = Hangul.disassemble(searchText);               // Hangul 모듈을 활용해 텍스트 분해              
         const filteredPlaces = places.filter(place => {                   // Hangul 모듈을 활용해 검색어와 숙소의 name, address값 같은게 있는지 비교
         return Hangul.search(place.name, searchText) >= 0 || Hangul.search(place.address, searchText) >= 0;     
-    }); 
+        }); 
         
         return (
             <LinearGradient
@@ -232,7 +332,7 @@ class SearchScreen extends Component {
                     <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
                         <Image source={place.imageUrl} style={styles.houseIMG}/>
                         <View style={styles.Info}>
-                            <Text style={styles.houseName}>{place.name}</Text>
+                            <Text style={styles.houseName}>{place.name}님의 거주지</Text>
                             <Text style={styles.houseAddress}>{place.address}</Text>
                             <View style={styles.houseReviewView}>
                                 <Image style={styles.reviewIcon} source={reviewIconIMG} />

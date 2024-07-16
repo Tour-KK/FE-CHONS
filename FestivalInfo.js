@@ -14,11 +14,28 @@ import mapIMG from './Image/지도_미리보기.png';
 class FestivalInfoScreen extends Component {
 
     state = {
-        festivals: [                                   // 목록에 띄울 주변 축제 컨텐츠들
-            { id: 1, name: "제주 민속촌 메밀꽃 축제", address:'제주민속촌', streetAddress: '제주도 서귀포시 표선면 민속해안로 631-34',  imageUrl: require('./Image/축제1.png'), homepages: "https://www.mcst.go.kr/kor/main.jsp", tel:'02-2602-8602', introText: "메밀꽃 축제기간에 민속촌을 방문하면 제주초가를 배경으로 새하얗게 만개한 메밀꽃을 만나 볼 수 있고, 페이스 페인팅과 삐에로 풍선 아트 공연도 진행"},
-            { id: 4, name: "부여서동연꽃축제", address:'충청남도 부여군',  streetAddress: '충남 부여군 부여읍 궁남로 52', imageUrl: require('./Image/축제3.png'), homepages: "https://www.mcst.go.kr/kor/main.jsp", tel:'02-2602-8602', introText: "선화공주와 백제무왕의 서동요 전설이 깃든 우리나라 최고(最古)의 인공연못 '궁남지'의 천만송이 연꽃을 배경으로 2024년 제22회 부여서동연꽃축제는 '사랑의 연, 서동과 선화의 만남'이라는 주제로 펼쳐지는 대한민국 여름대표 축제이다."},
-            { id: 2, name: "강주 해바라기 축제", address:'강주해바라기마을',  streetAddress: '경상남도 함안군 법수면 강주리 411', imageUrl: require('./Image/축제2.png'), homepages: "https://www.mcst.go.kr/kor/main.jsp", tel:'02-2602-8602',introText: "더 멋지게 돌아온 제12회 함안 강주해바라기 축제는 6월 26일부터 이어지는 축제로써 다채로운 행사와 아름다운 해바라기 꽃을 바라보면서 감성과 재미를 더 할 수 있다."},
-            { id: 3, name: "아침고요수목원 수국전시회", address:'아침고요수목원',  streetAddress: '경기도 가평군 상면 수목원로 432', imageUrl: require('./Image/축제4.png'), homepages: "https://www.mcst.go.kr/kor/main.jsp", tel:'02-2602-8602', introText: "미국수국, 넓은잎수국, 산수국, 떡갈잎수국 등 각양각색의 수국 약 200점을 선보이며 여름 수목원을 낭만적인 보랏빛 물결로 가득 채울 예정이다. 또한 수국 1,500분이 추가되어 지난해보다 풍성해진 포토존이 준비된다."},
+        places: [                                   // 목록에 띄울 주변 숙소 컨텐츠 데이터들 
+            { id: 1, 
+                name: "김갑순님의 거주지",
+                address:'강원도 속초시 신림면', 
+                reviewScore: "4.2", 
+                reviewCount: 48, 
+                imageUrl: require('./Image/여행지1.png'), 
+                favoriteState: true, 
+                price: 43000, 
+                reservaionState: false, 
+                clearReservation: false },
+        ],
+        
+        festivals: [                                   // 목록에 띄울 주변 축제 컨텐츠 데이터들
+            { id: 1,
+                name: "제주 민속촌 메밀꽃 축제", 
+                address:'제주민속촌', 
+                streetAddress: '제주도 서귀포시 표선면 민속해안로 631-34',  
+                imageUrl: require('./Image/축제1.png'), 
+                homepages: "https://www.mcst.go.kr/kor/main.jsp", 
+                tel:'02-2602-8602', 
+                introText: "메밀꽃 축제기간에 민속촌을 방문하면 제주초가를 배경으로 새하얗게 만개한 메밀꽃을 만나 볼 수 있고, 페이스 페인팅과 삐에로 풍선 아트 공연도 진행"},
         ],
     }
     

@@ -1,6 +1,9 @@
 import React, {Component} from 'react';
 import { Text, Image, } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getToken } from './token';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -55,7 +58,89 @@ const TabBarIcon = (focused, name)=>{
     )
 }
 
-MainScreen = () => {
+// const getHouseListData = async () =>{                      // axios를 활용한 api통신을 통해 서버로부터 숙소 리스트들을 불러오는 함수
+//     try{
+//         const token = await getToken();
+        
+//         const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list/user',{
+//             headers: {
+//                 'Authorization': `Bearer ${token}`
+//             }
+//         });
+//         console.log(response.data);
+        
+//         const data = response.data.map(item => ({
+//             id: item.id,
+//             name: item.hostName,
+//             address: item.address,
+//             price: item.pricePerNight,
+//             imageUrl: houseIMG1, 
+//             reviewScore: item.starAvg, // 서버 데이터에 따라 수정 필요
+//             reviewCount: item.reviewNum, // 서버 데이터에 따라 수정 필요
+//             favoriteState: item.liked, 
+//             reservationState: false, 
+//             clearReservation: false 
+//         }));
+
+//         this.setState({ places: data });
+
+//         } catch(error) {
+//             if (error.response) {
+//             console.log('Error status:', error.response.status);
+//             console.log('Error data:', error.response.data);
+//             console.log('Error headers:', error.response.headers);
+//             } else if (error.request) {
+//             console.log('No response received:', error.request);
+//             } else {
+//             console.log('Error message:', error.message);
+//             }
+//             console.log('Error config:', error.config);
+//         }
+// }
+
+// const getFavoriteData = async() => {                          // 즐겨찾기, 나의 예약현황 데이터 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
+//     try {
+//         const token = await getToken();
+
+//         const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list/like',{
+//             headers: { 'Authorization': `Bearer ${token}`}
+//         })
+
+//         const { id, hostName, houseIntroduction, freeService, facilityPhotos, 
+//             phoneNumber, pricePerNight, registrantId, address,
+//             region, maxNumPeople, starAvg, reviewNum, liked } = response.data;
+
+//             console.log(response.data)
+
+                        
+//         const houses = response.data.map(house => ({
+//             houseID: house.id, 
+//             name: house.hostName,
+//             houseAddress: house.address,
+//             reviewScore: house.starAvg,
+//             reviewCount: house.reviewNum,
+//             favoriteState: house.liked,
+//             price: house.pricePerNight,
+//             imageUrl: houseIMG1, 
+//         }));
+
+//         this.setState({ places: houses });
+
+//     } catch(error) {
+//         if (error.response) {
+//           console.log('Error status:', error.response.status);
+//           console.log('Error data:', error.response.data);
+//           console.log('Error headers:', error.response.headers);
+//         } else if (error.request) {
+//           console.log('No response received:', error.request);
+//         } else {
+//           console.log('Error message:', error.message);
+//         }
+//         console.log('Error config:', error.config);
+//       }
+// }
+
+MainScreen = () => {                                        // 메인 Tab 화면 stack 네비로 묶는 함수
     return (
             <Tab.Navigator 
             initialRouteName='Home'
@@ -80,12 +165,13 @@ MainScreen = () => {
             })}
             >
                 <Tab.Screen name="홈" component={HomeScreen} />
-                <Tab.Screen name="검색" component={SearchScreen}/>
+                <Tab.Screen name="검색" component={SearchScreen} />
                 <Tab.Screen name="찜목록" component={FavoriteListScreen} />
                 <Tab.Screen name="내정보" component={MyInfoScreen} />
             </Tab.Navigator>
     )
 }
+// listeners={{focus: () => {getHouseListData()}}}
 
 class App extends Component {
     render() {

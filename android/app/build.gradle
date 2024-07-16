@@ -105,9 +105,11 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    implementation 'com.google.android.gms:play-services-auth:20.1.0'
+    implementation ("com.google.android.gms:play-services-auth:20.1.0")
     implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation ("com.google.android.gms:play-services-maps:19.0.0")
+
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -116,9 +118,31 @@ dependencies {
     }
 }
 
+// secrets {
+//     // Optionally specify a different file name containing your secrets.
+//     // The plugin defaults to "local.properties"
+//     propertiesFileName = "secrets.properties"
+
+//     // A properties file containing default secret values. This file can be
+//     // checked in version control.
+//     defaultPropertiesFileName = "local.defaults.properties"
+
+//     // Configure which keys should be ignored by the plugin by providing regular expressions.
+//     // "sdk.dir" is ignored by default.
+//     ignoreList.add("keyToIgnore") // Ignore the key "keyToIgnore"
+//     ignoreList.add("sdk.*")       // Ignore all keys matching the regexp "sdk.*"
+// }
+        
+
 // plugins {
 //     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 // }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 apply plugin: 'com.google.gms.google-services'
+
+
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+def googleMapApiKey = properties.getProperty('google_map_api_key')

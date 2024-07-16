@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, Scrol
 import LinearGradient from 'react-native-linear-gradient';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
-import { getToken, refreshAccessToken } from './token';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getToken, getRefreshToken, refreshAccessToken } from './token';
 
 
 //이미지
@@ -49,26 +50,50 @@ class MyInfoModifyScreen extends Component {
                 console.log(`Name: ${name}, Email: ${email}, PhoneNum: ${phoneNum}`);
             }
 
-        }catch (error) {
-            if (error.response && error.response.status === 401) {              // 토큰 재발급 예외처리 후 다시 실행
-                try {
-                  const newToken = await refreshAccessToken();
-                  const response = await axios.get('http://223.130.131.166:8080/api/v1/user', {
-                    headers: {
-                      'Authorization': `Bearer ${newToken}`
-                    }
-                  });
-                  console.log('서버로부터 받은 데이터:', response.data);
-                  return response.data;
-                } catch (refreshError) {
-                  console.error('토큰 갱신 및 데이터 불러오기 실패:', refreshError);
-                }
-              } else {
-                console.error('데이터 불러오기 실패:', error);
-              }
-        }
+        } catch(error) {
+            if (error.response) {
+              console.log('Error status:', error.response.status);
+              console.log('Error data:', error.response.data);
+              console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+              console.log('No response received:', error.request);
+            } else {
+              console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+          }
     }
 
+    async logout() {
+        try {
+          const accessToken = await AsyncStorage.getItem('userToken');
+          const refreshToken = await AsyncStorage.getItem('refreshToken');
+      
+          const response = await axios.patch('http://223.130.131.166:8080/api/v1/auth/logout', {}, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Authorization-refresh': `Bearer ${refreshToken}` 
+            }
+          });
+          await AsyncStorage.removeItem('userToken');
+          await AsyncStorage.removeItem('refreshToken');
+      
+          console.log('로그아웃에 성공하였습니다.:', response.data);
+          this.props.navigation.navigate("로그인");
+      
+        } catch(error) {
+            if (error.response) {
+              console.log('Error status:', error.response.status);
+              console.log('Error data:', error.response.data);
+              console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+              console.log('No response received:', error.request);
+            } else {
+              console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+          }
+      }
 
     modifyImage = () => {                  // 이미지 수정하는 함수
 
@@ -86,6 +111,7 @@ class MyInfoModifyScreen extends Component {
             });
     };
 
+    
   render() {
     return (
         <LinearGradient
@@ -152,7 +178,7 @@ class MyInfoModifyScreen extends Component {
 
             </View>
             <View style={styles.logoutView}>
-                <TouchableOpacity onPress={() => this.props.navigation.navigate('홈')}>
+                <TouchableOpacity onPress={() => this.logout()}>
                     <Text style={styles.logoutText}> 로그아웃 </Text>
                 </TouchableOpacity>
             </View>

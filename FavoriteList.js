@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, ScrollView} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
-import {getToken, refreshToken} from './token'
+import { getToken } from './token';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -25,21 +25,16 @@ class FavoriteListScreen extends Component {
 
     state = {
         places: [                                   // 목록에 띄울 데이터들 관
-            { id: 1, name: "김갑순님의 거주지", address:'강원도 속초시 신림면', reviewScore: "4.2", reviewCount: 48, imageUrl: require('./Image/여행지1.png'), favoriteState: true, price: 43000, reservaionState: false, clearReservation: false },
-            { id: 2, name: "김경민님의 거주지", address:'강원도 원주시 신림면', reviewScore: "3.8", reviewCount: 23, imageUrl: require('./Image/여행지2.png'), favoriteState: true, price: 38000, reservaionState: false,  clearReservation: false },
-            { id: 3, name: "강진석님의 거주지", address:'강원도 철원군 동송읍', reviewScore: "4.0", reviewCount: 31, imageUrl: require('./Image/여행지3.png'), favoriteState: false, price: 88000, reservaionState: false,  clearReservation: false },
-            { id: 4, name: "오진태님의 거주지", address:'강원도 강릉시 옥계면',reviewScore: "4.4", reviewCount: 18, imageUrl: require('./Image/여행지4.png'), favoriteState: false, price: 26000, reservaionState: false,  clearReservation: false },
-            { id: 5, name: "박경숙님의 거주지", address: '경상남도 부산광역시 김해시 진영읍', reviewScore: "4.2", reviewCount: 66, imageUrl: require('./Image/여행지5.png'), favoriteState: false, price: 40000, reservaionState: false,  clearReservation: false },
-            { id: 7, name: "이창민님의 거주지", address:'경상남도 부산광역시 금정구 구서2동',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지6.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 9, name: "오경숙님의 거주지", address:'경상북도 울산광역시 울주군 둔기리', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지8.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 8, name: "양민우님의 거주지", address:'전라남도 전주시 덕진구', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지7.png'), favoriteState: true, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 10, name: "이정민님의 거주지", address:'경기도 화성시 남양읍', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지9.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 11, name: "박범석님의 거주지", address:'제주특별자치도 서귀포시 남원읍', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지10.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 12, name: "황진영님의 거주지", address:'전라남도 광주광역시 북구 오치1동', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지11.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 13, name: "박우석님의 거주지", address:'전라남도 나주시 영강동', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지12.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 14, name: "이현숙님의 거주지", address:'충천남도 공주시 우성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지13.png'), favoriteState: false, price: 54000, reservaionState: true,  clearReservation: true },
-            { id: 15, name: "황지석님의 거주지", address:'충천남도 아산시 신창면 남성리', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지14.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 16, name: "이미연님의 거주지", address:'충천남도 당진시 순성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지15.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
+            { houseID: 0, 
+                name: "", 
+                houseAddress:'', 
+                reviewScore: "", 
+                reviewCount: 0, 
+                imageUrl: houseIMG1, 
+                favoriteState: true, 
+                price: 0, 
+                reservaionState: false, 
+                clearReservation: true },
         ],
     };
 
@@ -49,75 +44,98 @@ class FavoriteListScreen extends Component {
         try {
             const token = await getToken();
     
-            const response = await axios.get('http://223.130.131.166:8080/api/v1/임시 url',{
+            const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list/like',{
                 headers: { 'Authorization': `Bearer ${token}`}
             })
     
-            if(response.data) {
-                const { id, name, address, reviewScore, reviewCount, imageUrl, favoriteState, price, reservaionState } = response.data;
+            const { id, hostName, houseIntroduction, freeService, facilityPhotos, 
+                phoneNumber, pricePerNight, registrantId, address,
+                region, maxNumPeople, starAvg, reviewNum, liked } = response.data;
 
-                this.setState({
-                  id: id, 
-                  name: name,
-                  address : address, 
-                  reviewScore : reviewScore,
-                  reviewCount : reviewCount,
-                  imageUrl : imageUrl,
-                  favoriteState : favoriteState,
-                  price : price,
-                  reservaionState: reservaionState,
-              });
-            }
+                console.log(response.data)
+
+                            
+            const houses = response.data.map(house => ({
+                houseID: house.id, 
+                name: house.hostName,
+                houseAddress: house.address,
+                reviewScore: house.starAvg,
+                reviewCount: house.reviewNum,
+                favoriteState: house.liked,
+                price: house.pricePerNight,
+                imageUrl: houseIMG1, 
+            }));
+
+            this.setState({ places: houses });
+
         } catch(error) {
-            if (error.response && error.response.status === 401) {              // 토큰 재발급 예외처리 후 다시 실행
-                try {
-                  const newToken = await refreshAccessToken();
-                  const response = await axios.get('http://223.130.131.166:8080/api/v1/임시 rul', {
-                    headers: {
-                      'Authorization': `Bearer ${newToken}`
-                    }
-                  });
-                  const { id, name, address, reviewScore, reviewCount, imageUrl, favoriteState, price, reservaionState } = response.data;
-
-                  this.setState({
-                    id: id, 
-                    name: name,
-                    address : address, 
-                    reviewScore : reviewScore,
-                    reviewCount : reviewCount,
-                    imageUrl : imageUrl,
-                    favoriteState : favoriteState,
-                    price : price,
-                    reservaionState: reservaionState,
-                });
-
-                  console.log('서버로부터 받은 데이터:', response.data);
-                  return response.data;
-                } catch (refreshError) {
-                  console.error('토큰 갱신 및 데이터 불러오기 실패:', refreshError);
-                }
-              } else {
-                console.error('데이터 불러오기 실패:', error);
-              }
-        }
+            if (error.response) {
+              console.log('Error status:', error.response.status);
+              console.log('Error data:', error.response.data);
+              console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+              console.log('No response received:', error.request);
+            } else {
+              console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+          }
     }
 
-    changeFavoriteState = (id) => {                 // 찜버튼 누르면 FavoriteState 상태 바꿔주는 함수
-        const PlacesState = this.state.places.map(place => {
-            if (place.id === id) {                  // 고유 id로 해당 숙소만 판별하여 찜버튼 해제
+    
+
+    changeFavoriteState = async (houseID) => {              // 즐겨찾기시 체크표시후 서버 api로 상태보내기
+        const updatedPlaces = this.state.places.map(place => {
+            if (place.houseID === houseID) {
                 return { ...place, favoriteState: !place.favoriteState };
             }
             return place;
         });
-        this.setState({ places: PlacesState });
+    
+        this.setState({ places: updatedPlaces });
+    
+        const currentPlace = updatedPlaces.find(place => place.houseID === houseID);
+        
+        try {
+            const token = await getToken();  
+            
+            if (currentPlace.favoriteState) {
+                const response = await axios.post(`http://223.130.131.166:8080/api/v1/like/${houseID}`, {}, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                console.log('즐겨찾기 추가:', response.data);
+            } else {
+                const response = await axios.delete(`http://223.130.131.166:8080/api/v1/like/${houseID}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                console.log('즐겨찾기 해제:', response.data);
+            }
+        } catch(error) {
+            if (error.response) {
+              console.log('Error status:', error.response.status);
+              console.log('Error data:', error.response.data);
+              console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+              console.log('No response received:', error.request);
+            } else {
+              console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+          }
     };
+    
+    
 
-
-      
     placeInfoDelivery = (houseId) => {             // 숙소 컨텐츠 클릭시 해당 숙소 정보를 같이 보내 숙소정보화면으로 이동
         this.props.navigation.navigate('숙소정보', { houseId: houseId });
     }
     
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+        this.getFavoriteData();
+        });
+    }
+
     
     render() {
         let ReservationText = '예약완료' 
@@ -131,43 +149,45 @@ class FavoriteListScreen extends Component {
         end={{ x: 0, y: 0}} >
             <ScrollView style={styles.background} showsVerticalScrollIndicator={false}>
             <View style={styles.container}>
-                <View style={styles.tabBar}>
+                <View style={styles.tabBar}>            
                     <TouchableOpacity style={styles.backBtn} onPress={() => this.props.navigation.navigate('홈')}>
                         <Image style={styles.backBtnIcon} source={backBtnIMG}/>  
                     </TouchableOpacity>
                     <Text style={styles.myFavoriteListText}> 내가 찜한 숙소 </Text>
                 </View>
-
+               
                 {this.state.places.filter(place => place.favoriteState).map((place) => (
-                <TouchableOpacity style={styles.content} onPress={() => this.placeInfoDelivery(place.id)} >
-                    <Image source={place.imageUrl} style={styles.houseIMG}/>
-                    <View key={place.id} style={styles.Info}>
-                        <View style={styles.Info}>
-                            <Text style={styles.houseName}>{place.name}</Text>
-                            <Text style={styles.houseAddress}>{place.address}</Text>
-                            <View style={styles.houseReviewView}>
-                                <Image style={styles.reviewIcon} source={reviewIconIMG} />
-                                <Text style={styles.houseReview}>{place.reviewScore}</Text>
-                                <Text style={styles.houseReview}>({place.reviewCount})</Text>
+                        <TouchableOpacity key={place.houseID} style={styles.content} onPress={() => this.placeInfoDelivery(place.houseID)}>
+                            <Image source={place.imageUrl} style={styles.houseIMG}/>
+                            <View style={styles.Info}>
+                                <Text style={styles.houseName}>{place.name}님의 거주지</Text>
+                                <Text style={styles.houseAddress}>{place.houseAddress}</Text>
+                                <View style={styles.houseReviewView}>
+                                    <Image style={styles.reviewIcon} source={reviewIconIMG} />
+                                    <Text style={styles.houseReview}>{place.reviewScore}</Text>
+                                    <Text style={styles.houseReview}>({place.reviewCount})</Text>
+                                </View>
+                                <Text style={styles.housePrice}>₩{place.price}원</Text>
                             </View>
-                            <Text style={styles.housePrice}>₩{place.price}원</Text>
-                        </View>
-                    </View>
-                    <TouchableOpacity onPress={() => this.changeFavoriteState(place.id)}>
-                        <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
-                    </TouchableOpacity>
-                </TouchableOpacity>
-                ))}
+                            <TouchableOpacity onPress={() => this.changeFavoriteState(place.houseID)}>
+                                <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
+                            </TouchableOpacity>
+                        </TouchableOpacity>
+                    ))}
 
-                    <Text style={styles.myReservationListText}> 나의 예약 현황 </Text>
+                    {
+                        this.state.places.filter(place => place.reservaionState).length > 0 && (
+                            <Text style={styles.myReservationListText}> 나의 예약 현황 </Text>
+                        )
+                    }
             
                     {this.state.places.filter(place => place.reservaionState).map((place) => (
-                    <TouchableOpacity style={styles.content} onPress={() => this.placeInfoDelivery(place.id)} >
+                    <TouchableOpacity style={styles.content} onPress={() => this.placeInfoDelivery(place.houseID)} >
                         <Image source={place.imageUrl} style={styles.houseIMG}/>
-                        <View key={place.id} style={styles.Info}>
+                        <View key={place.houseID} style={styles.Info}>
                             <View style={styles.Info}>
                                 <Text style={styles.houseName}>{place.name}</Text>
-                                <Text style={styles.houseAddress}>{place.address}</Text>
+                                <Text style={styles.houseAddress}>{place.houseAddress}</Text>
                                 <View style={styles.houseReviewView}>
                                     <Image style={styles.reviewIcon} source={reviewIconIMG} />
                                     <Text style={styles.houseReview}>{place.reviewScore}</Text>
@@ -177,7 +197,7 @@ class FavoriteListScreen extends Component {
                                 <Text style={styles.reservationStateText}> {(place.clearReservation) ? ReservationText : NoReservationText }</Text>
                             </View>
                         </View>
-                        <TouchableOpacity onPress={() => this.changeFavoriteState(place.id)}>
+                        <TouchableOpacity onPress={() => this.changeFavoriteState(place.houseID)}>
                             <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
                         </TouchableOpacity>
                     </TouchableOpacity>

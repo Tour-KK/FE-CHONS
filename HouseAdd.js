@@ -2,6 +2,9 @@ import React, {Component, useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getToken } from './token'
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -20,13 +23,17 @@ import houseIMG9 from './Image/여행지9.png';
 class HouseAddScreen extends Component {
     state = {
         hostName: '', 
-        phoneNumber: '',
-        maximumGuestNumber: '',
-        streetAddress: '',
-        price: '',
-        freeService: '',
         introText: '',
+        freeService: '',
+        houseIMG: [],
         address: '',
+        phoneNumber: '',
+        price: '',
+        maximumGuestNumber: '',
+        imageUri: null,
+        imageType: null, 
+        imageName: null,
+        // streetAddress: '아직 전달 못 받음',
         editHostNameState: false,
         editPhoneNumberState: false,
         editStreetAddressState: false,
@@ -34,8 +41,8 @@ class HouseAddScreen extends Component {
         editPriceState: false,
         editFreeServiceState: false,
         editIntroTextState: false,
-        houseIMG: houseAddIMG,
       };
+
     
     changeHostName = (inputText) => {
         this.setState({ hostName: inputText });
@@ -86,29 +93,118 @@ class HouseAddScreen extends Component {
         this.setState(prevState => ({ editIntroTextState: !prevState.editIntroTextState }));
     };
 
+  // const dto = {
+            //     hostName: hostName,
+            //     houseIntroduction: introText,
+            //     freeService: freeService,
+            //     phoneNumber: phoneNumber,
+            //     registrantId: 1,
+            //     pricePerNight: Number(price.replace(/\D/g, '')),
+            //     address: address,
+            //     maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
+            // };
+    
+            // const formData = new FormData();
+            // formData.append('dto', JSON.stringify(dto));
+           
+            // if (Array.isArray(houseIMG) && houseIMG.length > 0) {
+            //     forEach((houseIMG, index) => {
+            //         formData.append('photos', {
+            //             uri: houseIMG.uri,
+            //             type: houseIMG.type || 'image/jpeg',
+            //             name: houseIMG.fileName || `photo_${index}.jpg`
+            //         });
+            //     });
+            // } 
+            // else if (houseIMG.uri) {
+            //             formData.append('photos', {
+            // uri: houseIMG.uri,
+            // type: houseIMG.type || 'image/jpeg',
+            // name: houseIMG.fileName || 'photo.jpg'
+            //             });
+            // }
 
-    // addImage = () => {
-    //     launchImageLibrary({}, response=>{
-    //         const source = { uri: response.uri }
-    //         this.setState({ houseIMG: source })
-    //     });
-    // }
+    async postHouseData()  {                          // 모든 숙소 정보 리스트 데이터 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
+        try {
+            const {
+                hostName,     
+                introText,
+                phoneNumber,
+                freeService,
+                price,
+                address,
+                maximumGuestNumber,
+            } = this.state;
+          
+            const {imageUri, imageType, imageName} = this.state;
+
+            const dto = { 
+                hostName: hostName,
+                houseIntroduction: introText,
+                freeService: freeService,
+                phoneNumber: phoneNumber,
+                registrantId: 1,
+                pricePerNight: Number(price.replace(/\D/g, '')),
+                address: address,
+                maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
+            };
+            const formData = new FormData();
+            formData.append('dto', JSON.stringify(dto));
+            if (imageUri) {
+              formData.append('photos', {
+                uri: imageUri,
+                type: imageType,
+                name: imageName,
+              });
+            }
+
+            const token = await getToken();
+            
+            const response = await axios.post('http://223.130.131.166:8080/api/v1/house', formData ,{
+                headers: { 'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+            },
+            })
+            
+            console.log(response.data);
+            this.props.navigation.navigate('검색', { refresh: true });
+
+        } catch(error) {
+            if (error.response) {
+              console.log('Error status:', error.response.status);
+              console.log('Error data:', error.response.data);
+              console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+              console.log('No response received:', error.request);
+            } else {
+              console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+          }
+    }
 
     addImage = () => {
 
-        launchImageLibrary({}, response => {
+        launchImageLibrary({mediaType: 'photo'}, response => {
                 if (response.didCancel) {
-                    console.log('User cancelled image picker');
+                    console.log('사용자가 ImagaPicker를 취소했습니다.');
                 } else if (response.error) {
-                    console.log('ImagePicker Error: ', response.error);
+                    console.log('ImagePicker내에서 에러가 발생했습니다: ', response.error);
                 } else if (response.customButton) {
-                    console.log('User tapped custom button: ', response.customButton);
+                    console.log('사용자가 커스텀버튼을 눌렀습니다: ', response.customButton);
                 } else {
-                    const source = { uri: response.assets[0].uri };
-                    this.setState({ houseIMG: source });
+                    const source = { uri: response.assets[0]};
+                    this.setState({
+                        imageUri: source.uri,
+                        imageType: source.type,
+                        imageName: source.fileName,
+                    });
+
                 }
             });
     };
+
+
     
 render() {
 
@@ -173,7 +269,7 @@ render() {
                     </View>
                     {editPriceState?
                         ( <TextInput style={styles.hostInfoText} onChangeText={this.changePrice} placeholder="ex) 34000원" placeholderTextColor="#B1B1B1" editable={editPriceState}>{price}</TextInput>)
-                        :( <TextInput style={styles.hostInfoText} onChangeText={this.changePrice} placeholder="숙소의 가격을 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editPriceState}>{price}</TextInput>) 
+                        :( <TextInput style={styles.hostInfoText} onChangeText={this.changePrice} placeholder="숙소의 1박 가격을 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editPriceState}>{price}</TextInput>) 
                     }
                   
                     <View style={styles.hostNameInfoView}>
@@ -186,10 +282,10 @@ render() {
                         ( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="ex) 강원도 속초시 신림면 (일반 주소)" placeholderTextColor="#B1B1B1" editable={editStreetAddressState}>{address}</TextInput>)
                         :( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="주소를 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editStreetAddressState}>{address}</TextInput>) 
                     }
-                    {editStreetAddressState?
+                    {/* {editStreetAddressState?
                         ( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeStreetAddress} placeholder="ex) 강원도 원주시 신림면 치악로 28 (도로명)" placeholderTextColor="#B1B1B1" editable={editStreetAddressState}>{streetAddress}</TextInput>)
                         :( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeStreetAddress} placeholder="도로명 주소를 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editStreetAddressState}>{streetAddress}</TextInput>) 
-                    }
+                    } */}
                    <Image style={styles.locationMap} source={mapIMG}></Image>
 
                    <View style={styles.hostNameInfoView}>
@@ -202,7 +298,7 @@ render() {
                         <ScrollView style={styles.addHouseIMGView}  
                             showsHorizontalScrollIndicator={false}  
                             horizontal={true}>
-                        <Image style={styles.houseIMG} source={this.state.houseIMG} />
+                        <Image style={styles.houseIMG} source={this.state.imageUri} />
                         </ScrollView>
                     </View>
                  
@@ -251,7 +347,7 @@ render() {
                     <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
                 </View>
 
-                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.props.navigation.goBack()}>
+                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postHouseData()}>
                     <Text style={styles.reservationBtnText}> 숙소 등록하기</Text>
                 </TouchableOpacity>
 
