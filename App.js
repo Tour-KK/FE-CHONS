@@ -1,9 +1,7 @@
 import React, {Component} from 'react';
 import { Text, Image, } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getToken } from './token';
+
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -87,7 +85,6 @@ MainScreen = () => {                                        // 메인 Tab 화면
             </Tab.Navigator>
     )
 }
-// listeners={{focus: () => {getHouseListData()}}}
 
 class App extends Component {
     render() {
