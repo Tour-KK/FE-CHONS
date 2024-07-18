@@ -5,6 +5,7 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getToken } from './token'
+import RNFS from 'react-native-fs';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -20,6 +21,7 @@ import houseIMG7 from './Image/여행지7.png';
 import houseIMG8 from './Image/여행지8.png';
 import houseIMG9 from './Image/여행지9.png';
 
+
 class HouseAddScreen extends Component {
     state = {
         hostName: '', 
@@ -30,7 +32,7 @@ class HouseAddScreen extends Component {
         phoneNumber: '',
         price: '',
         maximumGuestNumber: '',
-        imageUri: null,
+        imageUri: houseIMG2,
         imageType: null, 
         imageName: null,
         // streetAddress: '아직 전달 못 받음',
@@ -93,36 +95,29 @@ class HouseAddScreen extends Component {
         this.setState(prevState => ({ editIntroTextState: !prevState.editIntroTextState }));
     };
 
-  // const dto = {
-            //     hostName: hostName,
-            //     houseIntroduction: introText,
-            //     freeService: freeService,
-            //     phoneNumber: phoneNumber,
-            //     registrantId: 1,
-            //     pricePerNight: Number(price.replace(/\D/g, '')),
-            //     address: address,
-            //     maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
-            // };
+    async saveImageToFileSystem(imageUri) {
+        try {
+            const response = await fetch(imageUri);
+            const blob = await response.blob();
     
-            // const formData = new FormData();
-            // formData.append('dto', JSON.stringify(dto));
-           
-            // if (Array.isArray(houseIMG) && houseIMG.length > 0) {
-            //     forEach((houseIMG, index) => {
-            //         formData.append('photos', {
-            //             uri: houseIMG.uri,
-            //             type: houseIMG.type || 'image/jpeg',
-            //             name: houseIMG.fileName || `photo_${index}.jpg`
-            //         });
-            //     });
-            // } 
-            // else if (houseIMG.uri) {
-            //             formData.append('photos', {
-            // uri: houseIMG.uri,
-            // type: houseIMG.type || 'image/jpeg',
-            // name: houseIMG.fileName || 'photo.jpg'
-            //             });
-            // }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const filePath = `${RNFS.DocumentDirectoryPath}/savedImage.jpg`;
+    
+                RNFS.writeFile(filePath, reader.result, 'base64')
+                    .then(() => {
+                        console.log(`File written to ${filePath}`);
+                    })
+                    .catch(err => {
+                        console.error('Error saving file:', err);
+                    });
+            };
+            reader.readAsDataURL(blob);
+        } catch (error) {
+            console.error('Error fetching image:', error);
+        }
+    }
+
 
     async postHouseData()  {                          // 모든 숙소 정보 리스트 데이터 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
         try {
@@ -138,6 +133,8 @@ class HouseAddScreen extends Component {
           
             const {imageUri, imageType, imageName} = this.state;
 
+            const formData = new FormData();
+
             const dto = { 
                 hostName: hostName,
                 houseIntroduction: introText,
@@ -148,14 +145,17 @@ class HouseAddScreen extends Component {
                 address: address,
                 maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
             };
-            const formData = new FormData();
+
             formData.append('dto', JSON.stringify(dto));
+
             if (imageUri) {
-              formData.append('photos', {
-                uri: imageUri,
-                type: imageType,
-                name: imageName,
-              });
+                const response = await fetch(imageUri);
+                const blob = await response.blob();
+                
+                formData.append('photos', blob, {
+                    type: imageType || 'image/jpeg', 
+                    name: imageName || 'photo.jpg'
+                });
             }
 
             const token = await getToken();
@@ -170,17 +170,17 @@ class HouseAddScreen extends Component {
             this.props.navigation.navigate('검색', { refresh: true });
 
         } catch(error) {
+            console.log('Error caught in postHouseData:', error);
             if (error.response) {
-              console.log('Error status:', error.response.status);
-              console.log('Error data:', error.response.data);
-              console.log('Error headers:', error.response.headers);
+                console.log('Error status:', error.response.status);
+                console.log('Error data:', error.response.data);
+                console.log('Error headers:', error.response.headers);
             } else if (error.request) {
-              console.log('No response received:', error.request);
+                console.log('Request that triggered error:', error.request);
             } else {
-              console.log('Error message:', error.message);
+                console.log('Error message:', error.message);
             }
-            console.log('Error config:', error.config);
-          }
+        }
     }
 
     addImage = () => {
@@ -202,6 +202,7 @@ class HouseAddScreen extends Component {
 
                 }
             });
+        saveImageToFileSystem();
     };
 
 
