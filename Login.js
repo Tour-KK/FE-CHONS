@@ -31,7 +31,7 @@ class LoginScreen extends Component {
           birthDay: "0712",
           phoneNum: "010-1234-5678",
       });
-      console.log('제대로 보내졌나:', response.data);  
+      console.log('제대로 보내졌나? 응답 메세지:', response.data);  
 
       const { accessToken, refreshToken } = response.data;
       await setToken(accessToken, refreshToken);
@@ -41,6 +41,7 @@ class LoginScreen extends Component {
       console.error('응답실패:', error.response ? error.response.data : error.message);  
     }
   }
+
 
 
 

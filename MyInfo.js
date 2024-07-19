@@ -39,7 +39,7 @@ class MyInfoScreen extends Component {
                      email: email,
                      phoneNum : phoneNum, 
                     });
-                console.log(`Name: ${name}, Email: ${email}, PhoneNum: ${phoneNum}`);
+                    console.log('응답받은 데이터:', response.data);
             }
 
         }catch (error) {
@@ -51,7 +51,7 @@ class MyInfoScreen extends Component {
                       'Authorization': `Bearer ${newToken}`
                     }
                   });
-                  console.log('서버로부터 받은 데이터:', response.data);
+                  console.log('응답받은 데이터:', response.data);
                   return response.data;
                 } catch (refreshError) {
                   console.error('토큰 갱신 및 데이터 불러오기 실패:', refreshError);
@@ -61,7 +61,6 @@ class MyInfoScreen extends Component {
               }
         }
     }
-
 
 
 

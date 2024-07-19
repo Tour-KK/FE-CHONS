@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
         width: '48%',
         fontSize: 22,
         marginLeft: '3.3%',
-        color: '#7E7E7E',
+        color: '#777777',
         // fontWeight: 'bold',
         textAlign: 'right',
         // backgroundColor: 'yellow',

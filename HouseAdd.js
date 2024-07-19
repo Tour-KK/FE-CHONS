@@ -27,7 +27,6 @@ class HouseAddScreen extends Component {
         hostName: '', 
         introText: '',
         freeService: '',
-        houseIMG: [],
         address: '',
         phoneNumber: '',
         price: '',
@@ -35,7 +34,6 @@ class HouseAddScreen extends Component {
         imageUri: houseIMG2,
         imageType: null, 
         imageName: null,
-        // streetAddress: '아직 전달 못 받음',
         editHostNameState: false,
         editPhoneNumberState: false,
         editStreetAddressState: false,
@@ -43,9 +41,127 @@ class HouseAddScreen extends Component {
         editPriceState: false,
         editFreeServiceState: false,
         editIntroTextState: false,
+        // streetAddress: '아직 전달 못 받음',
       };
-
+      
+      //////////////////////////////////////////////////////////////   
+    async saveImageToFileSystem(imageUri) {
+        try {
+            const response = await fetch(imageUri);
+            const blob = await response.blob();
     
+            const reader = new FileReader();
+            reader.onload = () => {
+                const filePath = `${RNFS.DocumentDirectoryPath}/savedImage.jpg`;
+    
+                RNFS.writeFile(filePath, reader.result, 'base64')
+                    .then(() => {
+                        console.log(`File written to ${filePath}`);
+                    })
+                    .catch(err => {
+                        console.error('Error saving file:', err);
+                    });
+            };
+            reader.readAsDataURL(blob);
+        } catch (error) {
+            console.error('Error fetching image:', error);
+        }
+    }
+
+//////////////////////////////////////////////////////////////   
+    async postHouseData()  {                          // 모든 숙소 정보 리스트 데이터 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
+        try {
+            const {
+                hostName,     
+                introText,
+                phoneNumber,
+                freeService,
+                price,
+                address,
+                maximumGuestNumber,
+                imageUri,
+                imageType,
+                imageName,
+            } = this.state;
+    
+            const formData = new FormData();
+    
+            const dto = { 
+                hostName: hostName,
+                houseIntroduction: introText,
+                freeService: freeService,
+                phoneNumber: phoneNumber,
+                registrantId: 1,
+                pricePerNight: Number(price.replace(/\D/g, '')),
+                address: address,
+                maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
+            };
+    
+            formData.append('dto', JSON.stringify(dto));
+
+            formData.append('photos', {
+                uri: imageUri,
+                type: imageType,
+                name: imageName,
+            });
+
+            const token = await getToken();
+            
+            const response = await axios({
+                method: "POST",
+                url: "http://223.130.131.166:8080/api/v1/house",
+                data: formData,
+                headers: {
+                    // 'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
+            
+            console.log(response.data);
+            this.props.navigation.navigate('검색', { refresh: true });
+
+        } catch(error) {
+            console.log('숙소 데이터 보내는 도중 에러발생: ', error);
+            if (error.response) {
+                console.log('Error status:', error.response.status);
+                console.log('Error data:', error.response.data);
+                console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+                console.log('Request that triggered error:', error.request);
+            } else {
+                console.log('Error message:', error.message);
+            }
+        }
+    }
+
+//////////////////////////////////////////////////////////////   
+    addImage = () => {
+
+        launchImageLibrary({mediaType: 'photo'}, response => {
+                if (response.didCancel) {
+                    console.log('사용자가 ImagaPicker를 취소했습니다.');
+                } else if (response.error) {
+                    console.log('ImagePicker내에서 에러가 발생했습니다: ', response.error);
+                } else if (response.customButton) {
+                    console.log('사용자가 custom버튼을 눌렀습니다: ', response.customButton);
+                } else {
+
+                    const { uri, type, fileName } = response.assets[0];
+                    this.setState({
+                        imageUri: uri,
+                        imageType: type,
+                        imageName: fileName,
+                    }, () => {
+                        console.log(`Uri: ${this.state.imageUri}, Type: ${this.state.imageType}, Name: ${this.state.imageName}`);
+                    });
+                    
+                }
+            });
+        // saveImageToFileSystem();
+    };
+
+
+//////////////////////////////////////////////////////////////    
     changeHostName = (inputText) => {
         this.setState({ hostName: inputText });
     };
@@ -71,8 +187,8 @@ class HouseAddScreen extends Component {
         this.setState({ introText: inputText });
     };
     
-
-
+    
+//////////////////////////////////////////////////////////////   
     editHostnameText = () => {
         this.setState(prevState => ({ editHostNameState: !prevState.editHostNameState }));
     };
@@ -94,124 +210,12 @@ class HouseAddScreen extends Component {
     editIntroText = () => {
         this.setState(prevState => ({ editIntroTextState: !prevState.editIntroTextState }));
     };
-
-    async saveImageToFileSystem(imageUri) {
-        try {
-            const response = await fetch(imageUri);
-            const blob = await response.blob();
     
-            const reader = new FileReader();
-            reader.onload = () => {
-                const filePath = `${RNFS.DocumentDirectoryPath}/savedImage.jpg`;
-    
-                RNFS.writeFile(filePath, reader.result, 'base64')
-                    .then(() => {
-                        console.log(`File written to ${filePath}`);
-                    })
-                    .catch(err => {
-                        console.error('Error saving file:', err);
-                    });
-            };
-            reader.readAsDataURL(blob);
-        } catch (error) {
-            console.error('Error fetching image:', error);
-        }
-    }
-
-
-    async postHouseData()  {                          // 모든 숙소 정보 리스트 데이터 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
-        try {
-            const {
-                hostName,     
-                introText,
-                phoneNumber,
-                freeService,
-                price,
-                address,
-                maximumGuestNumber,
-            } = this.state;
-          
-            const {imageUri, imageType, imageName} = this.state;
-
-            const formData = new FormData();
-
-            const dto = { 
-                hostName: hostName,
-                houseIntroduction: introText,
-                freeService: freeService,
-                phoneNumber: phoneNumber,
-                registrantId: 1,
-                pricePerNight: Number(price.replace(/\D/g, '')),
-                address: address,
-                maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
-            };
-
-            formData.append('dto', JSON.stringify(dto));
-
-            if (imageUri) {
-                const response = await fetch(imageUri);
-                const blob = await response.blob();
-                
-                formData.append('photos', blob, {
-                    type: imageType || 'image/jpeg', 
-                    name: imageName || 'photo.jpg'
-                });
-            }
-
-            const token = await getToken();
-            
-            const response = await axios.post('http://223.130.131.166:8080/api/v1/house', formData ,{
-                headers: { 'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data'
-            },
-            })
-            
-            console.log(response.data);
-            this.props.navigation.navigate('검색', { refresh: true });
-
-        } catch(error) {
-            console.log('Error caught in postHouseData:', error);
-            if (error.response) {
-                console.log('Error status:', error.response.status);
-                console.log('Error data:', error.response.data);
-                console.log('Error headers:', error.response.headers);
-            } else if (error.request) {
-                console.log('Request that triggered error:', error.request);
-            } else {
-                console.log('Error message:', error.message);
-            }
-        }
-    }
-
-    addImage = () => {
-
-        launchImageLibrary({mediaType: 'photo'}, response => {
-                if (response.didCancel) {
-                    console.log('사용자가 ImagaPicker를 취소했습니다.');
-                } else if (response.error) {
-                    console.log('ImagePicker내에서 에러가 발생했습니다: ', response.error);
-                } else if (response.customButton) {
-                    console.log('사용자가 커스텀버튼을 눌렀습니다: ', response.customButton);
-                } else {
-                    const source = { uri: response.assets[0]};
-                    this.setState({
-                        imageUri: source.uri,
-                        imageType: source.type,
-                        imageName: source.fileName,
-                    });
-
-                }
-            });
-        saveImageToFileSystem();
-    };
-
-
     
 render() {
 
-    const { hostName, editHostNameState, phoneNumber, editPhoneNumberState, address, houseIMG,
-        streetAddress, editStreetAddressState, maximumGuestNumber, editMaximumGuestNumberState, 
-        price, editPriceState, freeService, editFreeServiceState, introText, editIntroTextState } = this.state;
+    const { hostName, editHostNameState, phoneNumber, editPhoneNumberState, address, editStreetAddressState,  maximumGuestNumber, 
+        editMaximumGuestNumberState, price, editPriceState, freeService, editFreeServiceState, introText, editIntroTextState } = this.state;
 
     return (
         <LinearGradient
@@ -299,7 +303,14 @@ render() {
                         <ScrollView style={styles.addHouseIMGView}  
                             showsHorizontalScrollIndicator={false}  
                             horizontal={true}>
-                        <Image style={styles.houseIMG} source={this.state.imageUri} />
+                      {this.state.imageUri && typeof this.state.imageUri === 'string' ? (
+                            <Image 
+                                style={styles.houseIMG} 
+                                source={{ uri: this.state.imageUri }}
+                            />
+                            ) : (
+                            <Text>이미지가 아직 로드되지 않았습니다.</Text>
+                        )}
                         </ScrollView>
                     </View>
                  
