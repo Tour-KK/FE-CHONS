@@ -36,7 +36,8 @@ class LoginScreen extends Component {
       const { accessToken, refreshToken } = response.data;
       await setToken(accessToken, refreshToken);
 
-      this.props.navigation.navigate('메인');
+      // this.props.navigation.navigate('메인');
+      this.props.navigation.navigate('테스트');
     } catch (error) {
       console.error('응답실패:', error.response ? error.response.data : error.message);  
     }

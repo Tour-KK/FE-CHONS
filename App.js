@@ -23,6 +23,7 @@ import ReviewAddScreen from './ReviewAdd';
 import ReviewModifyScreen from './ReviewModify';
 import HomeSearchScreen from './HomeSearch';
 import FestivalInfoScreen from './FestivalInfo';
+import AxiosTestScreen from './AxiosTest';
 
 
 
@@ -104,6 +105,7 @@ class App extends Component {
                     <Stack.Screen name="숙소등록" component={HouseAddScreen} />
                     <Stack.Screen name="숙소정보수정" component={HouseInfoModifyScreen} />
                     <Stack.Screen name="축제정보" component={FestivalInfoScreen} />
+                    <Stack.Screen name="테스트" component={AxiosTestScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
             </SafeAreaProvider>

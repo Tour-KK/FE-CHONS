@@ -31,7 +31,7 @@ class HouseAddScreen extends Component {
         phoneNumber: '',
         price: '',
         maximumGuestNumber: '',
-        imageUri: houseIMG2,
+        imageUri: [],
         imageType: null, 
         imageName: null,
         editHostNameState: false,
@@ -45,28 +45,28 @@ class HouseAddScreen extends Component {
       };
       
       //////////////////////////////////////////////////////////////   
-    async saveImageToFileSystem(imageUri) {
-        try {
-            const response = await fetch(imageUri);
-            const blob = await response.blob();
+    // async saveImageToFileSystem(imageUri) {
+    //     try {
+    //         const response = await fetch(imageUri);
+    //         const blob = await response.blob();
     
-            const reader = new FileReader();
-            reader.onload = () => {
-                const filePath = `${RNFS.DocumentDirectoryPath}/savedImage.jpg`;
+    //         const reader = new FileReader();
+    //         reader.onload = () => {
+    //             const filePath = `${RNFS.DocumentDirectoryPath}/savedImage.jpg`;
     
-                RNFS.writeFile(filePath, reader.result, 'base64')
-                    .then(() => {
-                        console.log(`File written to ${filePath}`);
-                    })
-                    .catch(err => {
-                        console.error('Error saving file:', err);
-                    });
-            };
-            reader.readAsDataURL(blob);
-        } catch (error) {
-            console.error('Error fetching image:', error);
-        }
-    }
+    //             RNFS.writeFile(filePath, reader.result, 'base64')
+    //                 .then(() => {
+    //                     console.log(`File written to ${filePath}`);
+    //                 })
+    //                 .catch(err => {
+    //                     console.error('Error saving file:', err);
+    //                 });
+    //         };
+    //         reader.readAsDataURL(blob);
+    //     } catch (error) {
+    //         console.error('Error fetching image:', error);
+    //     }
+    // }
 
 //////////////////////////////////////////////////////////////   
     async postHouseData()  {                          // 모든 숙소 정보 리스트 데이터 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
@@ -99,11 +99,33 @@ class HouseAddScreen extends Component {
     
             formData.append('dto', JSON.stringify(dto));
 
-            formData.append('photos', {
-                uri: imageUri,
-                type: imageType,
-                name: imageName,
+///////////////////
+            this.state.imageUri.forEach((filePath, index) => {
+                formData.append('photos', {
+                    uri: `file://${filePath}`,
+                    name: this.state.imageName || `image_${index}.jpg`,
+                    type: this.state.imageType || 'image/jpeg',
+                });
             });
+
+            // if (Array.isArray(imageUri)) {
+            //     imageUri.forEach((uri, index) => {
+            //         formData.append('photos', {
+            //             uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
+            //             name: imageName || `image_${index}.jpg`,
+            //             type: imageType || 'image/jpeg',
+            //         });
+            //     });
+            // } else {
+            //     console.error('imageUri가 배열이 아니자나~~!!');
+            // }
+
+
+            // formData.append('photos', {
+            //     uri: imageUri,
+            //     type: imageType,
+            //     name: imageName,
+            // });
 
             const token = await getToken();
             
@@ -112,7 +134,7 @@ class HouseAddScreen extends Component {
                 url: "http://223.130.131.166:8080/api/v1/house",
                 data: formData,
                 headers: {
-                    // 'Content-Type': 'multipart/form-data',
+                    'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`,
                 },
             })
@@ -135,30 +157,58 @@ class HouseAddScreen extends Component {
     }
 
 //////////////////////////////////////////////////////////////   
+
     addImage = () => {
-
         launchImageLibrary({mediaType: 'photo'}, response => {
-                if (response.didCancel) {
-                    console.log('사용자가 ImagaPicker를 취소했습니다.');
-                } else if (response.error) {
-                    console.log('ImagePicker내에서 에러가 발생했습니다: ', response.error);
-                } else if (response.customButton) {
-                    console.log('사용자가 custom버튼을 눌렀습니다: ', response.customButton);
-                } else {
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.error) {
+                console.log('ImagePicker Error:', response.error);
+            } else if (response.customButton) {
+                console.log('User tapped custom button:', response.customButton);
+            } else {
+                const { uri, type, fileName } = response.assets[0];
+                const newFilePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
-                    const { uri, type, fileName } = response.assets[0];
-                    this.setState({
-                        imageUri: uri,
-                        imageType: type,
-                        imageName: fileName,
-                    }, () => {
-                        console.log(`Uri: ${this.state.imageUri}, Type: ${this.state.imageType}, Name: ${this.state.imageName}`);
+                // 이미지를 로컬 파일 시스템에 저장
+                RNFS.copyFile(uri, newFilePath)
+                    .then(() => {
+                        this.setState(prevState => ({
+                            imageUri: [...prevState.imageUri, newFilePath],
+                            imageType: type,
+                            imageName: fileName,
+                        }));
+                        console.log('Image saved to:', newFilePath);
+                    })
+                    .catch(error => {
+                        console.error('Error saving image file:', error);
                     });
-                    
-                }
-            });
-        // saveImageToFileSystem();
+            }
+        });
     };
+    // addImage = () => {
+
+    //     launchImageLibrary({mediaType: 'photo'}, response => {
+    //             if (response.didCancel) {
+    //                 console.log('사용자가 ImagaPicker를 취소했습니다.');
+    //             } else if (response.error) {
+    //                 console.log('ImagePicker내에서 에러가 발생했습니다: ', response.error);
+    //             } else if (response.customButton) {
+    //                 console.log('사용자가 custom버튼을 눌렀습니다: ', response.customButton);
+    //             } else {
+
+    //                 const { uri, type, fileName } = response.assets[0];
+    //                 this.setState(prevState => ({
+    //                     imageUri: [...prevState.imageUri, uri],
+    //                     imageType: type,
+    //                     imageName: fileName,
+    //                 })), () => {
+    //                     console.log(`Uri: ${this.state.imageUri}, Type: ${this.state.imageType}, Name: ${this.state.imageName}`);
+    //                 };
+                    
+    //             }
+    //         });
+    // };
 
 
 //////////////////////////////////////////////////////////////    

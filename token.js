@@ -25,18 +25,29 @@ export const getToken = async () => {               // 토큰을 AsyncStorage �
 export const refreshAccessToken = async () => {                      // access 토큰을 재발급 받는 함수
     try {
       const refreshToken = await AsyncStorage.getItem('refreshToken');
+      const accessToken = await AsyncStorage.getItem('userToken');
       if (!refreshToken) {
-        throw new Error('No refresh token available');
+        throw new Error('refreshToken 없음');
+      }
+      if (!accessToken) {
+        throw new Error('accessToken 없음');
       }
   
-      const response = await axios.post('http://223.130.131.166:8080/api/v1/auth/refresh', {
-        token: refreshToken
+      const response = await axios.post('http://223.130.131.166:8080/api/v1/auth/reissue', {
+        headers: {
+          'Authorization-refresh' : `Bearer ${refreshToken}`,
+          // 'Authorization'  :  `Bearer ${accessToken}`,
+       }
       });
   
-      const newAccessToken = response.data.accessToken;
-      await AsyncStorage.setItem('userToken', newAccessToken);
-  
-      return newAccessToken;
+      if (response.data && response.data.accessToken) {
+        const newAccessToken = response.data.accessToken;
+        await AsyncStorage.setItem('userToken', newAccessToken);
+        return newAccessToken;
+      } else {
+          throw new Error('accessToken이 응답에 없음');
+      }
+    
     } catch (error) {
       console.error('토큰 갱신 실패:', error);
       throw error;

@@ -4,7 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getToken } from './token'
+import { getToken, refreshAccessToken } from './token'
 import RNFetchBlob from 'react-native-blob-util';
 
 class AxiosTest extends Component {
@@ -51,17 +51,22 @@ async postHouseData() {
             maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
         };
 
+        // formData.append("dto", JSON.stringify(dto));
+
         const jsonString = JSON.stringify(dto);
         const blob = await RNFetchBlob.polyfill.Blob.build(jsonString, { type: 'application/json;' });
         console.log("Blob 생성 테스트: ", blob);
+        console.log("Blob Type: ", blob.type);
         formData.append("dto", blob, 'dto.json');
 
-        // Append images as files to the formData
         this.state.imageUri.forEach((filePath, index) => {
+            console.log("filepath 제대로 추가되냐? " + filePath)
+            console.log("type 제대로 추가되냐? " + this.state.imageType)
+            console.log("name 제대로 추가되냐? " +this.state.imageName)
             formData.append('photos', {
-                uri: `file://${filePath}`,
-                type: this.state.imageType || 'image/jpeg',
-                name: this.state.imageName || `image_${index}.jpg`,
+                uri: filePath,
+                type: this.state.imageType,
+                name: this.state.imageName ,
             });
         });
 
@@ -76,6 +81,19 @@ async postHouseData() {
                 'Content-Type': 'multipart/form-data', 
             },
         });
+        if (response.status === 401) {
+            token = await refreshAccessToken();
+
+            const response = await axios({
+                method: "POST",
+                url: "http://223.130.131.166:8080/api/v1/house",
+                data: formData,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data', 
+                },
+            });
+        }
 
         console.log(response.data);
         this.props.navigation.navigate('검색', { refresh: true });
