@@ -6,6 +6,7 @@ import { getToken, refreshAccessToken } from './token'
 import RNFS from 'react-native-fs';
 import RNFetchBlob from 'react-native-blob-util';
 
+
 class AxiosTest extends Component {
 
     state = {
@@ -45,14 +46,20 @@ class AxiosTest extends Component {
             registrantId: 1,
             pricePerNight: Number(price.replace(/\D/g, '')),
             address,
-            maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
+            maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, ''))
           };
     
-          formData.append('dto', JSON.stringify(dto));
-          // const jsonString = JSON.stringify(dto);
-          // const blob = await RNFetchBlob.polyfill.Blob.build(jsonString, { type: 'application/json;' });
-          // console.log("Blob 생성 테스트: ", blob);
-          // formData.append("dto", blob, 'dto.json');
+        const jsonString = JSON.stringify(dto);
+        const fileName = 'dto.json';
+        const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
+
+        await RNFS.writeFile(filePath, jsonString, 'utf8');
+
+        formData.append('dto', {
+            uri: `file://${filePath}`,
+            type: 'application/json',
+            name: fileName
+        });
 
           this.state.imageUri.forEach((uri, index) => {
             RNFS.stat(uri)
@@ -73,15 +80,15 @@ class AxiosTest extends Component {
           imageUri.forEach((filePath, index) => {
             formData.append('photos', {
                 uri: filePath,
-                name: imageName,
+                name: `image-${index}.jpg`,
                 type: imageType,
             });
           });
 
-
           for (let pair of formData._parts) {
             console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
           }
+
 
           const token = await getToken();
     
@@ -89,7 +96,7 @@ class AxiosTest extends Component {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Content-Type': 'multipart/form-data',
+                // 'Content-Type': 'multipart/form-data',
             },
             body: formData,
         });
