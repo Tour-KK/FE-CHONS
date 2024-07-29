@@ -36,8 +36,8 @@ class LoginScreen extends Component {
       const { accessToken, refreshToken } = response.data;
       await setToken(accessToken, refreshToken);
 
-      // this.props.navigation.navigate('메인');
       this.props.navigation.navigate('테스트');
+      // this.props.navigation.navigate('메인');
     } catch (error) {
       console.error('응답실패:', error.response ? error.response.data : error.message);  
     }
@@ -77,7 +77,7 @@ class LoginScreen extends Component {
               <Image source={GoogleLogoIMG} style={styles.googleLogo}/>
               <Text style={styles.googleText}> 구글 로그인 </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('테스트')} >
+          <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} >
               <Image source={NaverLogoIMG} style={styles.naverLogo}/>
               <Text style={styles.naverText}> 네이버 로그인 </Text>
           </TouchableOpacity>

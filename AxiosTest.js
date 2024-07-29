@@ -1,10 +1,9 @@
-import React, {Component, useState} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, Platform } from 'react-native';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
-import axios from 'axios';
-import { getToken, refreshAccessToken } from './token'
+import React, {Component} from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import {launchImageLibrary} from 'react-native-image-picker';
+import { getToken } from './token'
 import RNFS from 'react-native-fs';
-import RNFetchBlob from 'react-native-blob-util';
+
 
 
 class AxiosTest extends Component {
@@ -21,9 +20,9 @@ class AxiosTest extends Component {
         imageType: null, 
         imageName: null,
     }
-    async postHouseData() {
-        try {
-          const {
+    async postHouseData() {         // 숙소등록시 숙소와 관련된 데이터들을 서버에 보내는 함수
+        try {   
+          const {                   	// 서버에 보내야하는 데이터들을 관리
             hostName,
             introText,
             phoneNumber,
@@ -36,7 +35,7 @@ class AxiosTest extends Component {
             imageName,
           } = this.state;
     
-          const formData = new FormData();
+          const formData = new FormData();      // fromData를 사용하기위해 FormData객체를 선언해주기
     
           const dto = {
             hostName,
@@ -49,17 +48,18 @@ class AxiosTest extends Component {
             maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, ''))
           };
     
-        const jsonString = JSON.stringify(dto);
-        const fileName = 'dto.json';
-        const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
 
-        await RNFS.writeFile(filePath, jsonString, 'utf8');
+            const jsonString = JSON.stringify(dto);
+            const fileName = 'dto.json';
+            const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
 
-        formData.append('dto', {
-            uri: `file://${filePath}`,
-            type: 'application/json',
-            name: fileName
-        });
+            await RNFS.writeFile(filePath, jsonString, 'utf8');
+
+            formData.append('dto', {
+                uri: `file://${filePath}`,
+                type: 'application/json',
+                name: fileName
+            });
 
           this.state.imageUri.forEach((uri, index) => {
             RNFS.stat(uri)
@@ -90,9 +90,9 @@ class AxiosTest extends Component {
           }
 
 
-          const token = await getToken();
-    
-          const response = await fetch('http://223.130.131.166:8080/api/v1/house', {
+        const token = await getToken();
+
+        const response = await fetch('http://223.130.131.166:8080/api/v1/house', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -103,6 +103,7 @@ class AxiosTest extends Component {
     
         const responseData = await response.json();
         console.log("Response JSON:", responseData);
+        this.props.navigation.navigate('메인', { refresh: true });
         } catch (error) {
           console.log('숙소 데이터 보내는 도중 에러발생:', error);
           if (error.response) {
@@ -138,19 +139,19 @@ class AxiosTest extends Component {
                 } else {
 
                     const { uri, type, fileName } = response.assets[0];
-                    const newFilePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
-                    const fileUri = `file://${newFilePath}`
-                    console.log(`Uri: ${uri}\ \n Type: ${type} \n Name: ${fileName} \n fileUri: ${fileUri}`);
+                    // const newFilePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
+                    // const fileUri = `file://${newFilePath}`
+                    // console.log(`Uri: ${uri}\ \n Type: ${type} \n Name: ${fileName} \n fileUri: ${fileUri}`);
                     
-                    RNFS.copyFile(uri, newFilePath)
-                    .then(() => {
+                    // RNFS.copyFile(uri, newFilePath)
+                    // .then(() => {
                       this.setState(prevState => ({
-                          imageUri: [...prevState.imageUri, fileUri], 
+                          imageUri: [...prevState.imageUri, uri], 
                           imageType: type,
                           imageName: fileName,
                       }));
-                    })
-                    .catch(err => console.error('File Copy Error:', err));
+                    // })
+                    // .catch(err => console.error('File Copy Error:', err));
                   };
             });
     };
