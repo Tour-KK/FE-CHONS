@@ -1,9 +1,8 @@
-import React, {Component, useState} from 'react';
+import React, {Component} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, Modal } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Hangul from 'hangul-js';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getToken } from './token';
 
 //이미지
@@ -12,15 +11,6 @@ import checkFavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
 import FavoriteIconIMG from './Image/즐겨찾기_아이콘.png';
 import housePlusIconIMG from './Image/추가_아이콘.png';
 import reviewIconIMG from './Image/회색_별_아이콘.png';
-import houseIMG1 from './Image/여행지1.png';
-import houseIMG2 from './Image/여행지2.png';
-import houseIMG3 from './Image/여행지3.png';
-import houseIMG4 from './Image/여행지4.png';
-import houseIMG5 from './Image/여행지5.png';
-import houseIMG6 from './Image/여행지6.png';
-import houseIMG7 from './Image/여행지7.png';
-import houseIMG8 from './Image/여행지8.png';
-import houseIMG9 from './Image/여행지9.png';
 
 class SearchScreen extends Component {
     
@@ -39,9 +29,9 @@ class SearchScreen extends Component {
             { id: 1, 
                 name: "", 
                 address: "", 
-                reviewScore: "", 
-                reviewCount: "", 
-                imageUrl: houseIMG1,
+                reviewScore: 0, 
+                reviewCount: 0, 
+                imageUri: [],
                 price: 0, 
                 favoriteState: true, 
                 reservaionState: false, 
@@ -106,14 +96,15 @@ class SearchScreen extends Component {
       }
 
     componentDidMount() {
-        this.getHouseListData();
-
         this.focusListener = this.props.navigation.addListener('focus', () => {
-            if (this.props.route.params?.refresh) {
-                this.getHouseListData();
-            }
+            this.getHouseListData();
         });
     }
+    
+    componentWillUnmount() {
+        this.focusListener.remove();
+    }
+    
 
     // 필터링 버튼 클릭시 필터링 종류에 맞게 모달에 출력하는 filterData를 지정해주고 모달을 보이게 해주는 함수
     setModalVisible = (visible, filterKey = '') => {    
@@ -142,22 +133,22 @@ class SearchScreen extends Component {
         try{
             const token = await getToken();
             
-            const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list/user',{
+            const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list',{
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
             console.log(response.data);
             
-            const data = response.data.map(item => ({
-                id: item.id,
-                name: item.hostName,
-                address: item.address,
-                price: item.pricePerNight,
-                imageUrl: houseIMG1, 
-                reviewScore: item.starAvg, // 서버 데이터에 따라 수정 필요
-                reviewCount: item.reviewNum, // 서버 데이터에 따라 수정 필요
-                favoriteState: item.liked, 
+            const data = response.data.map(house => ({
+                id: house.id,
+                name: house.hostName,
+                address: house.address,
+                price: house.pricePerNight,
+                imageUri: house.photos, 
+                reviewScore: house.starAvg, 
+                reviewCount: house.reviewNum, 
+                favoriteState: house.liked, 
                 reservationState: false, 
                 clearReservation: false 
             }));
@@ -218,12 +209,12 @@ class SearchScreen extends Component {
                 const response = await axios.post(`http://223.130.131.166:8080/api/v1/like/${id}`, {}, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                console.log('즐겨찾기 추가:', response.data);
+                console.log(`${currentPlace.name}님의 숙소 즐겨찾기 추가`, response.data);
             } else {
                 const response = await axios.delete(`http://223.130.131.166:8080/api/v1/like/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                console.log('즐겨찾기 해제:', response.data);
+                console.log(`${currentPlace.name}님의 숙소 즐겨찾기 해제`, response.data);
             }
         } catch(error) {
             if (error.response) {
@@ -239,23 +230,6 @@ class SearchScreen extends Component {
           }
     };
     
-
-    // changeFavoriteState = (id) => {                 // 찜버튼 누르면 FavoriteState 상태 바꿔주는 함수
-    //     const PlacesState = this.state.places.map(place => {
-    //         if (place.id === id) {                 
-    //             return { ...place, favoriteState: !place.favoriteState };
-    //         }
-    //         return place;
-    //     });
-    //     this.setState({ places: PlacesState });
-    // };
-    
-    componentDidMount() {
-        this.focusListener = this.props.navigation.addListener('focus', () => {
-        this.getHouseListData();
-        });
-    }
-
     
     render() {
         
@@ -273,21 +247,21 @@ class SearchScreen extends Component {
             style={styles.linearGradient} 
             start={{ x: 0, y: 0.88 }} 
             end={{ x: 0, y: 0 }}>
-                <ScrollView 
-                    style={styles.background} 
-                    showsVerticalScrollIndicator={false}>
-                    <View style={styles.container}>
-                        <View style={styles.titleView}>
-                            <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
-                                <Image style={styles.backBtnIcon} source={backBtnIMG} />
-                            </TouchableOpacity>
-                            <TextInput 
-                                style={styles.input} 
-                                placeholder='시골여행 / 농촌체험' 
-                                placeholderTextColor="#979797"
-                                value={searchText} 
-                                onChangeText={this.onChangeInput}/>
-                        </View>
+            <ScrollView 
+                style={styles.background} 
+                showsVerticalScrollIndicator={false}>
+                <View style={styles.container}>
+                    <View style={styles.titleView}>
+                        <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+                            <Image style={styles.backBtnIcon} source={backBtnIMG} />
+                        </TouchableOpacity>
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder='시골여행 / 농촌체험' 
+                            placeholderTextColor="#979797"
+                            value={searchText} 
+                            onChangeText={this.onChangeInput}/>
+                    </View>
 
                 <Modal
                     transparent={true}
@@ -315,7 +289,7 @@ class SearchScreen extends Component {
                     </View>
                 </Modal>
 
-                             {/* //필터 리스트 */}
+                            {/* //필터 리스트 */}
                 <ScrollView style={styles.filterView} showsHorizontalScrollIndicator={false} horizontal={true}>
                     {filters.map((filter) => (
                         <TouchableOpacity
@@ -328,27 +302,30 @@ class SearchScreen extends Component {
                 </ScrollView>
 
                     {/* //숙소정보 리스트 */}
-                {filteredPlaces.map((place) => (    
-                    <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
-                        <Image source={place.imageUrl} style={styles.houseIMG}/>
-                        <View style={styles.Info}>
-                            <Text style={styles.houseName}>{place.name}님의 거주지</Text>
-                            <Text style={styles.houseAddress}>{place.address}</Text>
-                            <View style={styles.houseReviewView}>
-                                <Image style={styles.reviewIcon} source={reviewIconIMG} />
-                                <Text style={styles.houseReview}>{place.reviewScore}</Text>
-                                <Text style={styles.houseReview}>({place.reviewCount})</Text>
+                    {filteredPlaces.map((place) => (    
+                        <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
+                            {place.imageUri.length > 0 && (
+                                <Image source={{uri : place.imageUri[0]}} style={styles.houseIMG}/>
+                            )}
+                            <View style={styles.Info}>
+                                <Text style={styles.houseName}>{place.name}님의 거주지</Text>
+                                <Text style={styles.houseAddress}>{place.address}</Text>
+                                <View style={styles.houseReviewView}>
+                                    <Image style={styles.reviewIcon} source={reviewIconIMG} />
+                                    <Text style={styles.houseReview}>{place.reviewScore}</Text>
+                                    <Text style={styles.houseReview}>({place.reviewCount})</Text>
+                                </View>
+                                <Text style={styles.housePrice}>₩{place.price}원</Text>
                             </View>
-                            <Text style={styles.housePrice}>₩{place.price}원</Text>
-                        </View>
-                        <TouchableOpacity onPress={() => this.changeFavoriteState(place.id)}>
-                            <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
+                            <TouchableOpacity onPress={() => this.changeFavoriteState(place.id)}>
+                                <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
+                            </TouchableOpacity>
                         </TouchableOpacity>
-                    </TouchableOpacity>
-                ))}
+                    ))}
+
 
                 <View style={styles.barMargin}><Text> </Text></View>
-                </View>
+            </View>
             </ScrollView>
 
             <TouchableOpacity style={styles.fixedButton} onPress={() => this.props.navigation.navigate('숙소등록')}>

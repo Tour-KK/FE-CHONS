@@ -25,48 +25,56 @@ class FavoriteListScreen extends Component {
 
     state = {
         places: [                                   // 목록에 띄울 데이터들 관
-            { houseID: 0, 
-                name: "", 
-                houseAddress:'', 
-                reviewScore: "", 
+            {
+                id: "",
+                name: "",
+                address: "",
+                price: 0,
+                imageUri: [], 
+                reviewScore: 0, 
                 reviewCount: 0, 
-                imageUrl: houseIMG1, 
-                favoriteState: true, 
-                price: 0, 
-                reservaionState: false, 
-                clearReservation: true },
+                favoriteState: false,
+                reservationState: false, 
+                clearReservation: true, 
+            },
         ],
     };
 
-
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+            this.getFavoriteData();
+        });
+    }
     
+    componentWillUnmount() {
+        this.focusListener.remove();
+    }
+
     async getFavoriteData()  {                          // 즐겨찾기, 나의 예약현황 데이터 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
         try {
             const token = await getToken();
     
             const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list/like',{
-                headers: { 'Authorization': `Bearer ${token}`}
-            })
-    
-            const { id, hostName, houseIntroduction, freeService, facilityPhotos, 
-                phoneNumber, pricePerNight, registrantId, address,
-                region, maxNumPeople, starAvg, reviewNum, liked } = response.data;
-
-                console.log(response.data)
-
-                            
-            const houses = response.data.map(house => ({
-                houseID: house.id, 
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log(response.data);
+            
+            const data = response.data.map(house => ({
+                id: house.id,
                 name: house.hostName,
-                houseAddress: house.address,
-                reviewScore: house.starAvg,
-                reviewCount: house.reviewNum,
-                favoriteState: house.liked,
+                address: house.address,
                 price: house.pricePerNight,
-                imageUrl: houseIMG1, 
+                imageUri: house.photos, 
+                reviewScore: house.starAvg, 
+                reviewCount: house.reviewNum, 
+                favoriteState: house.liked, 
+                reservationState: false, 
+                clearReservation: false 
             }));
 
-            this.setState({ places: houses });
+            this.setState({ places: data });
 
         } catch(error) {
             if (error.response) {
@@ -84,9 +92,9 @@ class FavoriteListScreen extends Component {
 
     
 
-    changeFavoriteState = async (houseID) => {              // 즐겨찾기시 체크표시후 서버 api로 상태보내기
+    changeFavoriteState = async (id) => {                    // 즐겨찾기시 체크표시후 서버 api로 상태보내기
         const updatedPlaces = this.state.places.map(place => {
-            if (place.houseID === houseID) {
+            if (place.id === id) {
                 return { ...place, favoriteState: !place.favoriteState };
             }
             return place;
@@ -94,21 +102,21 @@ class FavoriteListScreen extends Component {
     
         this.setState({ places: updatedPlaces });
     
-        const currentPlace = updatedPlaces.find(place => place.houseID === houseID);
+        const currentPlace = updatedPlaces.find(place => place.id === id);
         
         try {
             const token = await getToken();  
             
             if (currentPlace.favoriteState) {
-                const response = await axios.post(`http://223.130.131.166:8080/api/v1/like/${houseID}`, {}, {
+                const response = await axios.post(`http://223.130.131.166:8080/api/v1/like/${id}`, {}, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                console.log('즐겨찾기 추가:', response.data);
+                console.log(`${currentPlace.name}님의 숙소 즐겨찾기 추가`, response.data);
             } else {
-                const response = await axios.delete(`http://223.130.131.166:8080/api/v1/like/${houseID}`, {
+                const response = await axios.delete(`http://223.130.131.166:8080/api/v1/like/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                console.log('즐겨찾기 해제:', response.data);
+                console.log(`${currentPlace.name}님의 숙소 즐겨찾기 해제`, response.data);
             }
         } catch(error) {
             if (error.response) {
@@ -130,16 +138,12 @@ class FavoriteListScreen extends Component {
         this.props.navigation.navigate('숙소정보', { houseId: houseId });
     }
     
-    componentDidMount() {
-        this.focusListener = this.props.navigation.addListener('focus', () => {
-        this.getFavoriteData();
-        });
-    }
-
     
     render() {
         let ReservationText = '예약완료' 
         let NoReservationText = '예약 요청중..' 
+
+        const filteredPlaces =  this.state.places.filter(place => place.favoriteState);
 
         return (
         <LinearGradient
@@ -155,25 +159,26 @@ class FavoriteListScreen extends Component {
                     </TouchableOpacity>
                     <Text style={styles.myFavoriteListText}> 내가 찜한 숙소 </Text>
                 </View>
-               
-                {this.state.places.filter(place => place.favoriteState).map((place) => (
-                        <TouchableOpacity key={place.houseID} style={styles.content} onPress={() => this.placeInfoDelivery(place.houseID)}>
-                            <Image source={place.imageUrl} style={styles.houseIMG}/>
-                            <View style={styles.Info}>
-                                <Text style={styles.houseName}>{place.name}님의 거주지</Text>
-                                <Text style={styles.houseAddress}>{place.houseAddress}</Text>
-                                <View style={styles.houseReviewView}>
-                                    <Image style={styles.reviewIcon} source={reviewIconIMG} />
-                                    <Text style={styles.houseReview}>{place.reviewScore}</Text>
-                                    <Text style={styles.houseReview}>({place.reviewCount})</Text>
-                                </View>
-                                <Text style={styles.housePrice}>₩{place.price}원</Text>
+                {filteredPlaces.map((place) => (    
+                    <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
+                        {place.imageUri.length > 0 && (
+                            <Image source={{uri : place.imageUri[0]}} style={styles.houseIMG}/>
+                        )}
+                        <View style={styles.Info}>
+                            <Text style={styles.houseName}>{place.name}님의 거주지</Text>
+                            <Text style={styles.houseAddress}>{place.address}</Text>
+                            <View style={styles.houseReviewView}>
+                                <Image style={styles.reviewIcon} source={reviewIconIMG} />
+                                <Text style={styles.houseReview}>{place.reviewScore}</Text>
+                                <Text style={styles.houseReview}>({place.reviewCount})</Text>
                             </View>
-                            <TouchableOpacity onPress={() => this.changeFavoriteState(place.houseID)}>
-                                <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
-                            </TouchableOpacity>
+                            <Text style={styles.housePrice}>₩{place.price}원</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => this.changeFavoriteState(place.id)}>
+                            <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
                         </TouchableOpacity>
-                    ))}
+                    </TouchableOpacity>
+                ))}
 
                     {
                         this.state.places.filter(place => place.reservaionState).length > 0 && (
@@ -187,7 +192,7 @@ class FavoriteListScreen extends Component {
                         <View key={place.houseID} style={styles.Info}>
                             <View style={styles.Info}>
                                 <Text style={styles.houseName}>{place.name}</Text>
-                                <Text style={styles.houseAddress}>{place.houseAddress}</Text>
+                                <Text style={styles.address}>{place.address}</Text>
                                 <View style={styles.houseReviewView}>
                                     <Image style={styles.reviewIcon} source={reviewIconIMG} />
                                     <Text style={styles.houseReview}>{place.reviewScore}</Text>
@@ -273,7 +278,7 @@ const styles = StyleSheet.create({
         width: 200,
         textAlign: 'left',
         fontSize: 20,
-        marginTop: '8.8%',
+        marginTop: '3.3%',
         color:'#393939',
         // backgroundColor: 'yellow',
     },
@@ -289,13 +294,13 @@ const styles = StyleSheet.create({
     houseReviewView: {              // 평점 아이콘, 평점 텍스트 담는 View
         flexDirection: 'row',
         alignItems:'center',
-        marginTop: '1.1%',
+        marginTop: '1.1%',  
         // backgroundColor: 'gray',
     },
     houseReview: {                  // 찜한숙소 평점및 리뷰 갯수
         textAlign: 'left',
         fontSize: 12,
-        marginLeft: '4.4%',
+        marginLeft: '1.5%',
         color: '#777777',
         // backgroundColor: 'yellow',
     },
@@ -306,11 +311,11 @@ const styles = StyleSheet.create({
         // backgroundColor: 'yellow',
     },
     housePrice:{                    // 숙소 가격
-        marginTop: '4.4%',
-        fontSize: 18,
-        marginLeft: '4.4%',
-        color: '#777777',
-        fontWeight: 'bold',
+        marginTop: '2.2%',
+        fontSize: 22,
+        marginLeft: '3.3%',
+        color: '#9E9E9E',
+        // fontWeight: 'bold',
     },
     favoriteIcon: {                 // 찜버튼 아이콘
         width: 24,

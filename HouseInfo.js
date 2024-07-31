@@ -1,51 +1,109 @@
 import React, {Component} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, TextInput, ScrollView} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, ScrollView} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios';
+import { getToken } from './token';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import FavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
 import HouseReviewIconIMG from './Image/파란별_아이콘.png';
 import ArrowIconIMG from './Image/화살표_아이콘.png';
-import houseIMG1 from './Image/여행지1.png';
-import houseIMG2 from './Image/여행지2.png';
 import mapIMG from './Image/지도_미리보기.png';
 
 class HouseInfoScreen extends Component {
 
     state = {
 
-        places: [                                   // 목록에 띄울 데이터들 관
-            { id: 1, name: "김갑순님의 거주지", address:'강원도 속초시 신림면', streetAddress: '강원도 속초시 중도문길 95', reviewScore: "4.2", reviewCount: 48, imageUrl: require('./Image/여행지1.png'), favoriteState: true, price: 43000, reservaionState: false, clearReservation: false, phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "#와이파이 #침대, 욕실, 음료, 세면도구, 드라이기 # 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 2, name: "김경민님의 거주지", address:'강원도 원주시 신림면', streetAddress: '강원도 원주시 신림면 치악로 28',reviewScore: "3.8", reviewCount: 23, imageUrl: require('./Image/여행지2.png'), favoriteState: true, price: 38000, reservaionState: false,  clearReservation: false, phoneNumber: '010-6543-4567', clearReservation: false, maximumGuestNumber: 3, freeService:  "##음료 #세면도구, 드라이기 #냉장고", introText: "강원도에서 나고 자라서 서울에서 직장생활하고 다시 귀농하러 온지 2년째입니다. 귀농 생활 미리 체험해보고 싶은분들 많이 놀러와주세요!"},
-            { id: 3, name: "강진석님의 거주지", address:'강원도 철원군 동송읍', streetAddress: '강원도 철원군 동송읍 양지길 45',reviewScore: "4.0", reviewCount: 31, imageUrl: require('./Image/여행지3.png'), favoriteState: false, price: 88000, reservaionState: false,  clearReservation: false, phoneNumber: '010-4321-5678', clearReservation: false, maximumGuestNumber: 2,  freeService:  ",,#와이파이, #음료, 세면도구, 드라이기# 냉장고", introText: "3회 숙식제공은 힘들어서 아침만 식사제공해드리고 점심,저녁은 주변 맛집 추천해드립니다. "},
-            { id: 4, name: "오진태님의 거주지", address:'강원도 강릉시 옥계면', streetAddress: '강원도 강릉시 입암로 16-21 ', reviewScore: "4.4", reviewCount: 18, imageUrl: require('./Image/여행지4.png'), favoriteState: true, price: 26000, reservaionState: false,  clearReservation: false, phoneNumber: '010-5678-9876', clearReservation: false, maximumGuestNumber: 4,  freeService:  ",,##와이파이, 세면도구, 드라이기, 냉장고", introText: "겉은 허름해보여도 내부는 깔끔하고 근방에서 가장 관리 잘 된 집입니다."},
-            { id: 5, name: "박경숙님의 거주지", address: '경상남도 부산광역시 김해시 진영읍', streetAddress: '강원도 속초시 중도문길 95', reviewScore: "4.2", reviewCount: 66, imageUrl: require('./Image/여행지5.png'), favoriteState: false, price: 40000, reservaionState: true,  clearReservation: true,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 7, name: "이창민님의 거주지", address:'경상남도 부산광역시 금정구 구서2동',streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지6.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 9, name: "오경숙님의 거주지", address:'경상북도 울산광역시 울주군 둔기리', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지8.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 8, name: "양민우님의 거주지", address:'전라남도 전주시 덕진구', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지7.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 10, name: "이정민님의 거주지", address:'경기도 화성시 남양읍', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지9.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 11, name: "박범석님의 거주지", address:'제주도 서귀포시 남원읍', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지10.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 12, name: "황진영님의 거주지", address:'전라남도 광주광역시 북구 오치1동', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지11.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 13, name: "박우석님의 거주지", address:'전라남도 나주시 영강동', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지12.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false ,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 14, name: "이현숙님의 거주지", address:'충천남도 공주시 우성면', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지13.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 15, name: "황지석님의 거주지", address:'충천남도 아산시 신창면 남성리', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지14.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            { id: 16, name: "이미연님의 거주지", address:'충천남도 당진시 순성면', streetAddress: '강원도 속초시 중도문길 95',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지15.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false,phoneNumber: '010-1122-3344', clearReservation: false , maximumGuestNumber: 2, freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
+        places: [                                   // 목록에 띄울 데이터들 관리
+            { id: 1, 
+                name: "", 
+                address: "", 
+                streetAddress: "", 
+                reviewScore: "", 
+                reviewCount: 0, 
+                imageUri: [], 
+                favoriteState: true, 
+                price: 0, 
+                reservaionState: false, 
+                clearReservation: false, 
+                phoneNumber: "", 
+                clearReservation: false , 
+                maximumGuestNumber: 0, 
+                freeService: "", 
+                introText: "",
+                registrantId: 0,
+            },
         ],
     }
+
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+            this.getHouseListData();
+        });
+    }
+    
+    componentWillUnmount() {
+        this.focusListener.remove();
+    }
+    
     
     placeInfoDelivery = (houseId) => {             // 간편예약버튼 클릭시 해당 숙소 정보를 같이 보내 예약화면으로 이동
         this.props.navigation.navigate('예약', { houseId: houseId });
     }
 
+    async getHouseListData() {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 리스트들을 불러오는 함수
+        try{
+            const { houseId } = this.props.route.params;
+            const token = await getToken();
 
+            const response = await axios.get(`http://223.130.131.166:8080/api/v1/house/${houseId}`,{
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log(response.data);
+            
+            const house = response.data;
+            const data = [{
+                id: house.id,
+                name: house.hostName,
+                introText: house.houseIntroduction,
+                freeService: house.freeService,
+                imageUri: house.photos,
+                phoneNumber: house.phoneNumber,
+                registrantId: house.registrantId,
+                price: house.pricePerNight,
+                address: house.address,
+                maximumGuestNumber: house.maxNumPeople,
+                reviewScore: house.starAvg, 
+                reviewCount: house.reviewNum, 
+                favoriteState: house.liked, 
+                reservationState: false, 
+                clearReservation: false 
+            }];
+
+            this.setState({ places: data });
+
+            } catch(error) {
+                if (error.response) {
+                console.log('Error status:', error.response.status);
+                console.log('Error data:', error.response.data);
+                console.log('Error headers:', error.response.headers);
+                } else if (error.request) {
+                console.log('No response received:', error.request);
+                } else {
+                console.log('Error message:', error.message);
+                }
+                console.log('Error config:', error.config);
+            }
+    }
    
     
     render() {
 
         const { houseId } = this.props.route.params;
         const { places } = this.state;
-
         const filteredPlaces = places.filter(place => place.id === houseId);
         
 
@@ -61,25 +119,23 @@ class HouseInfoScreen extends Component {
                     <ScrollView 
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}>
-
-                                {filteredPlaces.map((place) => (
-                                    <ImageBackground key={place.id} style={styles.houseIMG} source={place.imageUrl}>
+                            {filteredPlaces.map((place) =>
+                                place.imageUri && place.imageUri.map((uri, index) => (
+                                    <ImageBackground key={index} style={styles.houseIMG} source={{ uri }}>
                                         <TouchableOpacity style={styles.fixedBackButton} onPress={() => this.props.navigation.goBack()}>
                                             <Image style={styles.backBtnIcon} source={backBtnIMG}/>  
                                         </TouchableOpacity>
                                     </ImageBackground>
-                                ))}
-               
-
+                                ))
+                            )}
                     </ScrollView>
-
                 </View>
 
                 <View> 
                     {filteredPlaces.map(place => (
                     <View key={place.id}>
                         <View style={styles.houseName}>
-                            <Text style={styles.houseNameText}>{place.name}</Text>
+                            <Text style={styles.houseNameText}>{place.name}님의 거주지</Text>
                         </View>
                         <View style={styles.houseReviewView}>
                             <TouchableOpacity style={styles.houseReview} onPress={ ()=>this.props.navigation.navigate('후기', { name: place.name })}>
@@ -113,7 +169,8 @@ class HouseInfoScreen extends Component {
                                     <Text style={styles.map} onPress={() => alert('API버전 호환에러 고치는중')}>지도 보기</Text>
                                 </TouchableOpacity>
                             </View>
-                            <Text style={styles.locationText}>{place.address} ({place.streetAddress})</Text>
+                            <Text style={styles.locationText}>{place.address}</Text>
+                            {/* <Text style={styles.locationText}>{place.address} ({place.streetAddress})</Text> */}
                             <Image style={styles.locationMap} source={mapIMG}></Image>
                         </View>
                         <View>
@@ -157,7 +214,7 @@ class HouseInfoScreen extends Component {
   }
 }
 
-// 스타일 시트
+// 스타일 시트 숙소 이미지 width:415, height:380 + (애뮬레이터 기존값) + 다른 텍스트View width:415-> 375
 const styles = StyleSheet.create({
     background: {                   // 전체화면 세팅
         flex: 1,
@@ -171,8 +228,8 @@ const styles = StyleSheet.create({
         alignItems: 'center', 
     },
     houseIMGView:{                  // 숙소사진,뒤로가기버튼, 찜버튼,페이지 정보 담는 View
-        width: 415,
-        height: 380, 
+        width: 375,                 
+        height: 375,                // 415->375
         alignItems: 'center', 
     },
     backBtnIcon: {              // 뒤로가기 버튼
@@ -210,14 +267,14 @@ const styles = StyleSheet.create({
 
     },
     houseIMG: {                                // 숙소사진
-        width: 415, 
+        width: 375, 
         height: 380,
         resizeMode: 'cover',
     },  
     houseName: {                               // 숙소명을 담는 View
         marginTop: '3.3%',
         marginLeft: '7%',
-        width: 415,
+        width: 375,
         justifyContent: 'flex-start',
     },
     houseNameText: {                           // 숙소명
@@ -227,7 +284,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginTop: '1%',
         marginLeft: '8%',
-        width: 415,
+        width: 375,
         alignItems: 'center', 
         justifyContent: 'flex-start',
     },
@@ -256,6 +313,7 @@ const styles = StyleSheet.create({
     },  
     houseIntroText: {                          // 숙소 소개글 본문 텍스트
         marginTop: '2.2%',
+        paddingLeft: '4.5%',              //임시
         fontSize: 16,
         width: 358,
         // backgroundColor: 'gray',

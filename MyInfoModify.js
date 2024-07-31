@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getToken, getRefreshToken, refreshAccessToken } from './token';
+import { getToken } from './token';
 
 
 //이미지
