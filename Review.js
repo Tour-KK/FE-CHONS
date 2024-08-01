@@ -8,34 +8,10 @@ import profileIMG from './Image/프로필_아이콘.png';
 import reviewScoreIcon from './Image/별_아이콘.png';
 import reviewMenuIcon from './Image/목록_아이콘.png';
 import houseIMG1 from './Image/여행지1.png';
-import houseIMG2 from './Image/여행지2.png';
-import houseIMG3 from './Image/여행지3.png';
-import houseIMG4 from './Image/여행지4.png';
-import houseIMG5 from './Image/여행지5.png';
-import houseIMG6 from './Image/여행지6.png';
-import houseIMG7 from './Image/여행지7.png';
-import houseIMG8 from './Image/여행지8.png';
-import houseIMG9 from './Image/여행지9.png';
+
 
 class ReviewScreen extends Component {
     state = {
-              places: [                                   // 목록에 띄울 데이터들 관
-            { id: 1, 
-                name: "김갑순님의 거주지", 
-                address:'강원도 속초시 신림면', 
-                streetAddress: '강원도 속초시 중도문길 95', 
-                reviewScore: "4.2", 
-                reviewCount: 48, 
-                imageUrl: require('./Image/여행지1.png'), 
-                favoriteState: true, 
-                price: 43000,
-                clearReservation: false, 
-                reservaionState: false, 
-                phoneNumber: '010-1122-3344', 
-                maximumGuestNumber: 2, 
-                freeService: "#와이파이 #침대, 욕실, 음료, 세면도구, 드라이기 # 냉장고", 
-                introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요."},
-            ],
         reviews: [
             {
                 id: 1,
@@ -104,8 +80,8 @@ class ReviewScreen extends Component {
 
     render() {
 
-          const { name } = this.props.route.params;
-
+        const { houseId, name } = this.props.route.params;
+        const { reviewCount } = this.state.reviews.length;
         return (
             <LinearGradient
             colors={['#E8ECFF', '#FFFFFF']} 
@@ -118,8 +94,8 @@ class ReviewScreen extends Component {
                         <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
                         <Image style={styles.backBtnIcon} source={backBtnIMG} />  
                         </TouchableOpacity>
-                        <Text style={styles.reservationText}> {name} </Text>
-                        <TouchableOpacity onPress={ () => this.props.navigation.navigate('후기작성')}>
+                        <Text style={styles.reservationText}> {name}님의 거주지 ({reviewCount}) </Text>
+                        <TouchableOpacity onPress={ () => this.props.navigation.navigate('후기작성',  { houseId: houseId, name: name })}>
                             <Text style={styles.reviewWriteText}> 후기작성 </Text>
                         </TouchableOpacity>
                     </View>

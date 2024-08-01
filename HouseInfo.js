@@ -138,7 +138,7 @@ class HouseInfoScreen extends Component {
                             <Text style={styles.houseNameText}>{place.name}님의 거주지</Text>
                         </View>
                         <View style={styles.houseReviewView}>
-                            <TouchableOpacity style={styles.houseReview} onPress={ ()=>this.props.navigation.navigate('후기', { name: place.name })}>
+                            <TouchableOpacity style={styles.houseReview} onPress={ ()=>this.props.navigation.navigate('후기', { houseId: place.id, name: place.name })}>
                                 <Image style={styles.houseReviewIcon} source={HouseReviewIconIMG} />
                                 <Text style={styles.houseReviewText}>{place.reviewScore} ({place.reviewCount}개의 후기)</Text>
                             </TouchableOpacity>
