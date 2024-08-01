@@ -24,8 +24,18 @@ class MyInfoModifyScreen extends Component {
         // birthday: '1961년 7월 28일',
     }
 
-    componentDidMount() {                          // 페이지 로딩시 유저정보 불러오는 함수
-        this.getUserInfoData();
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+            console.log('DOM에서 먼저 렌더링 완료');
+            this.getUserInfoData();
+        });
+    }
+    
+    componentWillUnmount() {
+        if (this.focusListener) {
+            console.log('DOM에서 해당 리스너 제거완료');
+            this.focusListener();
+        }
     }
 
 

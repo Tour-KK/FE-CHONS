@@ -42,12 +42,16 @@ class FavoriteListScreen extends Component {
 
     componentDidMount() {
         this.focusListener = this.props.navigation.addListener('focus', () => {
+            console.log('DOM에서 먼저 렌더링 완료');
             this.getFavoriteData();
         });
     }
     
     componentWillUnmount() {
-        this.focusListener.remove();
+        if (this.focusListener) {
+            console.log('DOM에서 해당 리스너 제거완료');
+            this.focusListener();
+        }
     }
 
     async getFavoriteData()  {                          // 즐겨찾기, 나의 예약현황 데이터 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
