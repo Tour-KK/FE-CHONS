@@ -14,15 +14,20 @@ import houseAddIMG from './Image/사진추가_아이콘.png';
 class ReviewAddScreen extends Component {
     state = {
         rating: 3, 
+        tempRating: 3,
         reviewIMG: [],
         reviewText: "",
         imageType: null, 
     };
 
-    ratingCompleted = (rating) => {
-        const roundedRating = parseFloat(rating.toFixed(1));
+    ratingCompleted = (rating) => {          // 정수 형태로 평점 저장
+        const roundedRating = Math.round(rating);
         this.setState({ rating: roundedRating });
-      };
+    };
+
+    handleRating = (rating) => {            // 평점 선택 UI 정수형태로 실시간 반영
+        this.setState({ tempRating: rating });
+    }
 
     changeInputText = (inputText) => {
         this.setState({ reviewText: inputText });
@@ -173,16 +178,17 @@ class ReviewAddScreen extends Component {
                     <Text style={styles.InterviewText}> {name}님과의 스테이는 어떠셨나요? </Text>
                     <View style={styles.ratingView}>
                     <Rating
-                         type='custom'
-                         ratingCount={5}
-                         imageSize={20}
-                         startingValue={this.state.rating}
-                         ratingColor={'#F4CD42'}      
-                         fractions={2}             
-                         onFinishRating={this.ratingCompleted}
-                         style={styles.rating}
-                         />
-                    <Text style={styles.ratingText}> {this.state.rating}점 </Text>
+                        type='custom'
+                        ratingCount={5}
+                        imageSize={20}
+                        startingValue={this.state.rating}
+                        ratingColor={'#F4CD42'}
+                        onFinishRating={this.ratingCompleted}
+                        onSwipeRating={this.handleRating} 
+                        style={styles.rating}
+                    />
+
+                    <Text style={styles.ratingText}> {Math.round(this.state.rating)}점 </Text>
                     </View>       
                 </View>
 
