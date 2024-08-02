@@ -14,7 +14,6 @@ import mapIMG from './Image/지도_미리보기.png';
 class HouseInfoScreen extends Component {
 
     state = {
-
         places: [                                   // 목록에 띄울 데이터들 관리
             { id: 1, 
                 name: "", 

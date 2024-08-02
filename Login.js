@@ -22,14 +22,14 @@ class LoginScreen extends Component {
   async postLoginData() {                              // axios로 서버에 로그인 data를 post하는 함수
     try {
       const response = await axios.post('http://223.130.131.166:8080/api/v1/auth/login', {
-          email: "leejunho61@naver.com",
-          socialId: "이준호",
-          socialType: "KAKAO",
-          name: "이준호",
-          nickname: "이준호",
-          birthYear: "1961",
-          birthDay: "0712",
-          phoneNum: "010-1234-5678",
+        email: "leejunho61@naver.com",
+        socialId: "이준호",
+        socialType: "KAKAO",
+        name: "이준호",
+        nickname: "이준호",
+        birthYear: "1961",
+        birthDay: "0712",
+        phoneNum: "010-1234-5678",
       });
       console.log('제대로 보내졌나? 응답 메세지:', response.data);  
 

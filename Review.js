@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios';
+import { getToken } from './token';
 
 // 이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -14,15 +16,29 @@ class ReviewScreen extends Component {
     state = {
         reviews: [
             {
-                id: 1,
-                profileName: '황철수',
-                reviewText: '강원도에서 귀농생각중이라 체험해볼겸 1박2일로 여행 갔다왔는데 정말 좋네요.\n\n 특히 어르신께서 오랜만에 오는 손님이라고 이것저것 엄청 챙겨주시고 65년 토박이라고 하시면서 주변 볼거리들도 추천해줬는데 강원도에 이렇게 자연경관이 아름다운 곳이 있었나 감탄만 하고 왔습니다... \n\n그리고 시골이라 쾌적한 숙소는 사실 기대안했는데 생각보다 내부는 엄청 깔끔해서 너무 잘 잤습니다. \n\n근데 확실히 시골이라 벌레가 많긴하더라구요 참고하시면 좋을 것 같아요.',
-                reviewScore: 4.3,
-                images: [houseIMG1],
+                id: 0,
+                profileName: "",
+                reviewText: "",
+                reviewScore: 0,
+                images: [],
                 optionsVisible: false,
             },
-        ]
-    };
+        ],
+    }
+
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+            console.log('DOM에서 먼저 렌더링 완료');
+            this.getReviewList();
+        });
+    }
+    
+    componentWillUnmount() {
+        if (this.focusListener) {
+            console.log('DOM에서 해당 리스너 제거완료');
+            this.focusListener();
+        }
+    }
 
     changeOptionState = (id) => {
         this.setState(prevState => ({
@@ -32,11 +48,76 @@ class ReviewScreen extends Component {
         }));
     };
 
-    reviewModifyDelivery = (reviewId) => {             // 후기수정버튼시 후기수정화면으로 이동
-        this.props.navigation.navigate('후기수정', { reviewId });
+    modifyReview = (reviewId, name) => {             // 후기수정버튼시 후기수정화면으로 이동
+        this.props.navigation.navigate('후기수정', { reviewId, name });
     }
+
+    async getReviewList() {                      // axios를 활용한 api통신을 통해 서버로부터 해당숙소의 리뷰 리스트들을 불러오는 함수
+        try{
+            const { houseId } = this.props.route.params;
+
+            const token = await getToken();
+
+            const response = await axios.get(`http://223.130.131.166:8080/api/v1/review/house/${houseId}`,{
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log(response.data);
+            
+            
+            this.setState({ reviews: response.data.map(review => ({
+                id: review.reviewId,
+                profileName: review.userName,
+                reviewText: review.content,
+                reviewScore: parseFloat(review.star.toFixed(1)),
+                images: review.photos
+            }))}, () => {
+                console.log("현재 reviews state:", this.state.reviews);
+            });
+
+            } catch(error) {
+                if (error.response) {
+                console.log('Error status:', error.response.status);
+                console.log('Error data:', error.response.data);
+                console.log('Error headers:', error.response.headers);
+                } else if (error.request) {
+                console.log('No response received:', error.request);
+                } else {
+                console.log('Error message:', error.message);
+                }
+                console.log('Error config:', error.config);
+            }
+    }
+
+
+    async deleteReview(id) {
+        try {
+
+            const token = await getToken();  
+            
+            const response = await axios.delete(`http://223.130.131.166:8080/api/v1/review/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            this.getReviewList();
+        } catch(error) {
+            if (error.response) {
+              alert(error.response.data.message);
+              console.log('Error status:', error.response.status);
+              console.log('Error data:', error.response.data);
+              console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+              console.log('No response received:', error.request);
+            } else {
+              console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+          }
+    };
    
     renderReviews = () => {
+        const { name } = this.props.route.params;
+
         return this.state.reviews.map((review, index) => (
             <View key={index} style={styles.reviewView}>
                 <View style={styles.profileView}>
@@ -55,18 +136,18 @@ class ReviewScreen extends Component {
                 </View>
                 {review.optionsVisible && (
                     <View style={styles.optionsView}>
-                        <TouchableOpacity style={styles.optionButton} onPress={() => this.reviewModifyDelivery(review.id)}>
+                        <TouchableOpacity style={styles.optionButton} onPress={() => this.modifyReview(review.id, name)}>
                             <Text style={styles.ButtonText}>수정하기</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.optionButton} onPress={()=>alert('권한이 없습니다.')}>
+                        <TouchableOpacity style={styles.optionButton} onPress={()=>this.deleteReview(review.id)}>
                             <Text style={styles.ButtonText}>삭제하기</Text>
                         </TouchableOpacity>
                     </View>
                 )}
                 <View style={styles.reviewIMGView}>
                 <ScrollView horizontal style={styles.imageScrollView} showsHorizontalScrollIndicator={false}>
-                    {review.images.map((image, index) => (
-                        <Image key={index} source={image} style={styles.reviewIMG} />
+                    {review.images && review.images.map((image, index) => (
+                        image ? <Image key={index} source={{ uri: image }} style={styles.reviewIMG} /> : null
                     ))}
                 </ScrollView>
                 </View>
@@ -81,7 +162,6 @@ class ReviewScreen extends Component {
     render() {
 
         const { houseId, name } = this.props.route.params;
-        const { reviewCount } = this.state.reviews.length;
         return (
             <LinearGradient
             colors={['#E8ECFF', '#FFFFFF']} 
@@ -94,7 +174,7 @@ class ReviewScreen extends Component {
                         <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
                         <Image style={styles.backBtnIcon} source={backBtnIMG} />  
                         </TouchableOpacity>
-                        <Text style={styles.reservationText}> {name}님의 거주지 ({reviewCount}) </Text>
+                        <Text style={styles.reservationText}> {name}님의 거주지 ({this.state.reviews.length}) </Text>
                         <TouchableOpacity onPress={ () => this.props.navigation.navigate('후기작성',  { houseId: houseId, name: name })}>
                             <Text style={styles.reviewWriteText}> 후기작성 </Text>
                         </TouchableOpacity>
