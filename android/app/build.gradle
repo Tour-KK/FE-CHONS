@@ -109,6 +109,12 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation ("com.google.android.gms:play-services-maps:19.0.0")         // 구글 맵 api
     implementation project(':react-native-fs')                                  // 파일 시스템
+    implementation project(':react-native-maps')                                // 구글 맵 api
+
+    // implementation "com.google.android.gms:play-services-base:${safeExtGet('playServicesVersion', '18.2.0')}"       // 구글 맵 api
+    // implementation "com.google.android.gms:play-services-maps:${safeExtGet('playServicesVersion', '18.2.0')}"       // 구글 맵 api
+    // implementation "com.google.android.gms:play-services-location:21.0.1"                                           // 구글 맵 api
+    // implementation 'com.google.maps.android:android-maps-utils:3.8.2'                                               // 구글 맵 api
 
 
     if (hermesEnabled.toBoolean()) {
@@ -139,10 +145,4 @@ dependencies {
 // }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
-apply plugin: 'com.google.gms.google-services'
-
-
-
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-def googleMapApiKey = properties.getProperty('google_map_api_key')
+apply plugin: 'com.google.gms.google-services'                                               // 구글 로그인 api

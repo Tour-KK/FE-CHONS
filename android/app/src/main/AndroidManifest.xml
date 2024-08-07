@@ -6,8 +6,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_CALENDAR"/>
     <uses-permission android:name="android.permission.WRITE_CALENDAR"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />             <!-- google map api -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />               <!-- google map api -->
 
 
     <application
@@ -23,12 +23,10 @@
       android:name="com.google.android.gms.version"
       android:value="@integer/google_play_services_version" />
 
-      <meta-data
-      android:name="com.google.android.geo.API_KEY"
-      android:value="[AIzaSyAlU4up5x419-dJxqn5Aj4HZvdoeKmEBPg]"/>
-      
-    
-      <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+      <meta-data                                                    
+      android:name="com.google.android.geo.API_KEY" 
+      android:value="AIzaSyAqss5wgNQz0h2fcbjYJfOXgEnnzutNelM"/>                                 <!-- google map api -->
+      <uses-library android:name="org.apache.http.legacy" android:required="false"/>            <!-- google map api -->
 
 
       <activity
@@ -44,12 +42,5 @@
         </intent-filter>
       </activity>
 
-
-
-      <!-- google map api -->
-      <!-- <meta-data                                               
-      android:name="com.google.android.geo.AIzaSyDly23x6ur-FdG8hkSC7N6DjngkbQn3oxo"
-      android:value="AIzaSyDly23x6ur-FdG8hkSC7N6DjngkbQn3oxo" />
-       -->
     </application>
 </manifest>

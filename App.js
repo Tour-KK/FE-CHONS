@@ -24,6 +24,7 @@ import ReviewModifyScreen from './ReviewModify';
 import HomeSearchScreen from './HomeSearch';
 import FestivalInfoScreen from './FestivalInfo';
 import AxiosTestScreen from './AxiosTest';
+import GoogleAPIScreen from './GoogleAPI';
 
 
 
@@ -106,6 +107,7 @@ class App extends Component {
                     <Stack.Screen name="숙소정보수정" component={HouseInfoModifyScreen} />
                     <Stack.Screen name="축제정보" component={FestivalInfoScreen} />
                     <Stack.Screen name="테스트" component={AxiosTestScreen} />
+                    <Stack.Screen name="구글API" component={GoogleAPIScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
             </SafeAreaProvider>

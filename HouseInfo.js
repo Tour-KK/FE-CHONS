@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, Scrol
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import { getToken } from './token';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -174,7 +175,17 @@ class HouseInfoScreen extends Component {
                             </View>
                             <Text style={styles.locationText}>{place.address}</Text>
                             {/* <Text style={styles.locationText}>{place.address} ({place.streetAddress})</Text> */}
-                            <Image style={styles.locationMap} source={mapIMG}></Image>
+                            {/* <Image style={styles.locationMap} source={mapIMG}></Image> */}
+                            <MapView
+                                provider={PROVIDER_GOOGLE} 
+                                initialRegion={{
+                                latitude: 37.541,
+                                longitude: 126.986,
+                                latitudeDelta: 0.0922,
+                                longitudeDelta: 0.0421,
+                                }}
+                                style={styles.locationMap}
+                            />
                         </View>
                         <View>
                             <Text style={styles.phoneNumber}>연락처</Text>

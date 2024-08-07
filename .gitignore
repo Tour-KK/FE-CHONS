@@ -75,3 +75,7 @@ yarn-error.log
 
 # Ignore Gradle build output directory
 build
+
+
+# Ignore specific strings.xml file
+android/app/src/main/res/values/strings.xml

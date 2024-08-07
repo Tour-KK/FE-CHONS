@@ -12,54 +12,61 @@ import NaverLogoIMG from './Image/네이버_로고.png';
 import KakaoLogoIMG from './Image/카카오_로고.png';
 
 GoogleSignin.configure({                                        // 구글 api confing
-  webClientId: '412626397279-f3etaihguig05f60qdp84cpkk7oq5uhm.apps.googleusercontent.com',
-  androidClientId: '412626397279-f3etaihguig05f60qdp84cpkk7oq5uhm.apps.googleusercontent.com',
+  webClientId: '412626397279-eg75216s42no729d1cmftmkns983ouhq.apps.googleusercontent.com',
+  // androidClientId: '412626397279-f3etaihguig05f60qdp84cpkk7oq5uhm.apps.googleusercontent.com',
   offlineAccess: true 
 });
 
 class LoginScreen extends Component {
   
-  async postLoginData() {                              // axios로 서버에 로그인 data를 post하는 함수
+  postLoginData = async (userInfo, socialType) => { // axios로 서버에 로그인 data를 post하는 함수
     try {
+      console.log(userInfo);
+      console.log(socialType);
+      console.log(userInfo.user.email);
+      console.log(userInfo.user.id);
+      console.log(userInfo.user.name);
+      console.log(userInfo.user.givenName);
+
       const response = await axios.post('http://223.130.131.166:8080/api/v1/auth/login', {
-        email: "leejunho61@naver.com",
-        socialId: "이준호",
-        socialType: "KAKAO",
-        name: "이준호",
-        nickname: "이준호",
-        birthYear: "1961",
-        birthDay: "0712",
-        phoneNum: "010-1234-5678",
+        email: userInfo.user.email,
+        socialId: userInfo.user.id,
+        socialType: socialType,
+        name: userInfo.user.name,
+        nickname: userInfo.user.givenName,
+        birthYear: "", 
+        birthDay: "",
+        phoneNum: "",
       });
-      console.log('제대로 보내졌나? 응답 메세지:', response.data);  
+      console.log('제대로 보내졌나? 응답 메세지:', response.data);
 
       const { accessToken, refreshToken } = response.data;
       await setToken(accessToken, refreshToken);
 
-      // this.props.navigation.navigate('테스트');
       this.props.navigation.navigate('메인');
     } catch (error) {
-      console.error('응답실패:', error.response ? error.response.data : error.message);  
+      console.error('응답실패:', error.response ? error.response.data : error.message);
     }
   }
 
-
-
-  googleLogin = async () => {                                   // 구글 로그인 api 연동 코드
+  googleSignin = async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      console.log(userInfo); 
-    }catch (error) {
-        if (error.code === 'CANCELED') {
-          alert('User cancelled the login process');
-        } else if (error.code === 'SIGN_IN_FAILED') {
-          alert('Google sign-in failed');
-        } else {
-          alert('Something went wrong with sign-in: ' + error.toString());
-        }
+      const socialType = "GOOGLE";
+
+      await this.postLoginData(userInfo, socialType);
+    } catch (error) {
+      if (error.code === 'CANCELED') {
+        alert('사용자가 로그인창을 닫았습니다.');
+      } else if (error.code === 'SIGN_IN_FAILED') {
+        alert('구글 로그인에 실패했습니다.');
+      } else {
+        alert('구글 로그인 중 에러가 발생하였습니다.: ' + error.toString());
       }
-    };
+    }
+  };
+
   
   render() {
   
@@ -73,11 +80,12 @@ class LoginScreen extends Component {
         </View>
         <View style={styles.loginLayout}>
           <Text style={styles.loginText}> 로그인 </Text>
-          <TouchableOpacity style={styles.googleLogin} onPress={() => this.googleLogin()}>
+          <TouchableOpacity style={styles.googleLogin} onPress={() => this.googleSignin()}>
               <Image source={GoogleLogoIMG} style={styles.googleLogo}/>
               <Text style={styles.googleText}> 구글 로그인 </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} >
+          <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('구글API')} >
+          {/* <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} > */}
               <Image source={NaverLogoIMG} style={styles.naverLogo}/>
               <Text style={styles.naverText}> 네이버 로그인 </Text>
           </TouchableOpacity>
