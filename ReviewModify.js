@@ -1,207 +1,87 @@
-import React, {Component} from 'react';
+import React, {Component, useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Rating } from 'react-native-ratings';
-import { launchImageLibrary} from 'react-native-image-picker';
-import axios from 'axios';
-import { getToken } from './token';
-import RNFS from 'react-native-fs';
-
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+ 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
+import houseAddIMG from './Image/사진추가_아이콘.png';
+import houseIMG1 from './Image/여행지1.png';
+import houseIMG2 from './Image/여행지2.png';
+import houseIMG3 from './Image/여행지3.png';
+import houseIMG4 from './Image/여행지4.png';
+import houseIMG5 from './Image/여행지5.png';
+import houseIMG6 from './Image/여행지6.png';
+import houseIMG7 from './Image/여행지7.png';
+import houseIMG8 from './Image/여행지8.png';
+import houseIMG9 from './Image/여행지9.png';
 
 
 class ReviewModifyScreen extends Component {
     state = {
-        rating: "만",
-        imageType: "",
+        rating: 3, 
+        reviewIMG: houseAddIMG,
 
         reviews: [
             {
-                id: 0,
-                profileName: "",
-                reviewText: "",
-                reviewScore: 0,
-                images: [],
+                id: 1,
+                profileName: '안철수',
+                reviewText: '강원도에서 귀농생각중이라 체험해볼겸 1박2일로 여행 갔다왔는데 정말 좋네요.\n\n 특히 어르신께서 오랜만에 오는 손님이라고 이것저것 엄청 챙겨주시고 65년 토박이라고 하시면서 주변 볼거리들도 추천해줬는데 강원도에 이렇게 자연경관이 아름다운 곳이 있었나 감탄만 하고 왔습니다... \n\n그리고 시골이라 쾌적한 숙소는 사실 기대안했는데 생각보다 내부는 엄청 깔끔해서 너무 잘 잤습니다. \n\n근데 확실히 시골이라 벌레가 많긴하더라구요 참고하시면 좋을 것 같아요.',
+                reviewScore: 4.3,
+                images: [houseIMG1],
                 optionsVisible: false,
             },
         ]
     };
 
-    componentDidMount() {
-        this.focusListener = this.props.navigation.addListener('focus', () => {
-            console.log('DOM에서 먼저 렌더링 완료');
-            this.getReviewData();
-        });
-    }
-    
-    componentWillUnmount() {
-        if (this.focusListener) {
-            console.log('DOM에서 해당 리스너 제거완료');
-            this.focusListener();
-        }
-    }
-
-    async getReviewData() {                      // axios를 활용한 api통신을 통해 서버로부터 해당숙소의 이전 리뷰를 불러오는 함수
-        try{
-            const { reviewId } = this.props.route.params;
-
-            const token = await getToken();
-
-            const response = await axios.get(`http://223.130.131.166:8080/api/v1/review/${reviewId}`,{
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            console.log(response.data);
-            
-                     
-            const review = response.data;
-            const data = [{
-                id: review.reviewId,
-                profileName: review.userName,
-                reviewText: review.content,
-                reviewScore: review.star,
-                images: review.photos
-            }];
-
-            this.setState({ reviews: data });
-            
-            console.log("현재 reviews state:", this.state.reviews);
-
-            } catch(error) {
-                if (error.response) {
-                console.log('Error status:', error.response.status);
-                console.log('Error data:', error.response.data);
-                console.log('Error headers:', error.response.headers);
-                } else if (error.request) {
-                console.log('No response received:', error.request);
-                } else {
-                console.log('Error message:', error.message);
-                }
-                console.log('Error config:', error.config);
-            }
-    }
-
-    putReviewData = async () => {                 // axios를 활용한 api통신을 통해 서버로부터 수정한 리뷰를 서버로 다시 보내주는 함수
-        try{
-            const {                             	// 서버에 보내야하는 데이터들을 관리
-                rating,
-                imageType,
-                reviewText,
-            } = this.state;
-
-            const { reviewId, name } = this.props.route.params;
-
-            const formData = new FormData();
-
-            const dto = {
-                content: reviewText,
-                star: rating,
-                reviewId: reviewId,
-            };
-            
-            console.log("put요청 버튼누름");
-
-            const jsonString = JSON.stringify(dto);
-            const fileName = 'dto.json';
-            const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
-
-            await RNFS.writeFile(filePath, jsonString, 'utf8');
-
-            formData.append('dto', {
-                uri: `file://${filePath}`,
-                type: 'application/json',
-                name: fileName
-            });
-    
-            this.state.reviews[0].images.forEach((filePath, index) => {
-            formData.append('photos', {
-                uri: filePath,
-                name: `image-${index}.jpg`,
-                type: imageType,
-            });
-            });
-
-            for (let pair of formData._parts) {
-            console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
-            };
-
-            const token = await getToken();
-
-            const response = await axios.put(`http://223.130.131.166:8080/api/v1/review/${reviewId}`,{
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData,
-            });
-            console.log(response.data);
-            this.props.navigation.navigate('검색',);
-
-            } catch(error) {
-                if(error.status === '401'){
-                    alert("수정권한이 없습니다.");
-                }
-                if (error.response) {
-                console.log('Error status:', error.response.status);
-                console.log('Error data:', error.response.data);
-                console.log('Error headers:', error.response.headers);
-                } else if (error.request) {
-                console.log('No response received:', error.request);
-                } else {
-                console.log('Error message:', error.message);
-                }
-                console.log('Error config:', error.config);
-            }
-    }
-
     ratingCompleted = (rating) => {
-        this.setState({ rating: rating });
-    };
+        const roundedRating = parseFloat(rating.toFixed(1));
+        this.setState({ rating: roundedRating });
+      };
 
-    changeImage = () => {
-        launchImageLibrary({}, response => {
-            if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.error) {
-                console.log('ImagePicker Error: ', response.error);
-            } else {
-                // 새로운 이미지의 URI 추출
-                const newImages = response.assets.map(asset => asset.uri);
-               const imageTypes = response.assets.map(asset => asset.type);
+
+      constructor(props) {
+        super(props);
+        const reviewId = this.props.route.params.reviewId;
+        const reviewData = this.findReviewById(reviewId);
+        this.state = {
+            rating: reviewData.reviewScore,
+            reviewIMG: reviewData.images.length > 0 ? reviewData.images[0] : houseAddIMG, // 첫 번째 이미지 사용
+            reviewText: reviewData.reviewText,
+            reviewId: reviewId,
+        };
+    }
     
-                // 기존 이미지 목록에 새 이미지 추가
-                this.setState(prevState => ({
-                    imageType: imageTypes[0],
-                    reviews: prevState.reviews.map(review => ({
-                        ...review,
-                        images: [...review.images, ...newImages] // 기존 이미지에 새 이미지 추가
-                    }))
-                }));
-            }
-        });
+    findReviewById = (id) => {
+        const { reviews } = this.state;
+        return reviews.find(review => review.id === id);
     };
 
-    onChangeInput = (text) => {                // 검색하면 inputText에 변경된 값 적용시킬 때 입력한담아두는 함수
-        this.setState(prevState => ({
-            reviews: prevState.reviews.map(review => ({
-                ...review,
-                reviewText: text
-            }))
-        }));
+    addImage = () => {
+
+        launchImageLibrary({}, response => {
+                if (response.didCancel) {
+                    console.log('User cancelled image picker');
+                } else if (response.error) {
+                    console.log('ImagePicker Error: ', response.error);
+                } else if (response.customButton) {
+                    console.log('User tapped custom button: ', response.customButton);
+                } else {
+                    const source = { uri: response.assets[0].uri };
+                    this.setState({ reviewIMG: source });
+                }
+            });
+    };
+
+    onChangeInput = (event)=>{                      // 검색하면 inputText에 변경된 값 적용시킬 때 입력한담아두는 함수
+        this.setState({
+            reviewText: event 
+        })
     }
     
 
   render() {
-    const { name } = this.props.route.params;
-    const{
-        id,
-        profileName,
-        reviewText,
-        reviewScore,
-        images,
-        optionsVisible,
-    } = this.state.reviews
 
     return (
         <LinearGradient
@@ -219,14 +99,15 @@ class ReviewModifyScreen extends Component {
                 </View>
 
                 <View style={styles.reviewScoreView}>
-                    <Text style={styles.InterviewText}> {name}님과의 스테이는 어떠셨나요? </Text>
+                    <Text style={styles.InterviewText}> 박양순님과의 스테이는 어떠셨나요? </Text>
                     <View style={styles.ratingView}>
                     <Rating
                          type='custom'
                          ratingCount={5}
                          imageSize={20}
-                         startingValue={this.state.reviews[0].reviewScore}
+                         startingValue={this.state.rating}
                          ratingColor={'#F4CD42'}      
+                         fractions={2}             
                          onFinishRating={this.ratingCompleted}
                          style={styles.rating}
                          />
@@ -236,25 +117,23 @@ class ReviewModifyScreen extends Component {
 
                 <View style={styles. reviewWriteView}>
                     <Text style={styles.ReviewText} > 아래에 후기를 남겨주세요. </Text>
-                    <TouchableOpacity onPress={this.changeImage}>
-                        <Text style={styles.addIMGText} >사진 추가</Text>
+                    <TouchableOpacity onPress={this.addImage}>
+                        <Text style={styles.addIMGText} >사진 변경</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.reviewIMGView}>
-                    <ScrollView horizontal style={styles.imageScrollView} showsHorizontalScrollIndicator={false}>
-                        {this.state.reviews[0].images.map((image, index) => (
-                            image ? <Image key={index} source={{ uri: image }} style={styles.reviewIMG} /> : null
-                        ))}
+                    <ScrollView styels={styles.reviewIMGScrollView}showsHorizontalScrollIndicator={false} horizontal={true}>
+                            <Image style={styles.reviewIMG} source={this.state.reviewIMG}/>
                     </ScrollView>
                 </View>
 
                 <View style={styles.reviewTextInpuView} >
-                    <TextInput style={styles.reviewTextInput} value={this.state.reviews[0].reviewText} multiline={true} onChangeText={this.onChangeInput}/>
+                    <TextInput style={styles.reviewTextInput} value={this.state.reviewText} multiline={true} onChangeText={this.onChangeInput}/>
                 </View>
                 
                 <View style={styles.reservationBtnView}>
-                <TouchableOpacity style={styles.reservationBtn} onPress={this.putReviewData}>
+                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.props.navigation.goBack()}>
                     <Text style={styles.reservationBtnText}> 후기 수정 완료</Text>
                 </TouchableOpacity>
                 </View>
@@ -262,6 +141,7 @@ class ReviewModifyScreen extends Component {
                 <View style={styles.barMargin}><Text> </Text></View>
             </View>
             </ScrollView>
+
                
 
         </LinearGradient> 
