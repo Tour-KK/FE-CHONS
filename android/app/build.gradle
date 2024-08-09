@@ -94,8 +94,6 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
@@ -105,17 +103,11 @@ android {
 dependencies {
     implementation("com.facebook.react:react-android")
     implementation ("com.google.android.gms:play-services-auth:20.1.0")         // 구글 로그인 api
-    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
-    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))         // firebase 세팅
+implementation("com.google.firebase:firebase-analytics")                        // firebase 세팅
     implementation ("com.google.android.gms:play-services-maps:19.0.0")         // 구글 맵 api
     implementation project(':react-native-fs')                                  // 파일 시스템
     implementation project(':react-native-maps')                                // 구글 맵 api
-
-    // implementation "com.google.android.gms:play-services-base:${safeExtGet('playServicesVersion', '18.2.0')}"       // 구글 맵 api
-    // implementation "com.google.android.gms:play-services-maps:${safeExtGet('playServicesVersion', '18.2.0')}"       // 구글 맵 api
-    // implementation "com.google.android.gms:play-services-location:21.0.1"                                           // 구글 맵 api
-    // implementation 'com.google.maps.android:android-maps-utils:3.8.2'                                               // 구글 맵 api
-
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -124,25 +116,6 @@ dependencies {
     }
 }
 
-// secrets {
-//     // Optionally specify a different file name containing your secrets.
-//     // The plugin defaults to "local.properties"
-//     propertiesFileName = "secrets.properties"
-
-//     // A properties file containing default secret values. This file can be
-//     // checked in version control.
-//     defaultPropertiesFileName = "local.defaults.properties"
-
-//     // Configure which keys should be ignored by the plugin by providing regular expressions.
-//     // "sdk.dir" is ignored by default.
-//     ignoreList.add("keyToIgnore") // Ignore the key "keyToIgnore"
-//     ignoreList.add("sdk.*")       // Ignore all keys matching the regexp "sdk.*"
-// }
-        
-
-// plugins {
-//     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
-// }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
-apply plugin: 'com.google.gms.google-services'                                               // 구글 로그인 api
+apply plugin: 'com.google.gms.google-services'                                               // 구글 로그인 api (firebase 세팅)
