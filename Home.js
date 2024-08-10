@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Alert} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios';
 import Geolocation from '@react-native-community/geolocation';
 
 
@@ -52,34 +53,61 @@ class HomeScreen extends Component {
         
     }
 
-    // async getFestivalList()  {                          // 주변 축제 정보 리스트 axios를 활용한 api 통신을 통해 서버로 부터 불러오기
-    //     try {
-    //         const data = {
-    //             addr1: '경기도',
-    //             addr2: '용인시',
-    //           }
-            
-    //         const token = await getToken();
-            
-    //         const response = await axios.get('http://223.130.131.166:8080/api/v1/api/v1/festival/around', data ,{
-    //             headers: { 'Authorization': `Bearer ${token}`}
-    //         })
-            
-    //         console.log(response.data);
-    //     } catch(error) {
-    //         if (error.response) {
-    //           console.log('Error status:', error.response.status);
-    //           console.log('Error data:', error.response.data);
-    //           console.log('Error headers:', error.response.headers);
-    //         } else if (error.request) {
-    //           console.log('No response received:', error.request);
-    //         } else {
-    //           console.log('Error message:', error.message);
-    //         }
-    //         console.log('Error config:', error.config);
-    //       }
-    // }
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+            console.log('DOM에서 먼저 렌더링 완료');
+            this.getCurrentLocation();
+        });
+    }
+    
+    componentWillUnmount() {
+        if (this.focusListener) {
+            console.log('DOM에서 해당 리스너 제거완료');
+            this.focusListener();
+        }
+    }
 
+    getCurrentLocation = () => {
+        Geolocation.getCurrentPosition(                                             // 현재 위치를 place api를 geolocation 라이브러리를 활용해 위도와 경도값으로 받아오기
+          position => {
+            console.log(position);
+            this.fetchAddress(position.coords.latitude, position.coords.longitude);
+          },
+          error => {
+            console.log(error.code, error.message);
+            Alert.alert('위치 정보를 불러오는 도중 오류발생', `${error.message} (에러코드: ${error.code})`);
+          },
+          { enableHighAccuracy: false, timeout: 30000, maximumAge: 100000 }
+        );
+    };
+    
+    fetchAddress = (latitude, longitude) => {                                      // 위도와 경로값을 place api를 통해 지역명으로 가져오기 (지역명중에서도 도/시 데이터 불러오기)
+        const apiKey = 'AIzaSyCd9l-dsU0O4PMnRS2BeP0OCZtOv-atoJE'; 
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}&language=ko`;
+    
+        axios.get(url)
+            .then(response => {
+                console.log('Place API Response:', response); 
+                if (response.data.results.length > 0) {
+                    const addressComponents = response.data.results[0].address_components;                                                       // address_components
+                    const administrativeArea = addressComponents.find(component => component.types.includes('administrative_area_level_1'));     // address_components객체에서 '주' 또는 '도'에 대한 정보를 가지고 있는 administrative_area_level_1 데이터에 접근
+                    const locality = addressComponents.find(component => component.types.includes('locality'));                                  // address_components객체에서 '도시' 또는 '마을'에 대한 정보를 가지고 있는 administrative_area_level_1 데이터에 접근
+    
+                    const formattedArea = administrativeArea ? administrativeArea.long_name : '지역 정보 없음';                                   // 각 데이터에 접근해 .long_name 속성을 활용해 필요한 '도/시'에 대한 정보만 추출
+                    const formattedLocality = locality ? locality.long_name : '상세 지역 정보 없음';
+    
+                    console.log(`현재 위치: ${formattedArea} ${formattedLocality}`);
+                } else {
+                    console.log('주소 변환 실패: 주소를 찾을 수 없습니다.', response);
+                }
+            })
+            .catch(error => {
+                console.error('API 요청 오류:', error);
+                Alert.alert('API 요청 오류', error.message);
+            });
+    };
+    
+    
 
     onChangeInput = (event)=>{
         const trimmedText = event.replace(/\s+$/, '');
@@ -99,31 +127,6 @@ class HomeScreen extends Component {
     festivalInfoDelivery = (festivalId) => {             // 축제 컨텐츠 클릭시 해당 축제 정보를 같이 보내 축제정보화면으로 이동
         this.props.navigation.navigate('축제정보', { festivalId: festivalId });
     }
-   
-
-    // LocationService () {
-    //     sendLocationData = async (coords) => {
-    //         const { latitude, longitude } = coords;
-    
-    //         try {
-    //             const response = await axios.post('https://your-api-url.com/location', {
-    //                 x: longitude,
-    //                 y: latitude
-    //             }, {
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                 }
-    //             });
-    //             console.log('Location data sent successfully:', response.data);
-    //             this.setState({
-    //                 latitude: latitude,
-    //                 longitude: longitude,    
-    //             })
-    //         } catch (error) {
-    //             console.error('Failed to send location data:', error);
-    //         }
-    //     }
-    // }
 
   render() {
 
