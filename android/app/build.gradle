@@ -104,7 +104,7 @@ dependencies {
     implementation("com.facebook.react:react-android")
     implementation ("com.google.android.gms:play-services-auth:20.1.0")         // 구글 로그인 api
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))         // firebase 세팅
-implementation("com.google.firebase:firebase-analytics")                        // firebase 세팅
+    implementation("com.google.firebase:firebase-analytics")                    // firebase 세팅
     implementation ("com.google.android.gms:play-services-maps:19.0.0")         // 구글 맵 api
     implementation project(':react-native-fs')                                  // 파일 시스템
     implementation project(':react-native-maps')                                // 구글 맵 api

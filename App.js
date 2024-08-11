@@ -25,7 +25,8 @@ import HomeSearchScreen from './HomeSearch';
 import FestivalInfoScreen from './FestivalInfo';
 import AxiosTestScreen from './AxiosTest';
 import GoogleAPIScreen from './GoogleAPI';
-
+import KakaoAPIScreen from './KakaoAPI';
+import NaverAPIScreen from './NaverAPI';
 
 
 const Tab = createBottomTabNavigator();
@@ -108,6 +109,8 @@ class App extends Component {
                     <Stack.Screen name="축제정보" component={FestivalInfoScreen} />
                     <Stack.Screen name="테스트" component={AxiosTestScreen} />
                     <Stack.Screen name="구글API" component={GoogleAPIScreen} />
+                    <Stack.Screen name="카카오API" component={KakaoAPIScreen} />
+                    <Stack.Screen name="네이버API" component={NaverAPIScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
             </SafeAreaProvider>

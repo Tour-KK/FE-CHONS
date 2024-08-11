@@ -6,17 +6,18 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
         kotlinVersion = "1.9.22"
-        googlePlayServicesAuthVersion = "20.7.0"                          // google 로그인 api
+        googlePlayServicesAuthVersion = "20.7.0"                                             // google 로그인 api
     }
     repositories {
         google()
         mavenCentral()
+          maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/' }             // kakao 로그인 api
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
-        classpath 'com.google.gms:google-services:4.4.2'                    // google 로그인 api (firebase 세팅)
+        classpath 'com.google.gms:google-services:4.4.2'                                     // google 로그인 api (firebase 세팅)
         classpath "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1"
     }
         

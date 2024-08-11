@@ -39,6 +39,10 @@
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+
+          
+        <data android:host="oauth"
+        android:scheme="kakaof32f00d36e598b675bea0ed5ca9ad8b6" />                  <!-- kakao login api -->
         </intent-filter>
       </activity>
 

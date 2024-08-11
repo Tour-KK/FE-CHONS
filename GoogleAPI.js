@@ -3,6 +3,7 @@ import { View, StyleSheet, Button } from 'react-native';
 import { GoogleSignin, GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
+
 GoogleSignin.configure({										// 구글 로그인 서비스 초기화
   webClientId: '412626397279-lhjdpoasbnh9qejao9v9fkl6hsempkkl.apps.googleusercontent.com',
   offlineAccess: true
