@@ -4,17 +4,17 @@ import { GoogleSignin, GoogleSigninButton } from '@react-native-google-signin/go
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 
-GoogleSignin.configure({										// 구글 로그인 서비스 초기화
+GoogleSignin.configure({										              // 구글 로그인 서비스 초기화
   webClientId: '412626397279-lhjdpoasbnh9qejao9v9fkl6hsempkkl.apps.googleusercontent.com',
   offlineAccess: true
 });
 
 const GoogleAPIScreen = () => {
-  const googleSignin = async () => {							// 구글 계정 로그인 함수
+  const googleSignin = async () => {					        		// 구글 계정 로그인 함수
     try {
-      await GoogleSignin.hasPlayServices(); 					// 안드로이드 기기에서 Google Play 서비스를 사용할 수 있는지 확인
+      await GoogleSignin.hasPlayServices(); 			    		// 안드로이드 기기에서 Google Play 서비스를 사용할 수 있는지 확인
       const userInfo = await GoogleSignin.signIn();				// Google 계정선택 로그인창 표시
-      console.log(userInfo);									// 로그인 한 사용자 데이터 확인용 테스트 코드
+      console.log(userInfo);								            	// 로그인 한 사용자 데이터 확인용 테스트 코드
       alert("이름: " + userInfo.user.name +"\n" 
         +"이메일: "+ userInfo.user.email +"\n" 
         +"id: "+ userInfo.user.id +"\n" 
@@ -26,10 +26,10 @@ const GoogleAPIScreen = () => {
     }
   };
 
-  const googleSignout = async () => {							// 구글 계정 로그아웃 함수
+  const googleSignout = async () => {					      		// 구글 계정 로그아웃 함수
     try {
-      await GoogleSignin.signOut();								// 구글 계정 로그아웃처리후, 로컬 세션 제거
-      alert('로그아웃되었습니다.');								// 로그아웃처리 제대로 완료되었는지 테스트 코드
+      await GoogleSignin.signOut();							      	// 구글 계정 로그아웃처리후, 로컬 세션 제거
+      alert('로그아웃되었습니다.');								        // 로그아웃처리 제대로 완료되었는지 테스트 코드
     } catch (error) {
       console.error(error);
     }
