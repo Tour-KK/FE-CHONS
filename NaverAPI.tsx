@@ -31,12 +31,10 @@ const ResponseJsonText = ({
   </View>
 );
 
-/** Fill your keys */
 const consumerKey = '18XLfToQbYAywdZuhuNz';
 const consumerSecret = 'k0C3kCR9Mw';
 const appName = 'testapp';
 
-/** This key is setup in iOS. So don't touch it */
 const serviceUrlScheme = 'navertest';
 
 const NaverAPIScreen = (): ReactElement => {
@@ -83,16 +81,6 @@ const NaverAPIScreen = (): ReactElement => {
     }
   };
 
-  const deleteToken = async (): Promise<void> => {
-    try {
-      await NaverLogin.deleteToken();
-      setSuccessResponse(undefined);
-      setFailureResponse(undefined);
-      setGetProfileRes(undefined);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   return (
     <SafeAreaView
@@ -111,13 +99,6 @@ const NaverAPIScreen = (): ReactElement => {
             <Button title="Get Profile" onPress={getProfile} />
             <Gap />
           </>
-        ) : null}
-        {success ? (
-          <View>
-            <Button title="Delete Token" onPress={deleteToken} />
-            <Gap />
-            <ResponseJsonText name={'Success'} json={success} />
-          </View>
         ) : null}
         <Gap />
         {failure ? <ResponseJsonText name={'Failure'} json={failure} /> : null}

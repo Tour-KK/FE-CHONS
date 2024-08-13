@@ -3,19 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView,
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import Geolocation from '@react-native-community/geolocation';
+import { getToken } from './token';
 
 
 //이미지
 import searchIconIMG from './Image/검색창_아이콘.png';
 import reviewIconIMG from './Image/회색_별_아이콘.png';
-import checkFavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
-import FavoriteIconIMG from './Image/즐겨찾기_아이콘.png';
-import houseIMG1 from './Image/여행지1.png';
-import houseIMG2 from './Image/여행지10.png';
-import houseIMG3 from './Image/여행지11.png';
-import festivalIMG1 from './Image/축제1.png';
-import festivalIMG2 from './Image/축제2.png';
-import festivalIMG3 from './Image/축제3.png';
+
 
 class HomeScreen extends Component {
 
@@ -81,22 +75,30 @@ class HomeScreen extends Component {
         );
     };
     
-    fetchAddress = (latitude, longitude) => {                                      // 위도와 경로값을 place api를 통해 지역명으로 가져오기 (지역명중에서도 도/시 데이터 불러오기)
+    fetchAddress = (latitude, longitude) => {
         const apiKey = 'AIzaSyCd9l-dsU0O4PMnRS2BeP0OCZtOv-atoJE'; 
         const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}&language=ko`;
     
         axios.get(url)
             .then(response => {
-                console.log('Place API Response:', response); 
+                console.log('Place API Response:', response);
                 if (response.data.results.length > 0) {
-                    const addressComponents = response.data.results[0].address_components;                                                       // address_components
-                    const administrativeArea = addressComponents.find(component => component.types.includes('administrative_area_level_1'));     // address_components객체에서 '주' 또는 '도'에 대한 정보를 가지고 있는 administrative_area_level_1 데이터에 접근
-                    const locality = addressComponents.find(component => component.types.includes('locality'));                                  // address_components객체에서 '도시' 또는 '마을'에 대한 정보를 가지고 있는 administrative_area_level_1 데이터에 접근
+                    const addressComponents = response.data.results[0].address_components;
+                    const administrativeArea = addressComponents.find(component => component.types.includes('administrative_area_level_1'));
+                    const locality = addressComponents.find(component => component.types.includes('locality'));
+                    const sublocality = addressComponents.find(component => component.types.includes('sublocality_level_1'));
     
-                    const formattedArea = administrativeArea ? administrativeArea.long_name : '지역 정보 없음';                                   // 각 데이터에 접근해 .long_name 속성을 활용해 필요한 '도/시'에 대한 정보만 추출
-                    const formattedLocality = locality ? locality.long_name : '상세 지역 정보 없음';
+                    const formattedArea = administrativeArea ? administrativeArea.long_name : '지역 정보 없음';
+                    const formattedLocality = locality ? locality.long_name : (sublocality ? sublocality.long_name : '상세 지역 정보 없음');
     
-                    console.log(`현재 위치: ${formattedArea} ${formattedLocality}`);
+                    this.setState({
+                        addr1: formattedArea,
+                        addr2: formattedLocality
+                    }, () => {
+                        this.fetchFestivals(this.state.addr1, this.state.addr2);
+                    });
+    
+                    console.log(`현재 위치: ${formattedArea}, ${formattedLocality}`);
                 } else {
                     console.log('주소 변환 실패: 주소를 찾을 수 없습니다.', response);
                 }
@@ -107,9 +109,40 @@ class HomeScreen extends Component {
             });
     };
     
+    async fetchFestivals(addr1, addr2) {
+        try {
+            const token = await getToken(); 
+            const response = await axios.post(`https://your-server.com/api/v1/festival/around`, {
+                addr1: addr1,
+                addr2: addr2
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+    
+            console.log('Festivals Response:', response.data);
+            this.setState({ festivals: response.data });
+        } catch (error) {
+            console.error('Festivals Fetch Error:', error);
+            if (error.response) {
+                console.error('Error data:', error.response.data);
+                console.error('Error status:', error.response.status);
+                console.error('Error headers:', error.response.headers);
+            } else if (error.request) {
+                console.error('Error request:', error.request);
+            } else {
+                console.error('Error message:', error.message);
+            }
+        }
+    }
+    
+    
+    
+    
     
 
-    onChangeInput = (event)=>{
+    onChangeInput = (event)=>{                                                      // 검색창 text값 수정가능하게 하기
         const trimmedText = event.replace(/\s+$/, '');
         this.setState({
             searchText: trimmedText,

@@ -1,10 +1,5 @@
 {
-    "hostName": "이민호",
-    "houseIntroduction": "테스트",
-    "freeService": "#냉장고",
-    "phoneNumber": "01012345678",
-    "registrantId": 1,
-    "pricePerNight": 13600,
-    "address": "경기도 용인시 수지구",
-    "maxNumPeople": 3
+    "content": "post 테스트",
+    "star": 4,
+    "houseId": 17
 }

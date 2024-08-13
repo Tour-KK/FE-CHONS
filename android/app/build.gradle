@@ -76,7 +76,7 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
     namespace "com.apitest"
     defaultConfig {
-        applicationId "com.apitest"
+        applicationId "com.apitest"     // 이부분
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

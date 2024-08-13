@@ -29,9 +29,9 @@ class ReviewAddScreen extends Component {
         this.setState({ tempRating: rating });
     }
 
-    changeInputText = (inputText) => {
-        this.setState({ reviewText: inputText });
-    };
+    // changeInputText = (inputText) => {
+    //     this.setState({ reviewText: inputText });
+    // };
 
     addImage = () => {                      // 이미지를 로컬앨범에서 선택하는 불러오는 함수
         const options = {
@@ -114,14 +114,16 @@ class ReviewAddScreen extends Component {
                 });
             });
     
-            reviewIMG.forEach((filePath, index) => {
-            formData.append('photos', {
-                uri: filePath,
-                name: `image-${index}.jpg`,
-                type: imageType,
-            });
-            });
-
+            if (reviewIMG.length > 0) {
+                reviewIMG.forEach((img, index) => {
+                    formData.append('photos', {
+                        uri: img.uri,
+                        type: img.type || 'image/jpeg',
+                        name: `photo${index}.jpg`
+                    });
+                });
+            }
+            
             for (let pair of formData._parts) {
             console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
             };
@@ -133,7 +135,7 @@ class ReviewAddScreen extends Component {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    // 'Content-Type': 'multipart/form-data',
+                    'Content-Type': 'multipart/form-data',
                 },
                 body: formData,
             });
@@ -212,7 +214,7 @@ class ReviewAddScreen extends Component {
                                   <Image style={styles.houseIMG} source={houseAddIMG}/>
                                 </TouchableOpacity>
                             )}
-                    </ScrollView>
+                </ScrollView>
                 </View>
 
                 <View style={styles.reviewTextInputView} >
@@ -421,22 +423,6 @@ const styles = StyleSheet.create({
         height: 180,
         // backgroundColor: 'gray'
     },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     barMargin: {                    // 스클롤 탭바 마진
         height: 10,

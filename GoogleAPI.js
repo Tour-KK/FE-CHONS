@@ -28,8 +28,8 @@ const GoogleAPIScreen = () => {
 
   const googleSignout = async () => {					      		// 구글 계정 로그아웃 함수
     try {
-      await GoogleSignin.signOut();							      	// 구글 계정 로그아웃처리후, 로컬 세션 제거
-      alert('로그아웃되었습니다.');								        // 로그아웃처리 제대로 완료되었는지 테스트 코드
+      await GoogleSignin.signOut();							        // 구글 계정 로그아웃처리후, 로컬 세션 제거
+      alert('로그아웃되었습니다.');								       // 로그아웃처리 제대로 완료되었는지 테스트 코드
     } catch (error) {
       console.error(error);
     }
