@@ -1,15 +1,10 @@
 import React, {Component} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, TextInput, ScrollView} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
-import FavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
-import HouseReviewIconIMG from './Image/파란별_아이콘.png';
-import ArrowIconIMG from './Image/화살표_아이콘.png';
-import houseIMG1 from './Image/여행지1.png';
-import houseIMG2 from './Image/여행지2.png';
-import mapIMG from './Image/지도_미리보기.png';
 
 class FestivalInfoScreen extends Component {
 
@@ -99,7 +94,17 @@ class FestivalInfoScreen extends Component {
                                 </TouchableOpacity>
                             </View>
                             <Text style={styles.locationText}>{festival.address} ({festival.streetAddress})</Text>
-                            <Image style={styles.locationMap} source={mapIMG}></Image>
+                            {/* <Image style={styles.locationMap} source={mapIMG}></Image> */}
+                            <MapView
+                                provider={PROVIDER_GOOGLE} 
+                                initialRegion={{
+                                latitude: 37.541,
+                                longitude: 126.986,
+                                latitudeDelta: 0.0922,
+                                longitudeDelta: 0.0421,
+                                }}
+                                style={styles.locationMap}
+                            />
                         </View>
                     </View>
                     ))}

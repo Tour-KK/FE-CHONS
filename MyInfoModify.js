@@ -53,9 +53,9 @@ class MyInfoModifyScreen extends Component {
             if (response.data) {
                 const { name, email, phoneNum } = response.data;
                 this.setState({
-                    name: name, 
-                    email: email,
-                    phoneNum : phoneNum, 
+                    name: name || '정보 없음',  
+                    email: email || '정보 없음',  
+                    phoneNum: phoneNum || '정보 없음', 
                 });
                 console.log('응답받은 데이터:', response.data);
             }
@@ -291,22 +291,24 @@ const styles = StyleSheet.create({
     },
     infoRowLayout:{
         flexDirection: 'row',
-        alignItems: 'flex-end',
+        alignItems: 'flex-start',
         width:'92%',
-        // backgroundColor:'gray',
-    },
-    infoText:{                           // 이름, 나이등 텍스트
-        fontSize: 20,
-        marginTop: '12%',
-        width: '26%',
         // backgroundColor:'yellow',
     },
-    infoInputText: {                     // 박양순, 64세등 텍스트
+    infoText:{                           // 이름, 나이등 텍스트
         fontSize: 18,
-        marginTop: '5%',
-        width: '66%',
-        backgroundColor:'white',
+        marginBottom: '12%',
+        width: '28%',
+        justifyContent: 'flex-start',  
+        alignItems: 'flex-start',  
+        // backgroundColor:'white',
+    },
+    infoInputText: {                     // 박양순, 64세등 텍스트
+        fontSize: 16,
+        marginBottom: '5%',
+        width: '70%',
         textAlign: 'right',
+        // backgroundColor:'green',
     },
 
     logoutView:{                         // 로그아웃 텍스트 담는 View

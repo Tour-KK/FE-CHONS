@@ -81,7 +81,7 @@ class HomeScreen extends Component {
     
         axios.get(url)
             .then(response => {
-                console.log('Place API Response:', response);
+                // console.log('Place API Response:', response);
                 if (response.data.results.length > 0) {
                     const addressComponents = response.data.results[0].address_components;
                     const administrativeArea = addressComponents.find(component => component.types.includes('administrative_area_level_1'));
@@ -95,7 +95,7 @@ class HomeScreen extends Component {
                         addr1: formattedArea,
                         addr2: formattedLocality
                     }, () => {
-                        this.fetchFestivals(this.state.addr1, this.state.addr2);
+                        // this.fetchFestivals(this.state.addr1, this.state.addr2);                 // 아직 테스트 중
                     });
     
                     console.log(`현재 위치: ${formattedArea}, ${formattedLocality}`);
@@ -182,7 +182,7 @@ class HomeScreen extends Component {
                         onSubmitEditing={this.goToHomeSearch}/>
                 </View>
                 <View style={styles.contents}>
-                    <Text style={styles.ContentText}>주변 숙소 정보</Text>
+                    {/* <Text style={styles.ContentText}>주변 숙소 정보</Text>
                     <ScrollView 
                         style={styles.todayContents}  
                         horizontal={true}
@@ -218,7 +218,7 @@ class HomeScreen extends Component {
                             </View>
                         ))}
 
-                    </ScrollView>
+                    </ScrollView> */}
 
                     <Text style={styles.ContentText}>주변 축제 정보</Text>
 
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     },
     contents: {                     // 컨텐츠들 남는 ScrillView
         flex: 1,
-        width: 370,
+        width: 340,
         height:'100%',
         // backgroundColor: 'gray'
     },
@@ -301,11 +301,11 @@ const styles = StyleSheet.create({
         fontSize: 25,
         height: 40,
         marginTop: '7%',
-        marginLeft: '1.5%',
+        marginLeft: '3.3%',
     },
     todayContents:{                 // 오늘의 추천코스 컨텐츠 담는 View
         flex: 1,
-        width: 370,
+        width: 340,
         height: 330,
         borderRadius: 20, 
         marginTop: '3%',
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     },
     content: {                      // 오늘의 추천코스 컨텐츠담는 스크롤 한개단위 View
         flex: 1,
-        width: 370,
+        width: 340,
         alignItems: 'center',
     },
     TouchView:{                     // 터치 View 이미지포함안되게 지정하는 View

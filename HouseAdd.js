@@ -4,6 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {launchImageLibrary} from 'react-native-image-picker';
 import { getToken } from './token'
 import RNFS from 'react-native-fs';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -32,6 +33,16 @@ class HouseAddScreen extends Component {
         editFreeServiceState: false,
         editIntroTextState: false,
         // streetAddress: '아직 전달 못 받음',
+        region: {
+            latitude: 37.78825,
+            longitude: -122.4324,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+        },
+        markerPosition: {
+            latitude: 37.78825,
+            longitude: -122.4324,
+        },
       };
 
 
@@ -132,6 +143,16 @@ class HouseAddScreen extends Component {
             }
         }
     }
+
+    onMarkerDragEnd = (coordinate) => {
+        this.setState({
+            markerPosition: {
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+            }
+        });
+    };
+    
 
 //////////////////////////////////////////////////////////////   
     addImage = () => {                      // 이미지를 로컬앨범에서 선택하는 불러오는 함수
@@ -280,8 +301,8 @@ render() {
                   
                     <View style={styles.hostNameInfoView}>
                         <Text style={styles.hostInfo}> 숙소 위치 </Text>
-                        <TouchableOpacity style={styles.ModifySelectView} onPress={this.editStreetAddressText} >
-                            <Text style={styles.InfoModify} > {editStreetAddressState? '입력완료':'입력하기'} </Text>
+                        <TouchableOpacity style={styles.ModifySelectView}  onPress={() => this.props.navigation.navigate('구글지도')} >
+                            <Text style={styles.InfoModify} >지도 보기</Text>
                         </TouchableOpacity>
                     </View>
                     {editStreetAddressState?
@@ -292,7 +313,16 @@ render() {
                         ( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeStreetAddress} placeholder="ex) 강원도 원주시 신림면 치악로 28 (도로명)" placeholderTextColor="#B1B1B1" editable={editStreetAddressState}>{streetAddress}</TextInput>)
                         :( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeStreetAddress} placeholder="도로명 주소를 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editStreetAddressState}>{streetAddress}</TextInput>) 
                     } */}
-                   <Image style={styles.locationMap} source={mapIMG}></Image>
+                   {/* <Image style={styles.locationMap} source={mapIMG}></Image> */}
+                   <MapView provider={PROVIDER_GOOGLE} style={styles.locationMap} region={this.state.region}  >
+                        <Marker
+                            coordinate={this.state.markerPosition}
+                            title={"Title"}
+                            description={"Description"} 
+                            draggable={true}  
+                            onDragEnd={(e) => this.onMarkerDragEnd(e.nativeEvent.coordinate)}  
+                        />
+                    </MapView>
 
                    <View style={styles.hostNameInfoView}>
                         <Text style={styles.hostInfo}> 숙소 소개 사진 </Text>

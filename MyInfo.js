@@ -45,9 +45,9 @@ class MyInfoScreen extends Component {
             if (response.data) {
                 const { name, email, phoneNum } = response.data;
                 this.setState({
-                     name: name, 
-                     email: email,
-                     phoneNum : phoneNum, 
+                    name: name || '정보 없음',  
+                    email: email || '정보 없음',  
+                    phoneNum: phoneNum || '정보 없음', 
                     });
                     console.log('응답받은 데이터:', response.data);
             }

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, Alert } from 'react-native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { login, getProfile as getKakaoProfile,} from "@react-native-seoul/kakao-login";
 import NaverLogin, { GetProfileResponse, NaverLoginResponse } from '@react-native-seoul/naver-login';
@@ -30,13 +30,12 @@ class LoginScreen extends Component {
   
   postLoginData = async (userInfo, socialType) => { // axios로 서버에 로그인 data를 post하는 함수
     try {
-      console.log(userInfo);
       console.log(socialType);
       console.log(userInfo.user.email);
       console.log(userInfo.user.id);
       console.log(userInfo.user.name);
       console.log(userInfo.user.givenName);
-
+      
       const response = await axios.post('http://223.130.131.166:8080/api/v1/auth/login', {
         email: userInfo.user.email,
         socialId: userInfo.user.id,
@@ -45,7 +44,6 @@ class LoginScreen extends Component {
         nickname: userInfo.user.givenName,
         birthYear: "", 
         birthDay: "",
-        phoneNum: 0,
       });
       console.log('제대로 보내졌나? 응답 메세지:', response.data);
 
@@ -99,6 +97,7 @@ class LoginScreen extends Component {
             email: profileResult.response.email || '',  
             id: profileResult.response.id || '',
             name: profileResult.response.name || '',
+            // name: profileResult.response.nickname || '',
             givenName: profileResult.response.nickname || ''  
           }
         };
@@ -127,7 +126,8 @@ class LoginScreen extends Component {
         user: {
           email: profile.email,  
           id: profile.id,        
-          name: profile.name,    
+          name: profile.nickname,       // 임시용 
+          // name: profile.name,    
           givenName: profile.nickname
         }
       }, socialType);
@@ -154,8 +154,8 @@ class LoginScreen extends Component {
               <Image source={GoogleLogoIMG} style={styles.googleLogo}/>
               <Text style={styles.googleText}> 구글 로그인 </Text>
           </TouchableOpacity>
-          {/* <TouchableOpacity style={styles.naverLogin} onPress={() => this.naverSignIn()}> */}
-          <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} >
+          <TouchableOpacity style={styles.naverLogin} onPress={() => this.naverSignIn()}>
+          {/* <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} > */}
               <Image source={NaverLogoIMG} style={styles.naverLogo}/>
               <Text style={styles.naverText}> 네이버 로그인 </Text>
           </TouchableOpacity>
