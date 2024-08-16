@@ -134,10 +134,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     padding: 0,
     marginBottom: 10,
+    textAlign: 'center',
+    width: '100%',
   },
   calloutAddress: {
     textAlign: 'center',
-    maxWidth: 250,
+    flexWrap: 'wrap',
+    width: '100%',
   },
   addressContainer: {
     position: 'absolute',
