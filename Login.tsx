@@ -154,8 +154,8 @@ class LoginScreen extends Component {
               <Image source={GoogleLogoIMG} style={styles.googleLogo}/>
               <Text style={styles.googleText}> 구글 로그인 </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.naverLogin} onPress={() => this.naverSignIn()}>
-          {/* <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} > */}
+          {/* <TouchableOpacity style={styles.naverLogin} onPress={() => this.naverSignIn()}> */}
+          <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} >
               <Image source={NaverLogoIMG} style={styles.naverLogo}/>
               <Text style={styles.naverText}> 네이버 로그인 </Text>
           </TouchableOpacity>
