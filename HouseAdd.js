@@ -45,6 +45,31 @@ class HouseAddScreen extends Component {
         },
       };
 
+      componentDidMount() {
+        this._unsubscribe = this.props.navigation.addListener('focus', () => {
+          const { params } = this.props.route;
+          if (params?.address) {
+            this.setState({
+              address: params.address,
+              region: {
+                latitude: params.region.latitude,
+                longitude: params.region.longitude,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005
+              },
+              markerPosition: {
+                latitude: params.region.latitude,
+                longitude: params.region.longitude
+              }
+            });
+          }
+        });
+      }
+      
+      componentWillUnmount() {
+        this._unsubscribe();
+      }
+      
 
     async postHouseData() {         // 숙소등록시 숙소와 관련된 데이터들을 서버에 보내는 함수
         try {   
@@ -307,7 +332,7 @@ render() {
                     </View>
                     {editStreetAddressState?
                         ( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="ex) 강원도 속초시 신림면 (일반 주소)" placeholderTextColor="#B1B1B1" editable={editStreetAddressState}>{address}</TextInput>)
-                        :( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="주소를 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editStreetAddressState}>{address}</TextInput>) 
+                        :( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="주소를 입력해주세요" placeholderTextColor="#B1B1B1" editable={editStreetAddressState} multiline={true} numberOfLines={4} >{address}</TextInput>) 
                     }
                     {/* {editStreetAddressState?
                         ( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeStreetAddress} placeholder="ex) 강원도 원주시 신림면 치악로 28 (도로명)" placeholderTextColor="#B1B1B1" editable={editStreetAddressState}>{streetAddress}</TextInput>)
@@ -513,15 +538,11 @@ const styles = StyleSheet.create({
     },
     hostInfoAddressText: {                  // 주소, 도로명 주소 입력받는 본문 텍스트
         fontSize: 16,
-        width: 300,
+        width: '100%',   
+        minHeight: 32, 
         color: 'gray',
-        height: 32,
         textAlignVertical: 'top',
-        // backgroundColor: 'yellow',
-        margin: 0,
-        paddingTop: 5,
-        paddingLeft: 3,
-        padding:0,
+        padding: 15,    
     },
     hostInfoView: {                       // 호스트 정보 전체를 담는 View
         width: '90%',
@@ -594,7 +615,6 @@ const styles = StyleSheet.create({
         width: '68%',
         height: 210,    
         borderRadius: 15,
-        marginTop: '10%',
         marginBottom: '10%',
     },
     barMargin: {                               // 스클롤 탭바 마진
