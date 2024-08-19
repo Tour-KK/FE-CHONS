@@ -34,14 +34,14 @@ class HouseAddScreen extends Component {
         editIntroTextState: false,
         // streetAddress: '아직 전달 못 받음',
         region: {
-            latitude: 37.78825,
-            longitude: -122.4324,
+            latitude: 37.541,
+            longitude: 126.986,
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
         },
         markerPosition: {
-            latitude: 37.78825,
-            longitude: -122.4324,
+            latitude: 37.541,
+            longitude: 126.986,
         },
       };
 
@@ -55,7 +55,7 @@ class HouseAddScreen extends Component {
                 latitude: params.region.latitude,
                 longitude: params.region.longitude,
                 latitudeDelta: 0.005,
-                longitudeDelta: 0.005
+                longitudeDelta: 0.005 
               },
               markerPosition: {
                 latitude: params.region.latitude,
@@ -245,9 +245,9 @@ class HouseAddScreen extends Component {
     editMaximumGuestNumberText = () => {
         this.setState(prevState => ({ editMaximumGuestNumberState: !prevState.editMaximumGuestNumberState }));
     };
-    editStreetAddressText = () => {
-        this.setState(prevState => ({ editStreetAddressState: !prevState.editStreetAddressState }));
-    };
+    // editStreetAddressText = () => {
+    //     this.setState(prevState => ({ editStreetAddressState: !prevState.editStreetAddressState }));
+    // };
     editPriceText = () => {
         this.setState(prevState => ({ editPriceState: !prevState.editPriceState }));
     };
@@ -327,13 +327,14 @@ render() {
                     <View style={styles.hostNameInfoView}>
                         <Text style={styles.hostInfo}> 숙소 위치 </Text>
                         <TouchableOpacity style={styles.ModifySelectView}  onPress={() => this.props.navigation.navigate('구글지도')} >
-                            <Text style={styles.InfoModify} >지도 보기</Text>
+                            <Text style={styles.InfoModify}>지도 보기</Text>
                         </TouchableOpacity>
                     </View>
-                    {editStreetAddressState?
-                        ( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="ex) 강원도 속초시 신림면 (일반 주소)" placeholderTextColor="#B1B1B1" editable={editStreetAddressState}>{address}</TextInput>)
-                        :( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="주소를 입력해주세요" placeholderTextColor="#B1B1B1" editable={editStreetAddressState} multiline={true} numberOfLines={4} >{address}</TextInput>) 
-                    }
+                    <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="지도에서 위치를 선택해주세요" placeholderTextColor="#B1B1B1" editable={false} multiline={true} numberOfLines={4} >{address}</TextInput>
+                    {/* {editStreetAddressState?
+                        ( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="지도에서 위치를 지정해주세요" placeholderTextColor="#B1B1B1" editable={false}>{address}</TextInput>)
+                        :( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="지도에서 위치를 지정해주세요" placeholderTextColor="#B1B1B1" editable={false} multiline={true} numberOfLines={4} >{address}</TextInput>) 
+                    } */}
                     {/* {editStreetAddressState?
                         ( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeStreetAddress} placeholder="ex) 강원도 원주시 신림면 치악로 28 (도로명)" placeholderTextColor="#B1B1B1" editable={editStreetAddressState}>{streetAddress}</TextInput>)
                         :( <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeStreetAddress} placeholder="도로명 주소를 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editStreetAddressState}>{streetAddress}</TextInput>) 
