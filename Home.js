@@ -51,6 +51,7 @@ class HomeScreen extends Component {
         this.focusListener = this.props.navigation.addListener('focus', () => {
             console.log('DOM에서 먼저 렌더링 완료');
             this.getCurrentLocation();
+            this.fetchFestivals();
         });
     }
     

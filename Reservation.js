@@ -2,7 +2,10 @@ import React, {Component, useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Slider from '@react-native-community/slider';
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { Calendar } from 'react-native-calendars'; 
+import { getToken } from './token';
+import axios from 'axios';
+
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -10,8 +13,6 @@ import portOneIcon from './Image/포트원_로고.png';
 import naverPayIcon from './Image/네이버페이_로고.png';
 import kakaoPayIcon from './Image/카카오페이_로고.png';
 import tossPayIcon from './Image/토스페이_로고.png';
-import checkFavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
-import FavoriteIconIMG from './Image/즐겨찾기_아이콘.png';
 import reviewIconIMG from './Image/회색_별_아이콘.png';
 
 
@@ -22,6 +23,9 @@ class ReservationScreen extends Component {
     state = {
         value: 1,
         labels: ["소극", "보통", "적극"],
+        selectedDates: [],
+        isCalendarVisible: false, 
+
         editHostNameState: false,
         editPhoneNumberState: false,
         editMaximumGuestNumberState: false,
@@ -33,21 +37,16 @@ class ReservationScreen extends Component {
         checkOutDate: '',
 
         places: [                                   // 목록에 띄울 데이터들 관
-            { id: 1, name: "김갑순님의 거주지", address:'강원도 속초시 신림면', reviewScore: "4.2", reviewCount: 48, imageUrl: require('./Image/여행지1.png'), favoriteState: true, price: 43000, reservaionState: true, clearReservation: false },
-            { id: 2, name: "김경민님의 거주지", address:'강원도 원주시 신림면', reviewScore: "3.8", reviewCount: 23, imageUrl: require('./Image/여행지2.png'), favoriteState: true, price: 38000, reservaionState: false,  clearReservation: false },
-            { id: 3, name: "강진석님의 거주지", address:'강원도 철원군 동송읍', reviewScore: "4.0", reviewCount: 31, imageUrl: require('./Image/여행지3.png'), favoriteState: false, price: 88000, reservaionState: false,  clearReservation: false },
-            { id: 4, name: "오진태님의 거주지", address:'강원도 강릉시 옥계면',reviewScore: "4.4", reviewCount: 18, imageUrl: require('./Image/여행지4.png'), favoriteState: false, price: 26000, reservaionState: false,  clearReservation: false },
-            { id: 5, name: "박경숙님의 거주지", address: '경상남도 부산광역시 김해시 진영읍', reviewScore: "4.2", reviewCount: 66, imageUrl: require('./Image/여행지5.png'), favoriteState: false, price: 40000, reservaionState: false,  clearReservation: false },
-            { id: 7, name: "이창민님의 거주지", address:'경상남도 부산광역시 금정구 구서2동',reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지6.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 9, name: "오경숙님의 거주지", address:'경상북도 울산광역시 울주군 둔기리', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지8.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 8, name: "양민우님의 거주지", address:'전라남도 전주시 덕진구', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지7.png'), favoriteState: true, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 10, name: "이정민님의 거주지", address:'경기도 화성시 남양읍', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지9.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 11, name: "박범석님의 거주지", address:'제주특별자치도 서귀포시 남원읍', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지10.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 12, name: "황진영님의 거주지", address:'전라남도 광주광역시 북구 오치1동', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지11.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 13, name: "박우석님의 거주지", address:'전라남도 나주시 영강동', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지12.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 14, name: "이현숙님의 거주지", address:'충천남도 공주시 우성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지13.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: true },
-            { id: 15, name: "황지석님의 거주지", address:'충천남도 아산시 신창면 남성리', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지14.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
-            { id: 16, name: "이미연님의 거주지", address:'충천남도 당진시 순성면', reviewScore: "4.6", reviewCount: 20, imageUrl: require('./Image/여행지15.png'), favoriteState: false, price: 54000, reservaionState: false,  clearReservation: false },
+            { id: 1, 
+                name: "김갑순님의 거주지", 
+                address:'강원도 속초시 신림면', 
+                reviewScore: "4.2", 
+                reviewCount: 48, 
+                imageUrl: require('./Image/여행지1.png'), 
+                favoriteState: true, 
+                price: 43000, 
+                reservaionState: true, 
+                clearReservation: false },
         ],
     }
 
@@ -59,37 +58,67 @@ class ReservationScreen extends Component {
     placeInfoDelivery = (houseId) => {             // 숙소 컨텐츠 클릭시 해당 숙소 정보를 같이 보내 숙소정보화면으로 이동
         this.props.navigation.navigate('숙소정보', { houseId: houseId });
     }
+
+    // axios를 활용한 api통신을 통해 서버에 예약 요청을 보내는 함수
+    async postReserationInfData() {                   
+        try {
+            const token = await getToken();
+            const { houseId } = this.props.route.params;
+    
+            const response = await axios.post(
+                `/api/v1/reservation/${houseId}`, 
+                {
+                    startAt: "2024-08-19",
+                    endAt: "2024-08-19",
+                    personNum: 0,
+                    phoneNum: "string", 
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+    
+            console.log('응답받은 데이터:', response.data);
+    
+        } catch (error) {
+            if (error.response) {
+                console.log('Error status:', error.response.status);
+                console.log('Error data:', error.response.data);
+                console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+                console.log('No response received:', error.request);
+            } else {
+                console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+        }
+    }
     
 
-   showCheckInPicker = () => {
-        this.setState({ isCheckInPickerVisible: true });
+    toggleCalendar = () => {
+        this.setState(prevState => ({ 
+            isCalendarVisible: !prevState.isCalendarVisible 
+        }));
     };
 
-    hideCheckInPicker = () => {
-        this.setState({ isCheckInPickerVisible: false });
+    onDaySelect = (day) => {
+        const { dateString } = day;
+        const { selectedDates } = this.state;
+        const index = selectedDates.indexOf(dateString);
+
+        if (index > -1) {
+            this.setState({ selectedDates: selectedDates.filter(date => date !== dateString) });
+        } else {
+            this.setState({ selectedDates: [...selectedDates, dateString] });
+        }
     };
 
-    handleCheckInConfirm = (date) => {
-        this.setState({
-            checkInDate: date.toISOString().split('T')[0], 
-            isCheckInPickerVisible: false 
-        });
-    };
-
-    showCheckOutPicker = () => {
-        this.setState({ isCheckOutPickerVisible: true });
-    };
-
-    hideCheckOutPicker = () => {
-        this.setState({ isCheckOutPickerVisible: false });
-    };
-
-    handleCheckOutConfirm = (date) => {
-        this.setState({
-            checkOutDate: date.toISOString().split('T')[0], 
-            isCheckOutPickerVisible: false 
-        });
-    };
+renderSelectedDates = () => {
+    const { selectedDates } = this.state;
+    return selectedDates.join(', ');
+};
 
     editHostnameText = () => {
         this.setState(prevState => ({ editHostNameState: !prevState.editHostNameState }));
@@ -118,6 +147,7 @@ class ReservationScreen extends Component {
     changeIntroText = (inputText) => {
         this.setState({ introText: inputText });
     };
+    
 
     render() {
 
@@ -127,7 +157,20 @@ class ReservationScreen extends Component {
 
         const { hostName, editHostNameState, phoneNumber, editPhoneNumberState, maximumGuestNumber, editMaximumGuestNumberState, 
             price, editPriceState, introText, editIntroTextState } = this.state;
-    
+
+        const { selectedDates } = this.state;
+
+        // 달력 한국어 텍스트 커스텀
+        const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
+
+        // 오늘 날짜 눌럿을때 생기는 이벤트 효과 동일적용
+        const today = new Date().toISOString().split('T')[0];
+        const markedDates = this.state.selectedDates.reduce((acc, date) => {
+            acc[date] = { selected: true, marked: true, selectedColor: 'green' };
+            return acc;
+        }, {});
 
         return (
             <LinearGradient
@@ -165,59 +208,36 @@ class ReservationScreen extends Component {
                
                 <Text style={styles.reservationDateText}> 예약 날짜 </Text>
                 <View style={styles.reservationView}>
-                        <View style={styles.reservationSelectView}>
-                            <Text style={styles.reservationDate}>입실 날짜</Text>
-                            <TouchableOpacity style={styles.ModifySelectView} onPress={this.showCheckInPicker}>
-                                <Text style={styles.reservationDateSelect}>날짜 선택하기</Text>
+                    <View style={styles.reservationSelectView}>
+                            <Text style={styles.reservationDate}>예약 날짜</Text>
+                            <TouchableOpacity style={styles.ModifySelectView} onPress={this.toggleCalendar}>
+                            {this.state.isCalendarVisible ? (
+                                <Text style={styles.reservationDateSelect}>달력 닫기</Text>
+                            ):  <Text style={styles.reservationDateSelect}>달력 열기</Text>}
                             </TouchableOpacity>
-                        </View>
-                        <DateTimePickerModal
-                            isVisible={isCheckInPickerVisible}
-                            mode="date"
-                            onConfirm={this.handleCheckInConfirm}
-                            onCancel={this.hideCheckInPicker} />
-                        <TextInput
-                            style={styles.reservationDateInput}
-                            value={checkInDate}
-                            placeholder="날짜를 선택해주세요"
-                            editable={false} />
-
-                        <View style={styles.reservationSelectView}>
-                            <Text style={styles.reservationDate}>퇴실 날짜</Text>
-                            <TouchableOpacity style={styles.ModifySelectView} onPress={this.showCheckOutPicker}>
-                                <Text style={styles.reservationDateSelect}>날짜 선택하기</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <DateTimePickerModal
-                            isVisible={isCheckOutPickerVisible}
-                            mode="date"
-                            onConfirm={this.handleCheckOutConfirm}
-                            onCancel={this.hideCheckOutPicker} />
-                        <TextInput
-                            style={styles.reservationDateInput}
-                            value={checkOutDate}
-                            placeholder="날짜를 선택해주세요"
-                            editable={false} />
                     </View>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    
+                    {this.state.isCalendarVisible && (
+                        <Calendar
+                        current={Date()}
+                        monthNames={monthNames}
+                        dayNames={dayNames}
+                        dayNamesShort={dayNamesShort}
+                        markedDates={markedDates}
+                        locale={'ko'} 
+                        theme={{
+                            todayTextColor: 'lightgreen',
+                            selectedDayBackgroundColor: 'green',
+                            selectedDayTextColor: '#ffffff'
+                        }}
+                        onDayPress={this.onDaySelect}
+                    />
+                    )}
+                    <TextInput
+                    style={styles.reservationDateInput}
+                    value={this.renderSelectedDates()}
+                    placeholder="날짜를 선택해주세요"
+                    editable={false} />
+                </View>
 
                 <Text style={styles.reservationInfoText}> 예약 정보 </Text>
                    
@@ -336,7 +356,7 @@ class ReservationScreen extends Component {
                         <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
                     </View>
 
-                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.props.navigation.navigate('찜목록')}>
+                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postReserationInfData()}>
                     <Text style={styles.reservationBtnText}>예약하기</Text>
                 </TouchableOpacity>
 
@@ -483,16 +503,19 @@ const styles = StyleSheet.create({
         marginTop: '3.3%',
         marginLeft: '3.3%',
         fontSize: 22,
-        width:'66%',
+        width:'74%',
         alignItems: 'center',
         justifyContent: 'center',
+        // backgroundColor: 'yellow',
     },
     ModifySelectView: {                    // 날짜 선택, 입력하기 세로 위치조절 ToucableOpacity View
         marginTop: '4.4%',
+        // backgroundColor: 'gray',
     },
     reservationDateSelect: {               // 날짜 선택하기 텍스트
         fontSize: 16,
         color: '#4285F4',
+        // backgroundColor: 'green',
     },
     reservationDateInput: {                // 입력한 날짜 본문 텍스트
         marginTop: '2.2%',
