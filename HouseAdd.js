@@ -362,15 +362,22 @@ render() {
                         horizontal={true}>
                             {this.state.imageUri.length > 0 ? (
                                 this.state.imageUri.map((uri, index) => (
-                                    <Image key={index} style={styles.houseIMG} source={{ uri: uri }}/>
+                                    <View key={index} style={styles.imageContainer}>
+                                        <Image style={styles.houseIMG} source={{ uri: uri }} />
+                                        <TouchableOpacity 
+                                            style={styles.removeBtn} 
+                                            onPress={() => this.removeImage(index)}>
+                                            <Text style={styles.removeBtnText}>ㅡ</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 ))
                             ) : (
                                 <TouchableOpacity style={styles.ModifySelectView} onPress={this.addImage}>
-                                  <Image style={styles.houseIMG} source={houseAddIMG}/>
+                                    <Image style={styles.houseIMG} source={houseAddIMG}/>
                                 </TouchableOpacity>
                             )}
                     </ScrollView>
-                    </View>
+                </View>
                  
                     <View style={styles.hostNameInfoView}>
                         <Text style={styles.hostInfo}> 소개글 </Text>
@@ -497,17 +504,16 @@ const styles = StyleSheet.create({
         // backgroundColor: 'yellow',
     },
     houseIMGView:{                         // 숙소 사진 가운데 정렬 View
+        width: '88%',
+        marginTop: '3%',
         alignItems:'center',
-        flexDirection: 'row',
-        width: '53%',
-        marginTop: '5%',
         marginBottom: '5%',
-        // backgroundColor: 'yellow',
+        // backgroundColor: 'gray',
     },
     addHouseIMGView:{                      // 숙소 사진등록 View
         marginTop: '10%',
         marginBottom: '4%',
-        backgroundColor:'#E2E2E2',
+        // backgroundColor:'#E2E2E2',
     },
     houseIMG: {                        // 숙소 사진 등록
         width: 170,                     
@@ -550,10 +556,11 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         marginTop: '1.8%',
         flexdirection: 'row',
-        backgroundColor: 'white',
         alignItems: 'center',
+        justifyContent: "center",
         paddingTop: '3%',
         paddingBottom: '3%',
+        // backgroundColor: 'yellow',
     },
     hostFreeServiceView:{                   // 무료 서비스 하단 마진
         width: '98%',
@@ -633,6 +640,33 @@ const styles = StyleSheet.create({
         marginBottom: '6.6%',
         // backgroundColor: 'green',
     },
+
+    imageContainer: {
+        position: 'relative',
+        alignItems: 'center',
+        margin: 5,
+        borderRadius: 10, 
+    },
+    
+    removeBtn: {                                    // 이미지 제거 버튼
+        position: 'absolute',
+        right: 16,
+        top: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        width: 28,
+        height: 28,
+        borderRadius: 50,  
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    
+    removeBtnText: {                                // 이미지 제거 버튼 'ㅡ' 텍스트
+        color: '#FF774C',
+        fontWeight: 'bold',
+        fontSize: 22,
+        lineHeight: 28,  
+    },
+    
     tagTextmargin: {                         // 태그 텍스트 스크롤뷰 마진
         width: 30,
     },

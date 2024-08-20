@@ -60,6 +60,12 @@ class ReviewAddScreen extends Component {
             });
     };
 
+    removeImage = (indexToRemove) => {
+        this.setState(prevState => ({
+            reviewIMG: prevState.reviewIMG.filter((_, index) => index !== indexToRemove)
+        }));
+    };
+
     onChangeInput = (event)=>{                      // 검색하면 inputText에 변경된 값 적용시킬 때 입력한담아두는 함수
         this.setState({
             reviewText: event 
@@ -202,19 +208,26 @@ class ReviewAddScreen extends Component {
                 </View>
 
                 <View style={styles.reviewIMGView}>
-                <ScrollView style={styles.addHouseIMGView}  
+                    <ScrollView style={styles.addHouseIMGView}  
                         showsHorizontalScrollIndicator={false}  
                         horizontal={true}>
                             {this.state.reviewIMG.length > 0 ? (
                                 this.state.reviewIMG.map((uri, index) => (
-                                    <Image key={index} style={styles.houseIMG} source={{ uri: uri }}/>
+                                    <View key={index} style={styles.imageContainer}>
+                                        <Image style={styles.houseIMG} source={{ uri: uri }} />
+                                        <TouchableOpacity 
+                                            style={styles.removeBtn} 
+                                            onPress={() => this.removeImage(index)}>
+                                            <Text style={styles.removeBtnText}>ㅡ</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 ))
                             ) : (
                                 <TouchableOpacity style={styles.ModifySelectView} onPress={this.addImage}>
-                                  <Image style={styles.houseIMG} source={houseAddIMG}/>
+                                    <Image style={styles.houseIMG} source={houseAddIMG}/>
                                 </TouchableOpacity>
                             )}
-                </ScrollView>
+                    </ScrollView>
                 </View>
 
                 <View style={styles.reviewTextInputView} >
@@ -423,6 +436,32 @@ const styles = StyleSheet.create({
         height: 180,
         // backgroundColor: 'gray'
     },
+    imageContainer: {
+        position: 'relative',
+        alignItems: 'center',
+        margin: 5,
+        borderRadius: 10, 
+    },
+    
+    removeBtn: {
+        position: 'absolute',
+        right: 16,
+        top: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        width: 28,
+        height: 28,
+        borderRadius: 50,  
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    
+    removeBtnText: {
+        color: '#FF774C',
+        fontWeight: 'bold',
+        fontSize: 22,
+        lineHeight: 28,  
+    },
+    
 
     barMargin: {                    // 스클롤 탭바 마진
         height: 10,
