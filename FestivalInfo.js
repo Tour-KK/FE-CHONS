@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, TextInput, ScrollView} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import axios from 'axios';
+import { getToken } from './token';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -9,43 +11,82 @@ import backBtnIMG from './Image/뒤로가기_아이콘.png';
 class FestivalInfoScreen extends Component {
 
     state = {
-        places: [                                   // 목록에 띄울 주변 숙소 컨텐츠 데이터들 
-            { id: 1, 
-                name: "김갑순님의 거주지",
-                address:'강원도 속초시 신림면', 
-                reviewScore: "4.2", 
-                reviewCount: 48, 
-                imageUrl: require('./Image/여행지1.png'), 
-                favoriteState: true, 
-                price: 43000, 
-                reservaionState: false, 
-                clearReservation: false },
-        ],
-        
         festivals: [                                   // 목록에 띄울 주변 축제 컨텐츠 데이터들
             { id: 1,
-                name: "제주 민속촌 메밀꽃 축제", 
-                address:'제주민속촌', 
-                streetAddress: '제주도 서귀포시 표선면 민속해안로 631-34',  
-                imageUrl: require('./Image/축제1.png'), 
-                homepages: "https://www.mcst.go.kr/kor/main.jsp", 
-                tel:'02-2602-8602', 
-                introText: "메밀꽃 축제기간에 민속촌을 방문하면 제주초가를 배경으로 새하얗게 만개한 메밀꽃을 만나 볼 수 있고, 페이스 페인팅과 삐에로 풍선 아트 공연도 진행"},
-        ],
+                name: "", 
+                address: "", 
+                imageUrl: [], 
+                homepages: "", 
+                tel:"", 
+                introText: "",
+                posX: "",
+                posY: "",
+            },
+        ],  
+    }
+
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+            console.log('DOM에서 먼저 렌더링 완료');
+            this.getFestivalData();
+        });
     }
     
-    placeInfoDelivery = (festivalId) => {             // 간편예약버튼 클릭시 해당 숙소 정보를 같이 보내 예약화면으로 이동
-        this.props.navigation.navigate('예약', { festivalId: festivalId });
+    componentWillUnmount() {
+        if (this.focusListener) {
+            console.log('DOM에서 해당 리스너 제거완료');
+            this.focusListener();
+        }
     }
-   
+
+    async getFestivalData() {
+        try {
+            const { festivalId } = this.props.route.params;
+
+            const token = await getToken(); 
+            const response = await axios.get(`http://223.130.131.166:8080/api/v1/festival/${festivalId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+    
+            console.log('getFestivalData Response:', response.data);
+            const festival = {
+                id: response.data.contentId,
+                name: response.data.title,
+                address: response.data.addr1,
+                imageUrl: { uri: response.data.imageUrl },
+                homepages: response.data.homepages,
+                tel: response.data.tel,
+                introText: response.data.overview,
+                posX: parseFloat(response.data.posX),
+                posY: parseFloat(response.data.posY)
+            };
+            this.setState({ festivals: [festival] });
+        } catch (error) {
+            console.error('getFestivalData Error:', error);
+            if (error.response) {
+                console.error('Error data:', error.response.data);
+                console.error('Error status:', error.response.status);
+                console.error('Error headers:', error.response.headers);
+            } else if (error.request) {
+                console.error('Error request:', error.request);
+            } else {
+                console.error('Error message:', error.message);
+            }
+        }
+    }
     
     render() {
-
-        const { festivalId } = this.props.route.params;
         const { festivals } = this.state;
 
-        const filteredPlaces = festivals.filter(festival => festival.id === festivalId);
-        
+        festivals.forEach(festival => {
+            if (festival.posX && festival.posY) {
+                console.log(`전달받은 Latitude: ${festival.posX}, 전달받은 Longitude: ${festival.posY}`);
+            }
+        });
+
+        const isValidCoordinate = (value) => !isNaN(parseFloat(value)) && isFinite(value);
 
         return (
         <LinearGradient
@@ -59,7 +100,7 @@ class FestivalInfoScreen extends Component {
                     <ScrollView 
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}>
-                        {filteredPlaces.map((festival) => (
+                        {this.state.festivals.map((festival) => (
                             <ImageBackground key={festival.id} style={styles.houseIMG} source={festival.imageUrl}>
                                 <TouchableOpacity style={styles.fixedBackButton} onPress={() => this.props.navigation.goBack()}>
                                     <Image style={styles.backBtnIcon} source={backBtnIMG}/>  
@@ -69,7 +110,7 @@ class FestivalInfoScreen extends Component {
                     </ScrollView>
                 </View>
                 <View> 
-                    {filteredPlaces.map(festival => (
+                    {this.state.festivals.map(festival => (
                     <View key={festival.id}>
                         <View style={styles.houseName}>
                             <Text style={styles.houseNameText}>{festival.name}</Text>
@@ -89,22 +130,24 @@ class FestivalInfoScreen extends Component {
                         <View style={styles.locationView} >
                             <View style={styles.mapView}>
                                 <Text style={styles.location}>축제 장소</Text>
-                                <TouchableOpacity style={styles.mapTouchView}>
+                                {/* <TouchableOpacity style={styles.mapTouchView}>
                                     <Text style={styles.map} onPress={() => alert('API버전 호환에러 고치는 중')}>지도 보기</Text>
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
-                            <Text style={styles.locationText}>{festival.address} ({festival.streetAddress})</Text>
-                            {/* <Image style={styles.locationMap} source={mapIMG}></Image> */}
-                            <MapView
-                                provider={PROVIDER_GOOGLE} 
-                                initialRegion={{
-                                latitude: 37.541,
-                                longitude: 126.986,
-                                latitudeDelta: 0.0922,
-                                longitudeDelta: 0.0421,
-                                }}
-                                style={styles.locationMap}
-                            />
+                            <Text style={styles.locationText}>{festival.address}</Text>
+                            {isValidCoordinate(festival.posX) && isValidCoordinate(festival.posY) && (
+                                <MapView
+                                    provider={PROVIDER_GOOGLE}
+                                    style={styles.locationMap}
+                                    initialRegion={{
+                                        latitude: parseFloat(festival.posX),
+                                        longitude: parseFloat(festival.posY),
+                                        latitudeDelta: 0.005,
+                                        longitudeDelta: 0.005
+                                    }}
+                                />
+                            )}
+
                         </View>
                     </View>
                     ))}
@@ -133,8 +176,8 @@ const styles = StyleSheet.create({
         alignItems: 'center', 
     },
     houseIMGView:{                  // 숙소사진,뒤로가기버튼, 찜버튼,페이지 정보 담는 View
-        width: 415,
-        height: 380, 
+        width: 375,
+        height: 340, 
         alignItems: 'center', 
     },
     backBtnIcon: {              // 뒤로가기 버튼
@@ -172,53 +215,33 @@ const styles = StyleSheet.create({
 
     },
     houseIMG: {                                // 숙소사진
-        width: 415, 
-        height: 380,
+        width: 375, 
+        height: 340,
         resizeMode: 'cover',
     },  
     houseName: {                               // 숙소명을 담는 View
         marginTop: '3.3%',
         marginLeft: '7%',
-        width: 415,
+        width: 375,
         justifyContent: 'flex-start',
     },
     houseNameText: {                           // 숙소명
         fontSize: 28,
     },
-    houseReviewView: {                         // 숙소 평점 및 후기 담는 View
-        flexDirection: 'row',
-        marginTop: '1%',
-        marginLeft: '8%',
-        width: 415,
-        alignItems: 'center', 
-        justifyContent: 'flex-start',
-    },
-    houseReview: {                             // 숙소 평점 및 후기 담는 ScrollView
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    houseReviewIcon: {                         // 별 아이콘
-        width: 13.6,
-        height: 13.6,   
-        marginTop: '1.5%',
-    },
-    houseReviewText: {                         // 평점 및 후기 텍스트
-        marginLeft: '4%',
-        fontSize: 16,
-        color: '#4285F4',   
-    }, 
     introView:{                                // 소개글 제목, 본문 담는 View
         alignItems: 'center',
     },
     introText: {                               // 소개글 제목 텍스트
         marginTop: '12%',
-        paddingLeft: '10.5%',
-        fontSize: 22,
+        marginBottom: '2.2%',
+        paddingLeft: '12.5%',
+        fontSize: 24,
         width: '100%',
     },  
     houseIntroText: {                          // 숙소 소개글 본문 텍스트
         marginTop: '2.2%',
-        fontSize: 17,
+        paddingLeft: '10.5%',
+        fontSize: 16,
         width: 358,
         // backgroundColor: 'gray',
     },
@@ -252,7 +275,7 @@ const styles = StyleSheet.create({
         marginLeft: '1.5%',
         width: '86%',
         marginTop: '5.5%',
-        fontSize: 18,
+        fontSize: 16,
         // backgroundColor: 'yellow'
     },
     locationMap: {                             // 지도 미리보기 화면
@@ -267,6 +290,7 @@ const styles = StyleSheet.create({
     phoneNumber: {                             // 연락처 텍스트
         marginLeft: '10%',
         marginTop: '14%',
+        marginBottom: '2.2%',
         fontSize: 22,
         paddingLeft: '1%',
         // backgroundColor: 'yellow'

@@ -436,14 +436,15 @@ const styles = StyleSheet.create({
         height: 180,
         // backgroundColor: 'gray'
     },
-    imageContainer: {
+ 
+    imageContainer: {                               // 이미지 담는 View
         position: 'relative',
         alignItems: 'center',
         margin: 5,
         borderRadius: 10, 
     },
     
-    removeBtn: {
+    removeBtn: {                                    // 이미지 제거 버튼
         position: 'absolute',
         right: 16,
         top: 16,
@@ -455,7 +456,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     
-    removeBtnText: {
+    removeBtnText: {                                // 이미지 제거 버튼 'ㅡ' 텍스트
         color: '#FF774C',
         fontWeight: 'bold',
         fontSize: 22,

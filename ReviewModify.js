@@ -241,11 +241,26 @@ class ReviewModifyScreen extends Component {
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.reviewIMGView}>
-                    <ScrollView horizontal style={styles.imageScrollView} showsHorizontalScrollIndicator={false}>
-                        {this.state.reviews[0].images.map((image, index) => (
-                            image ? <Image key={index} source={{ uri: image }} style={styles.reviewIMG} /> : null
-                        ))}
+              <View style={styles.reviewIMGView}>
+                    <ScrollView style={styles.addHouseIMGView}  
+                        showsHorizontalScrollIndicator={false}  
+                        horizontal={true}>
+                            {this.state.reviews.images.length > 0 ? (
+                                this.state.reviews.images.map((uri, index) => (
+                                    <View key={index} style={styles.imageContainer}>
+                                        <Image style={styles.houseIMG} source={{ uri: uri }} />
+                                        <TouchableOpacity 
+                                            style={styles.removeBtn} 
+                                            onPress={() => this.removeImage(index)}>
+                                            <Text style={styles.removeBtnText}>ㅡ</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                ))
+                            ) : (
+                                <TouchableOpacity style={styles.ModifySelectView} onPress={this.addImage}>
+                                    <Image style={styles.houseIMG} source={houseAddIMG}/>
+                                </TouchableOpacity>
+                            )}
                     </ScrollView>
                 </View>
 
@@ -455,6 +470,32 @@ const styles = StyleSheet.create({
         // backgroundColor: 'gray'
     },
 
+    
+    imageContainer: {                               // 이미지 담는 View
+        position: 'relative',
+        alignItems: 'center',
+        margin: 5,
+        borderRadius: 10, 
+    },
+    
+    removeBtn: {                                    // 이미지 제거 버튼
+        position: 'absolute',
+        right: 16,
+        top: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        width: 28,
+        height: 28,
+        borderRadius: 50,  
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    
+    removeBtnText: {                                // 이미지 제거 버튼 'ㅡ' 텍스트
+        color: '#FF774C',
+        fontWeight: 'bold',
+        fontSize: 22,
+        lineHeight: 28,  
+    },
 
     barMargin: {                    // 스클롤 탭바 마진
         height: 10,

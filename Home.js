@@ -18,32 +18,31 @@ class HomeScreen extends Component {
         addr1: '',
         addr2: '',
     
-        places: [                                   // 목록에 띄울 주변 숙소 컨텐츠들
-            { id: 1, 
-                name: "김갑순님의 거주지", 
-                address:'강원도 속초시 도문동', 
-                streetAddress: '강원도 속초시 중도문길 95', 
-                reviewScore: "4.2", 
-                reviewCount: 108, 
-                imageUrl: require('./Image/여행지1.png'), 
-                favoriteState: true, 
-                price: '43000원', 
-                reservaionState: false, 
-                clearReservation: false , 
-                maximumGuestNumber: '2명', 
-                freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", 
-                introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드립니다."},
-        ],
-       
+        
         festivals: [                                   // 목록에 띄울 주변 축제 컨텐츠들
             { id: 1, 
-                name: "제주 민속촌 메밀꽃 축제", 
-                address:'제주민속촌', 
-                streetAddress: '제주도 서귀포시 표선면 민속해안로 631-34',  
-                imageUrl: require('./Image/축제1.png'), 
-                homepages: "https://www.mcst.go.kr/kor/s_culture/festival/festivalView.jsp?pSeq=12498&pRo=7&pCurrentPage=2&pOrder=01up&pPeriod=&fromDt=&toDt=&pSido=&pSearchType=01&pSearchWord=", tel:'02-2602-8602', introText: "메밀꽃 축제기간에 민속촌을 방문하면 제주초가를 배경으로 새하얗게 만개한 메밀꽃을 만나 볼 수 있고, 페이스 페인팅과 삐에로 풍선 아트 공연도 진행"},
+                name: "", 
+                address:'', 
+                imageUrl: [], 
+                homepages: ""},
         ],
 
+        // places: [                                   // 목록에 띄울 주변 숙소 컨텐츠들
+        //     { id: 1, 
+        //         name: "김갑순님의 거주지", 
+        //         address:'강원도 속초시 도문동', 
+        //         streetAddress: '강원도 속초시 중도문길 95', 
+        //         reviewScore: "4.2", 
+        //         reviewCount: 108, 
+        //         imageUrl: require('./Image/여행지1.png'), 
+        //         favoriteState: true, 
+        //         price: '43000원', 
+        //         reservaionState: false, 
+        //         clearReservation: false , 
+        //         maximumGuestNumber: '2명', 
+        //         freeService: "와이파이, 침대, 욕실, 음료, 세면도구, 드라이기, 냉장고", 
+        //         introText: "강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드립니다."},
+        // ],
         
     }
 
@@ -51,7 +50,6 @@ class HomeScreen extends Component {
         this.focusListener = this.props.navigation.addListener('focus', () => {
             console.log('DOM에서 먼저 렌더링 완료');
             this.getCurrentLocation();
-            this.fetchFestivals();
         });
     }
     
@@ -96,7 +94,7 @@ class HomeScreen extends Component {
                         addr1: formattedArea,
                         addr2: formattedLocality
                     }, () => {
-                        // this.fetchFestivals(this.state.addr1, this.state.addr2);                 // 아직 테스트 중
+                        this.fetchFestivals(this.state.addr1, this.state.addr2);                 // 아직 테스트 중
                     });
     
                     console.log(`현재 위치: ${formattedArea}, ${formattedLocality}`);
@@ -113,17 +111,23 @@ class HomeScreen extends Component {
     async fetchFestivals(addr1, addr2) {
         try {
             const token = await getToken(); 
-            const response = await axios.post(`https://your-server.com/api/v1/festival/around`, {
-                addr1: addr1,
-                addr2: addr2
-            }, {
+            console.log(addr1+""+addr2);
+            const response = await axios.get(`http://223.130.131.166:8080/api/v1/festival/around?addr1=${encodeURIComponent(addr1)}&addr2=${encodeURIComponent(addr2)}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 }
             });
     
             console.log('Festivals Response:', response.data);
-            this.setState({ festivals: response.data });
+            const festivals = response.data.map(item => ({
+                id: item.contentId, 
+                name: item.title,
+                address: item.address,
+                imageUrl: { uri: item.imageUrl }, 
+                homepages: item.tel, 
+            }));
+
+            this.setState({ festivals });
         } catch (error) {
             console.error('Festivals Fetch Error:', error);
             if (error.response) {
@@ -227,19 +231,20 @@ class HomeScreen extends Component {
                         style={styles.todayContents}  
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}>
-                        {this.state.festivals.map((festival) => (    
-                            <View key={festival.id} style={styles.content}>
-                                <Image source={festival.imageUrl} style={styles.houseIMG}/>
-                                <TouchableOpacity style={styles.TouchView} onPress={() => this.festivalInfoDelivery(festival.id)} >
-                                    <View style={styles.houseReviewView}>
-                                        <Text style={styles.festivalName}>{festival.name}</Text>
-                                    </View>
-                                    <Text style={styles.houseAddress}>{festival.address} ({festival.streetAddress})</Text>
-                                    <View style={styles.houseReviewView}>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        ))}
+                        {this.state.festivals.map((festival, index) => (    
+                            <View key={`${festival.id}-${index}`} style={styles.content}>
+                            <Image source={festival.imageUrl} style={styles.houseIMG}/>
+                            <TouchableOpacity style={styles.TouchView} onPress={() => this.festivalInfoDelivery(festival.id)} >
+                                <View style={styles.houseReviewView}>
+                                    <Text style={styles.festivalName}>{festival.name}</Text>
+                                </View>
+                                <Text style={styles.houseAddress}>{festival.address}</Text>
+                                <View style={styles.houseReviewView}>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+
                     </ScrollView>
 
                     <View style={styles.barMargin}><Text> </Text></View>

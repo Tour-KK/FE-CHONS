@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
         // backgroundColor: 'green',
     },
 
-    imageContainer: {
+    imageContainer: {                               // 이미지 담는 View
         position: 'relative',
         alignItems: 'center',
         margin: 5,
