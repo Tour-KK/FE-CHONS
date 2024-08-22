@@ -1,12 +1,16 @@
 import React, {Component} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, TextInput, ScrollView} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, ScrollView, Linking} from 'react-native';
+import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
 import axios from 'axios';
 import { getToken } from './token';
+import Geocoder from 'react-native-geocoding';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
+import grayHorizontalLine from "./Image/회색가로선.png"
+import customMarkerIMG from "./Image/지도마커_아이콘.png";
+
+
 
 class FestivalInfoScreen extends Component {
 
@@ -25,43 +29,55 @@ class FestivalInfoScreen extends Component {
         ],  
     }
 
-    componentDidMount() {
+    componentDidMount() {                           // 축제 상세 정보 렌더링전에 먼저 불러오게 세팅 + Geocoder 초기화
+        Geocoder.init('AIzaSyCd9l-dsU0O4PMnRS2BeP0OCZtOv-atoJE', { language: "ko" });
+
         this.focusListener = this.props.navigation.addListener('focus', () => {
             console.log('DOM에서 먼저 렌더링 완료');
             this.getFestivalData();
         });
     }
     
-    componentWillUnmount() {
-        if (this.focusListener) {
+    componentWillUnmount() {                         // 축제 상세 정보 렌더링전에 먼저 불러오게 세팅
+        if (this.focusListener) {   
             console.log('DOM에서 해당 리스너 제거완료');
             this.focusListener();
         }
     }
 
-    async getFestivalData() {
+    
+    async getFestivalData() {                         // axios를 활용해 축제 상세정보 먼저 불러오도록 세팅
         try {
             const { festivalId } = this.props.route.params;
 
-            const token = await getToken(); 
+            const token = await getToken();
             const response = await axios.get(`http://223.130.131.166:8080/api/v1/festival/${festivalId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 }
             });
-    
+
             console.log('getFestivalData Response:', response.data);
+
             const festival = {
                 id: response.data.contentId,
                 name: response.data.title,
                 address: response.data.addr1,
                 imageUrl: { uri: response.data.imageUrl },
-                homepages: response.data.homepages,
+                homepages: this.extractDomain(response.data.homepages),
                 tel: response.data.tel,
                 introText: response.data.overview,
-                posX: parseFloat(response.data.posX),
-                posY: parseFloat(response.data.posY)
+                latitude: null,
+                longitude: null,
             };
+
+            const geocodingResponse = await Geocoder.from(festival.address);
+            if (geocodingResponse.results.length > 0) {
+                const location = geocodingResponse.results[0].geometry.location;
+                festival.latitude = location.lat;
+                festival.longitude = location.lng;
+            }
+
             this.setState({ festivals: [festival] });
         } catch (error) {
             console.error('getFestivalData Error:', error);
@@ -77,6 +93,17 @@ class FestivalInfoScreen extends Component {
         }
     }
     
+    // 도메인만 추출하는 메서드
+    extractDomain(homepages) {
+        const regex = /https?:\/\/(www\.)?([a-zA-Z0-9.-]+)/;
+        const match = homepages.match(regex);
+        if (match) {
+            return `https://${match[1]}${match[2]}`;
+        } else {
+    return homepages;
+        }
+    }
+
     render() {
         const { festivals } = this.state;
 
@@ -89,19 +116,14 @@ class FestivalInfoScreen extends Component {
         const isValidCoordinate = (value) => !isNaN(parseFloat(value)) && isFinite(value);
 
         return (
-        <LinearGradient
-        colors={['#E8ECFF', '#FFFFFF']} 
-        style={styles.linearGradient} 
-        start={{ x: 0, y: 0 }} 
-        end={{ x: 0, y: 0.8}} >
             <ScrollView style={styles.background} showsVerticalScrollIndicator={false}>
             <View style={styles.container}>
-                <View style={styles.houseIMGView}  >
+                <View style={styles.festivalIMGView}  >
                     <ScrollView 
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}>
                         {this.state.festivals.map((festival) => (
-                            <ImageBackground key={festival.id} style={styles.houseIMG} source={festival.imageUrl}>
+                            <ImageBackground key={festival.id} style={styles.festivalIMG} source={festival.imageUrl}>
                                 <TouchableOpacity style={styles.fixedBackButton} onPress={() => this.props.navigation.goBack()}>
                                     <Image style={styles.backBtnIcon} source={backBtnIMG}/>  
                                 </TouchableOpacity>
@@ -111,43 +133,59 @@ class FestivalInfoScreen extends Component {
                 </View>
                 <View> 
                     {this.state.festivals.map(festival => (
-                    <View key={festival.id}>
-                        <View style={styles.houseName}>
-                            <Text style={styles.houseNameText}>{festival.name}</Text>
+                        <View style={styles.contain} key={festival.id}>
+                        <View style={styles.festivalNameView}>
+                            <Text style={styles.festivalNameText}>{festival.name}</Text>
                         </View>
+                        <Image style={styles.grayHorizontalLine} source={grayHorizontalLine}/>
                         <View style={styles.introView} >
                             <Text style={styles.introText}>축제 정보</Text>
-                            <Text style={styles.houseIntroText}>{festival.introText}</Text>
+                            <Text style={styles.festivalIntroText}>{festival.introText}</Text>
                         </View>
-                        <View style={styles.introView} >
-                            <Text style={styles.introText}>홈페이지 주소</Text>
-                            <Text style={styles.houseIntroText}>{festival.homepages} </Text>
+                        <View style={styles.domainView} >
+                            <Text style={styles.domainText}>홈페이지 주소</Text>
+                            <Text 
+                                style={styles.festivalDomainText} onPress={() => Linking.openURL(festival.homepages)}> {festival.homepages}
+                            </Text>
                         </View>
-                        <View >
+                        <View style={styles.phoneNumberView} >
                             <Text style={styles.phoneNumber}>문의 전화</Text>
                             <Text style={styles.phoneNumberText}>{festival.tel}</Text>
                         </View>
                         <View style={styles.locationView} >
-                            <View style={styles.mapView}>
-                                <Text style={styles.location}>축제 장소</Text>
-                                {/* <TouchableOpacity style={styles.mapTouchView}>
-                                    <Text style={styles.map} onPress={() => alert('API버전 호환에러 고치는 중')}>지도 보기</Text>
-                                </TouchableOpacity> */}
-                            </View>
-                            <Text style={styles.locationText}>{festival.address}</Text>
-                            {isValidCoordinate(festival.posX) && isValidCoordinate(festival.posY) && (
+                            <Text style={styles.location}>축제 장소</Text>
+                            {isValidCoordinate(festival.latitude) && isValidCoordinate(festival.longitude) && (
+                            <View style={styles.mapContainer}>
                                 <MapView
                                     provider={PROVIDER_GOOGLE}
                                     style={styles.locationMap}
                                     initialRegion={{
-                                        latitude: parseFloat(festival.posX),
-                                        longitude: parseFloat(festival.posY),
-                                        latitudeDelta: 0.005,
-                                        longitudeDelta: 0.005
-                                    }}
-                                />
-                            )}
-
+                                        latitude: festival.latitude,
+                                        longitude: festival.longitude,
+                                        latitudeDelta: 0.0007, 
+                                        longitudeDelta: 0.0007, 
+                                    }}>
+                                    <Marker
+                                        coordinate={{
+                                            latitude: festival.latitude,
+                                            longitude: festival.longitude
+                                        }}
+                                        title={festival.name}
+                                        description={festival.address} 
+                                        image={customMarkerIMG}>
+                                        {/* <Image
+                                            source={customMarkerIMG}
+                                            style={{ width: 50, height: 50 }} /> */}
+                                        <Callout tooltip>
+                                            <View style={styles.customCallout}>
+                                                <Text style={styles.calloutTitle}>{festival.address}</Text>
+                                            </View>
+                                        </Callout>
+                                    </Marker>
+                                </MapView>
+                            </View>
+                        )}
+                            <Text style={styles.locationText}>{festival.address}</Text>
                         </View>
                     </View>
                     ))}
@@ -157,7 +195,6 @@ class FestivalInfoScreen extends Component {
 
             </View>
             </ScrollView>
-        </LinearGradient> 
     )
   }
 }
@@ -166,18 +203,18 @@ class FestivalInfoScreen extends Component {
 const styles = StyleSheet.create({
     background: {                   // 전체화면 세팅
         flex: 1,
+        backgroundColor: 'white',
     },
-    linearGradient: {               // 그라데이션 
-        flex: 0,
-        width: '100%',
-        height: '100%',
-    },  
     container: {                    // 컴포넌트들 가운데 정렬시키는 View
         alignItems: 'center', 
     },
-    houseIMGView:{                  // 숙소사진,뒤로가기버튼, 찜버튼,페이지 정보 담는 View
+    contain: {                    // 컴포넌트들 가운데 정렬시키는 View
+        alignItems: 'center', 
+        width: '100%',
+    },
+    festivalIMGView:{                  // 숙소사진,뒤로가기버튼, 찜버튼,페이지 정보 담는 View
         width: 375,
-        height: 340, 
+        height: 320, 
         alignItems: 'center', 
     },
     backBtnIcon: {              // 뒤로가기 버튼
@@ -197,57 +234,94 @@ const styles = StyleSheet.create({
         borderRadius: 50,   
         backgroundColor: 'rgba(255, 255, 255, 0.4)',   
     },
-    FavoriteIcon: {                     // 즐겨찾기
-        width: 26,
-        height: 26,
-        resizeMode: 'contain',
-    },
-    fixedFavoriteButton: {              // 즐겨찾기 버튼 고정시키는 View
-        position: 'absolute',
-        top: '2.5%',
-        right: '2.5%',    
-        height: 36,  
-        width: 36,  
-        justifyContent: 'center', 
-        alignItems: 'center',     
-        borderRadius: 50,   
-        backgroundColor: 'rgba(255, 255, 255, 0.4)',   
-
-    },
-    houseIMG: {                                // 숙소사진
+    festivalIMG: {                                // 숙소사진
         width: 375, 
-        height: 340,
+        height: 320,
         resizeMode: 'cover',
     },  
-    houseName: {                               // 숙소명을 담는 View
+    festivalNameView: {                               // 숙소명을 담는 View
         marginTop: '3.3%',
-        marginLeft: '7%',
-        width: 375,
+        width: 340,
         justifyContent: 'flex-start',
+        // backgroundColor:'gray',
     },
-    houseNameText: {                           // 숙소명
-        fontSize: 28,
+    festivalNameText: {                           // 축제명
+        fontSize: 26,
+        fontFamily: 'Pretendard-Bold', 
+        color:'#232323',
+    },
+    grayHorizontalLine:{                        // 회색 구분선
+        marginTop: '4.4%',
+        width: 375,
+        height: 3,
+        resizeMode: 'cover',
     },
     introView:{                                // 소개글 제목, 본문 담는 View
         alignItems: 'center',
-    },
-    introText: {                               // 소개글 제목 텍스트
-        marginTop: '12%',
-        marginBottom: '2.2%',
-        paddingLeft: '12.5%',
-        fontSize: 24,
-        width: '100%',
-    },  
-    houseIntroText: {                          // 숙소 소개글 본문 텍스트
-        marginTop: '2.2%',
-        paddingLeft: '10.5%',
-        fontSize: 16,
-        width: 358,
+        width: 320,
         // backgroundColor: 'gray',
     },
+    introText: {                               // 소개글 제목 텍스트
+        marginTop: '9.4%',
+        marginBottom: '2.2%',
+        fontSize: 24,
+        width: 320,
+        fontFamily: 'Pretendard-Bold', 
+        // backgroundColor: 'gray',
+    },  
+    festivalIntroText: {                          // 숙소 소개글 본문 텍스트
+        marginTop: '0.8%',
+        fontSize: 15,
+        fontFamily: 'Pretendard-Regular',
+        width: 320,
+        // backgroundColor: 'green',
+    },
+    domainView:{                                   // 홈페이지 주소 View
+        alignItems: 'center',
+        width: 320,
+        // backgroundColor: 'yellow'
+    },
+    domainText: {                                  // 홈페이지 주소 텍스트
+        marginTop: '18%',
+        marginBottom: '2.2%',
+        fontSize: 24,
+        width: 320,
+        fontFamily: 'Pretendard-Bold', 
+        // backgroundColor: 'gray',
+    },  
+    festivalDomainText: {                          // 홈페이지 주소 본문 텍스트
+        marginTop: '2.2%',
+        color: "#0AE090",
+        fontSize: 16,
+        width: 320,
+        fontFamily: 'Pretendard-Regular',
+        // backgroundColor: 'gray',
+    },
+    phoneNumberView:{                          // 문의 전화, 연락처 담는 View
+        alignItems: 'center',
+        width: 320,
+        // backgroundColor: 'yellow'
+    },
+    phoneNumber: {                             // 문의 전화 텍스트
+        width: 320,
+        marginTop: '18%',
+        marginBottom: '2.2%',
+        fontSize: 24,
+        fontFamily: 'Pretendard-Bold', 
+        // backgroundColor: 'green',      
+    },
+    phoneNumberText: {                         // 010-0000-0000 텍스트       
+        width: 320,   
+        marginTop: '2.2%',
+        fontSize: 16,
+        fontFamily: 'Pretendard-Regular',
+        // backgroundColor: 'gray'
+
+    },
     locationView: {                            // 숙소 위치 도로명과 미리보기 화면 담는 View
-        alignItems: 'flex-start',
-        paddingLeft: '9.8%',    
+        alignItems: 'center',
+        width: 320,
+        // backgroundColor: 'yellow'
     },
     mapView: {                                 // 숙소위치 제목 텍스트와 지도보러가기 텍스트 가로배치로 담는 View
         flexDirection: 'row',
@@ -255,163 +329,52 @@ const styles = StyleSheet.create({
         // backgroundColor:'gray',
     },
     location: {                                // 숙소 위치 텍스트
-        width: '70%',
-        marginTop: '14%',
-        fontSize: 22,
-        marginLeft: '1%',
-        // backgroundColor:'yellow',
+        width: 320,
+        marginTop: '18%',
+        fontSize: 24,
+        fontFamily: 'Pretendard-Bold', 
+        // backgroundColor:'gray',
     },
-    mapTouchView: {                            // 지도 보러가기 터치 View
-        marginTop: '14.5%',
-        width: '26%',
-    },
-    map: {                                     // 지도 보기 텍스트
+    locationText: {                             
+        width: 320,
         fontSize: 16,
-        color: '#4285F4',
+        textAlign: 'center', 
+        paddingBottom: '3.3%', 
+        fontFamily: 'Pretendard-Regular',
+    },    
+    mapContainer: {                           // 구글 지도 화면
+        width: 320,
+        height: 210,
+        borderRadius: 25,
+        overflow: 'hidden', 
+        borderColor: '#0AE090',
+        borderWidth: 0.8,
+        marginTop: '8%',
+        marginBottom: '7%',
+    },
+    locationMap: {                             
         width: '100%',
-        // backgroundColor: 'green'
+        height: '100%',    
     },
-    locationText: {                            // 도로명 본문 텍스트          
-        marginLeft: '1.5%',
-        width: '86%',
-        marginTop: '5.5%',
-        fontSize: 16,
-        // backgroundColor: 'yellow'
-    },
-    locationMap: {                             // 지도 미리보기 화면
-        width: '68%',
-        height: 210,    
-        marginLeft: '2.2%',
+    customCallout: {                       // 마커 누르면 나오는 정보창 타이틀 스타일링    
+        padding: 10,
+        backgroundColor: '#ffffff',
         borderRadius: 15,
-        marginTop: '10%',
-        marginBottom: '10%',
-        // backgroundColor: 'yellow'
-    },
-    phoneNumber: {                             // 연락처 텍스트
-        marginLeft: '10%',
-        marginTop: '14%',
-        marginBottom: '2.2%',
-        fontSize: 22,
-        paddingLeft: '1%',
-        // backgroundColor: 'yellow'
-        
-    },
-    phoneNumberText: {                         // 010-0000-0000 텍스트          
-        marginTop: '2.2%',
-        marginLeft: '10%',    
-        fontSize: 19,
-        paddingLeft: '1.3%',
-        // backgroundColor: 'yellow'
-
-    },
-    reservationView: {                        // 가격및 예약버튼담는 View
-        position: 'absolute',
-        width: '100%',
-        height: 75,
-        backgroundColor: 'white',
-        justifyContent: 'center',
-        bottom: 0,
-        flexDirection: 'row',
-        justifyContent: 'center',
         alignItems: 'center',
+        borderColor: '#0AE090',
+        borderWidth: 1.2,
+        maxWidth: 250, 
+        flexDirection: 'row', 
+        justifyContent: 'center', 
     },
-    reservationBtn:{                          // 예약 버튼
-        backgroundColor : '#4285F4',  
-        borderRadius: 16,
-        width: '55%',
-        height: 55,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,                       
-        shadowColor: '#4285F4',
-        shadowRadius: 10,
-    },
-    priceText: {                              // 가격 텍스트
-        fontSize: 26,
-        color: '#4285F4',  
-        width: '40%',
-        // backgroundColor: 'yellow',
+    calloutTitle: {                         // 마커 누르면 나오는 callout 텍스트 스타일링                        
+        fontSize: 14,
+        color: 'black',
         textAlign: 'center',
-        marginBottom: '2%',
-    },
-    reservationText:{                         // 간편 예약하기 텍스트
-        color: 'white', 
-        fontSize: 18,
-        marginBottom: '1.5%',
-    },
-    arrowIcon: {                              // 화살표 아이콘     
-        width: 24,
-        height: 24,
-        marginLeft: '4%',
+        marginHorizontal: '8%',
     },
     barMargin: {                             // ScrollView 탭바에 대한 마진
         height: 30,
-    },
-    hostAttention:{                          // '최대 인원' 텍스트
-        marginTop: '11%',
-        marginLeft: '9.5%',
-        fontSize: 22,
-        width: '100%',
-    },
-    hostAttentionText: {                     // 최대인원 본문 값 텍스트 (2명)
-        marginTop: '1.5%',
-        marginLeft: '10%',
-        fontSize: 20,
-        color: '#4285F4',
-    },
-
-    tagTextView:{                            // 무료제공 서비스, 이런건 챙겨와주세요! 
-        marginTop: '11%',
-        paddingLeft: '10%',
-        fontSize: 22,
-        width: '100%',
-    },
-    tagView: {                               // 무료제공서비스, 태그 담는 View
-        flexDirection: 'row',
-        marginTop: '2.5%',
-        marginLeft: '9.2%',
-        width: '78%',
-        // backgroundColor: 'yellow',
-    },
-    tagText: {                               // 무료제공서비스, 태그 담는 View 텍스트
-        fontSize: 18,
-        color: '#4285F4',  
-    },
-    tagTextmargin: {                         // 태그 텍스트 스크롤뷰 마진
-        width: 30,
-    },
-    houseRuleText:{                          // 숙소 이용규칙 제목 텍스트
-        fontSize: 24,
-        marginTop: '22%',
-        paddingLeft: '10%',
-    },
-    columnMiidle:{                           // 가로 가운데 정렬 - 숙소 이용규칙 본문담는 View 가운데 정렬
-        alignItems: 'center',
-    },
-    houseRuleView: {                          // 숙소 이용규칙 본문 담는 View
-        marginTop: '4.4%',
-        paddingLeft: '4%',
-        width: 360,
-        heigh: 400,
-        backgroundColor: 'white',
-        borderRadius: 20,
-    },
-    houseRuleOptionText: {                    // 숙소 이용규칙 본문 텍스트
-        marginTop: '4.4%',
-        fontSize: 16,
-        color: '#939393',
-        // backgroundColor:'yellow',
-    },
-    houseRuleOptionTextMargin: {              // 숙소 이용규칙 하단 마진
-        marginBottom: '1%',
-    },
-    ruleAlertText: {                          // 숙소 이용규칙 패널티에 대한 텍스트
-        fontSize: 14,
-        width: 340,
-        color: '#4285F4',
-        marginTop: '5.5%',
-        textAlign:'center',
     },
 });
 

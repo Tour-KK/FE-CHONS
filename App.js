@@ -37,23 +37,35 @@ const TabBarIcon = (focused, name)=>{
     let iconImagePath;
 
     if(name==='홈'){
-        iconImagePath = require('./Image/홈_아이콘.png')
+        iconImagePath = focused
+        ? require('./Image/홈버튼_클릭아이콘.png')
+        : require('./Image/홈버튼_아이콘.png'); 
     } else if (name==='검색'){
-        iconImagePath = require('./Image/검색_아이콘.png')
+        iconImagePath = focused
+        ? require('./Image/검색버튼_클릭아이콘.png')
+        : require('./Image/검색버튼_아이콘.png'); 
     } else if (name==='찜목록'){
-        iconImagePath = require('./Image/찜_아이콘.png')
+        iconImagePath = focused
+        ? require('./Image/찜버튼_클릭아이콘.png')
+        : require('./Image/찜버튼_아이콘.png'); 
     } else if (name==='내정보'){
-        iconImagePath = require('./Image/내정보_아이콘.png')
+        iconImagePath = focused
+        ? require('./Image/내정보버튼_클릭아이콘.png')
+        : require('./Image/내정보버튼_아이콘.png'); 
     }
     return (
         <Image 
-        style={{
-            opacity: focused ? 1 : 0.5,
-            width: focused ? 24 : 22,
-            height: focused ? 24 : 22,
-        }}
-        source = {iconImagePath}/>
-    )
+            style={{
+                opacity: focused ? 1 : 0.5,
+                width: focused ? 24 : 22,  
+                height: focused ? 24 : 22, 
+                padding: 5,                
+                // backgroundColor: 'gray',
+            }}
+            source={iconImagePath}
+            resizeMode="contain" 
+        />
+    );
 }
 
 
@@ -65,7 +77,7 @@ MainScreen = () => {                                        // 메인 Tab 화면
             screenOptions={({ route }) => ({
                 tabBarLabel: ({ focused }) => (
                     <Text style={{
-                        color: focused ? 'black' : 'gray',
+                        color: focused ? 'rgb(10,224,144)' : '#C4C4C4',
                         marginBottom: '5%' }}>
                         {route.name}
                     </Text>
@@ -76,8 +88,9 @@ MainScreen = () => {                                        // 메인 Tab 화면
                 tabBarStyle: {
                     position: 'absolute',
                     bottom: 0,
-                    zIndex: 1000,
-                    height: 60,
+                    height: 70, 
+                    padding: 10,
+                    // backgroundColor: 'gray',
                 },
                 headerShown: false
             })}
