@@ -103,22 +103,29 @@ class ReservationScreen extends Component {
         }));
     };
 
+    // onDaySelect = (day) => {
+    //     const { dateString } = day;
+    //     const { selectedDates } = this.state;
+    //     const index = selectedDates.indexOf(dateString);
+
+    //     if (index > -1) {
+    //         this.setState({ selectedDates: selectedDates.filter(date => date !== dateString) });
+    //     } else {
+    //         this.setState({ selectedDates: [...selectedDates, dateString] });
+    //     }
+    // };
+
+
     onDaySelect = (day) => {
         const { dateString } = day;
-        const { selectedDates } = this.state;
-        const index = selectedDates.indexOf(dateString);
-
-        if (index > -1) {
-            this.setState({ selectedDates: selectedDates.filter(date => date !== dateString) });
-        } else {
-            this.setState({ selectedDates: [...selectedDates, dateString] });
-        }
+        this.setState({ selectedDate: dateString });
     };
 
-renderSelectedDates = () => {
-    const { selectedDates } = this.state;
-    return selectedDates.join(', ');
-};
+    
+    renderSelectedDates = () => {
+        const { selectedDates } = this.state;
+        return selectedDates.join(', ');
+    };
 
     editHostnameText = () => {
         this.setState(prevState => ({ editHostNameState: !prevState.editHostNameState }));
@@ -159,6 +166,7 @@ renderSelectedDates = () => {
             price, editPriceState, introText, editIntroTextState } = this.state;
 
         const { selectedDates } = this.state;
+        const { selectedDate } = this.state;
 
         // 달력 한국어 텍스트 커스텀
         const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
@@ -167,10 +175,14 @@ renderSelectedDates = () => {
 
         // 오늘 날짜 눌럿을때 생기는 이벤트 효과 동일적용
         const today = new Date().toISOString().split('T')[0];
-        const markedDates = this.state.selectedDates.reduce((acc, date) => {
-            acc[date] = { selected: true, marked: true, selectedColor: 'green' };
-            return acc;
-        }, {});
+        // const markedDates = this.state.selectedDates.reduce((acc, date) => {
+        //     acc[date] = { selected: true, marked: true, selectedColor: 'green' };
+        //     return acc;
+        // }, {});
+
+        const markedDates = {
+            [selectedDate]: { selected: true, marked: true, selectedColor: 'green' }
+        };
 
         return (
             <LinearGradient
