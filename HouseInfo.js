@@ -7,10 +7,8 @@ import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
-import FavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
 import HouseReviewIconIMG from './Image/파란별_아이콘.png';
 import ArrowIconIMG from './Image/화살표_아이콘.png';
-import mapIMG from './Image/지도_미리보기.png';
 
 class HouseInfoScreen extends Component {
 
@@ -51,10 +49,6 @@ class HouseInfoScreen extends Component {
         }
     }
     
-    
-    placeInfoDelivery = (houseId) => {             // 간편예약버튼 클릭시 해당 숙소 정보를 같이 보내 예약화면으로 이동
-        this.props.navigation.navigate('예약', { houseId: houseId });
-    }
 
     async getHouseData() {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 리스트들을 불러오는 함수
         try{
@@ -217,7 +211,9 @@ class HouseInfoScreen extends Component {
                
                 <View style={styles.reservationView}>
                     <Text style={styles.priceText}>₩43000원</Text>
-                    <TouchableOpacity style={styles.reservationBtn} onPress={this.placeInfoDelivery}>
+                    <TouchableOpacity  style={styles.reservationBtn} onPress={() => this.props.navigation.navigate('예약', { houseId: houseId })}>
+
+
                         <Text style={styles.reservationText}>간편 예약하기</Text>
                         <Image style={styles.arrowIcon} source={ArrowIconIMG}/>
                     </TouchableOpacity>

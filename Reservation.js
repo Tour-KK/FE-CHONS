@@ -23,8 +23,8 @@ class ReservationScreen extends Component {
     state = {
         value: 1,
         labels: ["소극", "보통", "적극"],
-        selectedDates: [],
-        isCalendarVisible: false, 
+        houseId: 1,
+        reservationId: 1,
 
         editHostNameState: false,
         editPhoneNumberState: false,
@@ -50,6 +50,14 @@ class ReservationScreen extends Component {
         ],
     }
 
+    componentDidMount() {
+        if (this.props.route.params) {
+            const { houseId } = this.props.route.params;
+            this.setState({ houseId: houseId });
+          console.log('Received houseId:', houseId);
+        }
+      }
+
     sliderValueChange = (value) => {
         const roundedValue = parseFloat(value.toFixed(1));
         this.setState({ value: roundedValue });
@@ -60,19 +68,50 @@ class ReservationScreen extends Component {
     }
 
     // axios를 활용한 api통신을 통해 서버에 예약 요청을 보내는 함수
-    async postReserationInfData() {                   
+    async postReserationInfoData() {
         try {
             const token = await getToken();
-            const { houseId } = this.props.route.params;
+            const { houseId } = this.state;  
     
-            const response = await axios.post(
-                `/api/v1/reservation/${houseId}`, 
+            const response = await axios.post(`http://223.130.131.166:8080/api/v1/reservation/${houseId}`, 
                 {
-                    startAt: "2024-08-19",
-                    endAt: "2024-08-19",
-                    personNum: 0,
-                    phoneNum: "string", 
+                    startAt: "2024-08-02",
+                    endAt: "2024-08-02",
+                    personNum: 2,  
+                    phoneNum: "01012345678"  
                 },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+
+            this.setState({ reservationId : response.id});
+    
+            console.log('응답받은 데이터:', response.data);
+    
+        } catch (error) {
+            console.error('예약 요청 중 에러 발생:', error);
+            if (error.response) {
+                console.log('Error status:', error.response.status);
+                console.log('Error data:', error.response.data);
+                console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+                console.log('No response received:', error.request);
+            } else {
+                console.log('Error message:', error.message);
+            }
+        }
+    }
+
+    async joinReservationState() {
+        try {
+            const token = await getToken();
+            const { reservationId } = this.state;  
+            console.log("접근중인 reservationId: "+reservationId);
+    
+            const response = await axios.get(`http://223.130.131.166:8080/api/v1/reservation/${reservationId}`, 
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -83,6 +122,7 @@ class ReservationScreen extends Component {
             console.log('응답받은 데이터:', response.data);
     
         } catch (error) {
+            console.error('예약 조회 요청 중 에러 발생:', error);
             if (error.response) {
                 console.log('Error status:', error.response.status);
                 console.log('Error data:', error.response.data);
@@ -92,39 +132,44 @@ class ReservationScreen extends Component {
             } else {
                 console.log('Error message:', error.message);
             }
-            console.log('Error config:', error.config);
         }
     }
     
-
-    toggleCalendar = () => {
-        this.setState(prevState => ({ 
-            isCalendarVisible: !prevState.isCalendarVisible 
+    
+    isCheckInPickerVisible = () => {
+        this.setState(prevState => ({
+            isCheckInPickerVisible: !prevState.isCheckInPickerVisible,
+            isCheckOutPickerVisible: false  
+        }));
+    };
+    
+    isCheckOutPickerVisible = () => {
+        this.setState(prevState => ({
+            isCheckOutPickerVisible: !prevState.isCheckOutPickerVisible,
+            isCheckInPickerVisible: false  
         }));
     };
 
-    // onDaySelect = (day) => {
-    //     const { dateString } = day;
-    //     const { selectedDates } = this.state;
-    //     const index = selectedDates.indexOf(dateString);
 
-    //     if (index > -1) {
-    //         this.setState({ selectedDates: selectedDates.filter(date => date !== dateString) });
-    //     } else {
-    //         this.setState({ selectedDates: [...selectedDates, dateString] });
-    //     }
-    // };
-
-
-    onDaySelect = (day) => {
+    onCheckInSelect = (day) => {
         const { dateString } = day;
-        this.setState({ selectedDate: dateString });
+        this.setState({ checkInDate: dateString });
+    };
+    
+    onCheckOutSelect = (day) => {
+        const { dateString } = day;
+        this.setState({ checkOutDate: dateString });
     };
 
-    
-    renderSelectedDates = () => {
-        const { selectedDates } = this.state;
-        return selectedDates.join(', ');
+
+    renderCheckInSelectedDate = () => {
+        const { checkInDate } = this.state;
+        return checkInDate
+    };
+
+    renderCheckOutSelectedDate = () => {
+        const { checkOutDate } = this.state;
+        return checkOutDate
     };
 
     editHostnameText = () => {
@@ -139,7 +184,6 @@ class ReservationScreen extends Component {
     editIntroText = () => {
         this.setState(prevState => ({ editIntroTextState: !prevState.editIntroTextState }));
     };
-
 
 
     changeHostName = (inputText) => {
@@ -158,14 +202,12 @@ class ReservationScreen extends Component {
 
     render() {
 
-        
         const { places, value, labels } = this.state;
         const { checkInDate, checkOutDate, isCheckInPickerVisible, isCheckOutPickerVisible  } = this.state;
 
         const { hostName, editHostNameState, phoneNumber, editPhoneNumberState, maximumGuestNumber, editMaximumGuestNumberState, 
             price, editPriceState, introText, editIntroTextState } = this.state;
 
-        const { selectedDates } = this.state;
         const { selectedDate } = this.state;
 
         // 달력 한국어 텍스트 커스텀
@@ -221,32 +263,69 @@ class ReservationScreen extends Component {
                 <Text style={styles.reservationDateText}> 예약 날짜 </Text>
                 <View style={styles.reservationView}>
                     <View style={styles.reservationSelectView}>
-                            <Text style={styles.reservationDate}>예약 날짜</Text>
-                            <TouchableOpacity style={styles.ModifySelectView} onPress={this.toggleCalendar}>
-                            {this.state.isCalendarVisible ? (
+                            <Text style={styles.reservationDate}>입실 날짜</Text>
+                            <TouchableOpacity style={styles.ModifySelectView} onPress={this.isCheckInPickerVisible}>
+                            {this.state.isCheckInPickerVisible ? (
                                 <Text style={styles.reservationDateSelect}>달력 닫기</Text>
                             ):  <Text style={styles.reservationDateSelect}>달력 열기</Text>}
                             </TouchableOpacity>
                     </View>
-                    {this.state.isCalendarVisible && (
+                    {this.state.isCheckInPickerVisible && (
                         <Calendar
-                        current={Date()}
-                        monthNames={monthNames}
-                        dayNames={dayNames}
-                        dayNamesShort={dayNamesShort}
-                        markedDates={markedDates}
-                        locale={'ko'} 
-                        theme={{
-                            todayTextColor: 'lightgreen',
-                            selectedDayBackgroundColor: 'green',
-                            selectedDayTextColor: '#ffffff'
-                        }}
-                        onDayPress={this.onDaySelect}
-                    />
+                            current={Date()}
+                            monthNames={monthNames}
+                            dayNames={dayNames}
+                            dayNamesShort={dayNamesShort}
+                            markedDates={{
+                                [this.state.checkInDate]: { selected: true, marked: true, selectedColor: 'green' }
+                            }}
+                            locale={'ko'} 
+                            theme={{
+                                todayTextColor: 'lightgreen',
+                                selectedDayBackgroundColor: 'green',
+                                selectedDayTextColor: '#ffffff'
+                            }}
+                            onDayPress={this.onCheckInSelect}
+                        />
                     )}
                     <TextInput
                     style={styles.reservationDateInput}
-                    value={this.renderSelectedDates()}
+                    value={this.renderCheckInSelectedDate()}
+                    placeholder="날짜를 선택해주세요"
+                    editable={false} />
+                </View>
+
+                <View style={styles.reservationView}>
+                    <View style={styles.reservationSelectView}>
+                            <Text style={styles.reservationDate}>퇴실 날짜</Text>
+                            <TouchableOpacity style={styles.ModifySelectView} onPress={this.isCheckOutPickerVisible}>
+                            {this.state.isCheckOutPickerVisible ? (
+                                <Text style={styles.reservationDateSelect}>달력 닫기</Text>
+                            ):  <Text style={styles.reservationDateSelect}>달력 열기</Text>}
+                            </TouchableOpacity>
+                    </View>
+              
+                    {this.state.isCheckOutPickerVisible && (
+                        <Calendar
+                            current={Date()}
+                            monthNames={monthNames}
+                            dayNames={dayNames}
+                            dayNamesShort={dayNamesShort}
+                            markedDates={{
+                                [this.state.checkOutDate]: { selected: true, marked: true, selectedColor: 'green' }
+                            }}
+                            locale={'ko'} 
+                            theme={{
+                                todayTextColor: 'lightgreen',
+                                selectedDayBackgroundColor: 'green',
+                                selectedDayTextColor: '#ffffff'
+                            }}
+                            onDayPress={this.onCheckOutSelect}
+                        />
+                    )}
+                    <TextInput
+                    style={styles.reservationDateInput}
+                    value={this.renderCheckOutSelectedDate()}
                     placeholder="날짜를 선택해주세요"
                     editable={false} />
                 </View>
@@ -368,8 +447,12 @@ class ReservationScreen extends Component {
                         <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
                     </View>
 
-                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postReserationInfData()}>
+                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postReserationInfoData()}>
                     <Text style={styles.reservationBtnText}>예약하기</Text>
+                </TouchableOpacity>
+             
+                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.joinReservationState()}>
+                    <Text style={styles.reservationBtnText}>예약현황 조회하기</Text>
                 </TouchableOpacity>
 
 
