@@ -354,8 +354,8 @@ class SearchScreen extends Component {
                             
 
                             <LinearGradient colors={['#0AE090', '#0AE0C6']} style={styles.modalCheckBtn} start={{x: 0, y: 0}} end={{x: 1, y: 0}}>
-                                <TouchableOpacity onPress={this.applyFilter}>
-                                    <Text style={styles.modalCheckBtnText}>적용</Text>
+                                <TouchableOpacity style={styles.modalCheckBtnTouchView} onPress={this.applyFilter}>
+                                    <Text style={styles.modalCheckBtnText}>필터 적용하기</Text>
                                 </TouchableOpacity>
                             </LinearGradient>
                         </View>
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     },
     fixedButton: {                  // 숙소등록 버튼 고정시키는 View
         position: 'absolute',
-        bottom: 90,
+        bottom: 100,
         right: 25,    
         height: 40,  
         width: 40,
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         borderRadius: 10,
         elevation: 2,
-        paddingBottom: 80,  
+        paddingBottom: 90,  
     },
     modalMenu:{                           // 모달 title과 닫기버튼 담는 View
         flexDirection: "row",
@@ -685,7 +685,14 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    modalCheckBtnText:{
+    modalCheckBtnTouchView:{                // 필터 적용버튼 터치View
+        width: '100%',
+        height: '100%',
+        justifyContent: "center",
+        alignItems: "center",
+        // backgroundColor: "gray",
+    },
+    modalCheckBtnText:{                     // 필터 적용버튼 텍스트
         color: "white",
         fontSize: 18,
         fontFamily: 'Pretendard-Bold',
