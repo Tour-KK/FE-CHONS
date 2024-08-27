@@ -9,6 +9,7 @@ import { getToken } from './token';
 //이미지
 import searchIconIMG from './Image/홈화면_검색아이콘.png';
 import festivalIconIMG from "./Image/축제_아이콘2.png";
+import looactionIconIMG from "./Image/검색화면_지역필터링아이콘.png";
 import grayHorizontalLine from "./Image/회색가로선.png"
 
 
@@ -161,6 +162,8 @@ class HomeScreen extends Component {
                     <View style={styles.festivalTitleView}>
                         <Image style={styles.festivalIcon} source={festivalIconIMG}/>  
                         <Text style={styles.ContentText}>주변 축제 정보</Text>
+                        <Image style={styles.LocationIcon} source={looactionIconIMG}/>  
+                        <Text style={styles.currentLocationText}>현재위치</Text>
                     </View>
                     <ScrollView style={styles.todayContents} horizontal={true} showsHorizontalScrollIndicator={false}>
                         {this.state.festivals.map((festival, index) => (    
@@ -250,6 +253,19 @@ const styles = StyleSheet.create({
         fontFamily: 'Pretendard-Bold', 
         textAlignVertical: "center",
         // backgroundColor: 'green',
+    },
+    LocationIcon:{                  // 현재위치 표시 아이콘 (용인시옆 아이콘)
+        marginLeft: '25%',
+        width: 14,
+        height: 16,
+        resizeMode: 'contain',
+        alignContent: "center",
+    },
+    currentLocationText: {          // 현재위치 표시 텍스트 (용인시 텍스트)
+        fontFamily: 'Pretendard-Bold', 
+        fontSize: 16,
+        color: '#00D282',
+        marginLeft: '1.4%',
     },
     todayContents:{                 // 오늘의 추천코스 컨텐츠 담는 View
         flex: 1,
