@@ -1,23 +1,15 @@
 import React, {Component} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, ScrollView} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import { getToken } from './token';
 
 //이미지
-import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import checkFavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
 import FavoriteIconIMG from './Image/즐겨찾기_아이콘.png';
-import reviewIconIMG from './Image/회색_별_아이콘.png';
-import houseIMG1 from './Image/여행지1.png';
-import houseIMG2 from './Image/여행지2.png';
-import houseIMG3 from './Image/여행지3.png';
-import houseIMG4 from './Image/여행지4.png';
-import houseIMG5 from './Image/여행지5.png';
-import houseIMG6 from './Image/여행지6.png';
-import houseIMG7 from './Image/여행지7.png';
-import houseIMG8 from './Image/여행지8.png';
-import houseIMG9 from './Image/여행지9.png';
+import reviewIconIMG from './Image/평점_별아이콘.png';
+import noImage from './Image/이미지없음표시.png';
+import locationFilterGrayIcon from './Image/검색화면_클릭전_지역필터링아이콘.png';
+
 
 
 
@@ -34,8 +26,36 @@ class FavoriteListScreen extends Component {
                 reviewScore: 0, 
                 reviewCount: 0, 
                 favoriteState: false,
-                reservationState: false, 
-                clearReservation: true, 
+            },
+            {
+                id: "1",
+                name: "이민호", 
+                address: "경기도 용인시 수지구", 
+                reviewScore: 4.3, 
+                reviewCount: 21, 
+                imageUri: [],
+                price: 32000, 
+                favoriteState: true, 
+            },
+            {
+                id: "2",
+                name: "[이름없음]", 
+                address: "[주소없음]", 
+                reviewScore: 3.8, 
+                reviewCount: 21, 
+                imageUri: [],
+                price: 27400, 
+                favoriteState: true, 
+            },
+            {
+                id: "3",
+                name: "[이름없음]", 
+                address: "[주소없음]", 
+                reviewScore: 4.1, 
+                reviewCount: 11, 
+                imageUri: [],
+                price: 35900, 
+                favoriteState: true, 
             },
         ],
     };
@@ -144,79 +164,41 @@ class FavoriteListScreen extends Component {
     
     
     render() {
-        let ReservationText = '예약완료' 
-        let NoReservationText = '예약 요청중..' 
-
         const filteredPlaces =  this.state.places.filter(place => place.favoriteState);
 
         return (
-        <LinearGradient
-        colors={['#E8ECFF', '#FFFFFF']} 
-        style={styles.linearGradient} 
-        start={{ x: 0, y: 0.8 }} 
-        end={{ x: 0, y: 0}} >
             <ScrollView style={styles.background} showsVerticalScrollIndicator={false}>
             <View style={styles.container}>
                 <View style={styles.tabBar}>            
-                    <TouchableOpacity style={styles.backBtn} onPress={() => this.props.navigation.navigate('홈')}>
-                        <Image style={styles.backBtnIcon} source={backBtnIMG}/>  
-                    </TouchableOpacity>
-                    <Text style={styles.myFavoriteListText}> 내가 찜한 숙소 </Text>
+                    <Text style={styles.myFavoriteListText}>내가 찜한 숙소</Text>
                 </View>
                 {filteredPlaces.map((place) => (    
                     <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
-                        {place.imageUri.length > 0 && (
+                        {place.imageUri.length > 0 ? (
                             <Image source={{uri : place.imageUri[0]}} style={styles.houseIMG}/>
-                        )}
+                        ): ( <Image source={noImage} style={styles.houseIMG}/>)}
                         <View style={styles.Info}>
                             <Text style={styles.houseName}>{place.name}님의 거주지</Text>
-                            <Text style={styles.houseAddress}>{place.address}</Text>
-                            <View style={styles.houseReviewView}>
+                            <View style={styles.addressView}>
+                                <Image style={styles.addressIcon}source={locationFilterGrayIcon}/>
+                                <Text style={styles.houseAddress}>{place.address}</Text>
+                            </View>
+                            <TouchableOpacity style={styles.houseReviewView} onPress={ ()=>this.props.navigation.navigate('후기', { houseId: place.id, name: place.name })}>
                                 <Image style={styles.reviewIcon} source={reviewIconIMG} />
                                 <Text style={styles.houseReview}>{place.reviewScore}</Text>
-                                <Text style={styles.houseReview}>({place.reviewCount})</Text>
-                            </View>
-                            <Text style={styles.housePrice}>₩{place.price}원</Text>
+                                <Text style={styles.houseReview}>(리뷰 {place.reviewCount}개)</Text>
+                                </TouchableOpacity>
+                            <Text style={styles.housePrice}>₩{place.price}원<Text style={styles.PriceSubText}> /박</Text></Text>
                         </View>
-                        <TouchableOpacity onPress={() => this.changeFavoriteState(place.id)}>
+                        <TouchableOpacity style={styles.FavoriteIconTouchView} onPress={() => this.changeFavoriteState(place.id)}>
                             <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
                         </TouchableOpacity>
                     </TouchableOpacity>
                 ))}
 
-                    {
-                        this.state.places.filter(place => place.reservaionState).length > 0 && (
-                            <Text style={styles.myReservationListText}> 나의 예약 현황 </Text>
-                        )
-                    }
-            
-                    {this.state.places.filter(place => place.reservaionState).map((place) => (
-                    <TouchableOpacity style={styles.content} onPress={() => this.placeInfoDelivery(place.houseID)} >
-                        <Image source={place.imageUrl} style={styles.houseIMG}/>
-                        <View key={place.houseID} style={styles.Info}>
-                            <View style={styles.Info}>
-                                <Text style={styles.houseName}>{place.name}</Text>
-                                <Text style={styles.address}>{place.address}</Text>
-                                <View style={styles.houseReviewView}>
-                                    <Image style={styles.reviewIcon} source={reviewIconIMG} />
-                                    <Text style={styles.houseReview}>{place.reviewScore}</Text>
-                                    <Text style={styles.houseReview}>({place.reviewCount})</Text>
-                                </View>
-            
-                                <Text style={styles.reservationStateText}> {(place.clearReservation) ? ReservationText : NoReservationText }</Text>
-                            </View>
-                        </View>
-                        <TouchableOpacity onPress={() => this.changeFavoriteState(place.houseID)}>
-                            <Image style={styles.favoriteIcon} source={place.favoriteState ? checkFavoriteIconIMG : FavoriteIconIMG} />
-                        </TouchableOpacity>
-                    </TouchableOpacity>
-                    ))}
-            
-
                 <View style={styles.barMargin}><Text> </Text></View>
             </View>
             </ScrollView>
-        </LinearGradient> 
     )
   }
 }
@@ -225,120 +207,135 @@ class FavoriteListScreen extends Component {
 const styles = StyleSheet.create({
     background: {                   // 전체화면 설정
         flex: 1,
-    },
-    linearGradient: {               // 그라데이션
-        flex: 0,
         width: '100%',
         height: '100%',
+        backgroundColor: "#F5F5F5",
     },
     container: {
         alignItems: 'center', 
     },
     tabBar: {                       // 상단 네비게이션 View
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-end',
+        alignItems: "center",
         height: 60,
         width: '100%',
-    },
-    backBtnIcon: {                   // 뒤로가기 버튼
-        resizeMode: 'contain',
-        opacity: 0.38,
-        width: 24,
-        height: 24,
-        marginTop: '5%',
-        marginRight: '0.3%',
+        // backgroundColor: 'gray'
     },
     myFavoriteListText: {           // 내가 찜한 숙소 텍스트  
-        marginBottom: '0.5%',
-        fontSize: 26,
+        fontSize: 24,
+        fontFamily: 'Pretendard-Bold',
         width: '88%',
+        marginBottom: 10,
+        // backgroundColor: 'yellow'
     },  
-    content: {                      // 내가 찜한 숙소 컨텐츠들 
-        width: 370,
-        height: 120,
-        alignItems: 'center',
+    content: {                      // 검색 리스트 컴포넌트, 내가 찜한 숙소 컨텐츠들 
+        width: 330,
+        height: 150,
+        alignItems: "center",
         flexDirection: 'row',
         backgroundColor: 'white',
-        marginTop: '3.3%',
+        marginTop: '3.8%',
         borderRadius: 20,
         elevation: 1,
     },
     houseIMG: {                      // 숙소 이미지
         alignItems: 'center',
         borderRadius: 10, 
-        width: 100,
-        height: 100,
+        width: 105,
+        height: 130,
         resizeMode: 'cover',
-        margin: '3%',
+        margin: '2.2%',
     },
     Info: {                          // 숙소데이터 담는 View
-        flex: 0,
-        width: '55%',
-        height: '100%',
+        flex: 1,
+        width: '51%',
+        height: 150,
+        marginLeft: "0.8%",
         // backgroundColor:'gray'
     },
     houseName: {                        // 숙소명 텍스트
-        width: 200,
+        width: 210,
         textAlign: 'left',
         fontSize: 20,
-        marginTop: '3.3%',
-        color:'#393939',
+        marginTop: '6.6%',
+        color:'black',
+        fontFamily: 'Pretendard-Bold',
         // backgroundColor: 'yellow',
     },
-    houseAddress: {                  // 찜한숙소 상세 주소
-        width: 200,
-        textAlign: 'left',
-        fontSize: 12,
-        marginLeft: '2%',
+    addressView:{                    // 숙소 주소, 위치 아이콘 가로로 담는 View
+        width: 160,
+        flexDirection: "row",
+        alignItems: "center",
+        marginLeft: '1%',
         marginTop: '1.1%',
-        color: '#777777',
+        // backgroundColor: 'green',
+    },
+    addressIcon:{                    // 상세주소 위치 아이콘 
+        width: 10,
+        height: 14,
+        resizeMode: "contain",
+        marginRight: "2.2%",
+    },
+    houseAddress: {                  // 찜한숙소 상세 주소
+        width: 150,
+        textAlign: 'left',
+        fontSize: 15,
+        color: '#A8A8A8',
+        fontFamily: 'Pretendard-Regular', 
         // backgroundColor: 'yellow',
     },
     houseReviewView: {              // 평점 아이콘, 평점 텍스트 담는 View
+        width: 170,
+        height: 26,
         flexDirection: 'row',
         alignItems:'center',
         marginTop: '1.1%',  
         // backgroundColor: 'gray',
+
     },
     houseReview: {                  // 찜한숙소 평점및 리뷰 갯수
         textAlign: 'left',
-        fontSize: 12,
+        fontSize: 15,
         marginLeft: '1.5%',
         color: '#777777',
-        // backgroundColor: 'yellow',
+        fontFamily: 'Pretendard-Regular', 
+        // backgroundColor: 'gray',
     },
     reviewIcon:{                    // 리뷰 별 아이콘
-        marginLeft: '2.2%',
-        width: 11,
-        height: 11,
+        marginLeft: '0.5%',
+        marginRight: '1.5%',
+        width: 15.4,
+        height: 15.4,
         // backgroundColor: 'yellow',
     },
     housePrice:{                    // 숙소 가격
-        marginTop: '2.2%',
-        fontSize: 22,
-        marginLeft: '3.3%',
-        color: '#9E9E9E',
-        // fontWeight: 'bold',
+        position: 'absolute',
+        width: 165,
+        bottom: 18,
+        fontSize: 20,
+        marginLeft: '1.5%',
+        color: '#0AE090',
+        fontWeight: '500',
+        // backgroundColor: 'yellow',
+    },
+    PriceSubText:{                  // 가격옆에 서브 텍스트 (/박) 
+        fontSize: 18,
+        color: 'black',
+        fontWeight: "300",
+    },
+    FavoriteIconTouchView: {
+        width: 40,  
+        height: 40,
+        alignItems: "flex-start",
+        justifyContent: "center",
+        marginTop: "27%",
+        // backgroundColor: 'gray',
     },
     favoriteIcon: {                 // 찜버튼 아이콘
-        width: 24,
-        height: 24,
-        resizeMode: 'cover',
+        width: 22,
+        height: 22,
+        resizeMode: 'contain',
     },
-    reservationStateText: {         // 예약 요청중, 예약완료 텍스트
-        marginTop: '5.5%',
-        fontSize: 18,
-        color: '#AFAFAF',
-    },
-    
-    myReservationListText: {        // 나의 예약 현황 제목 텍스트
-        marginTop: '5.5%',
-        marginBottom: '2.2%',
-        fontSize: 26,
-        width: '88%',
-    },
-
 
     barMargin: {                    // 스크롤 여백
         height: 75,

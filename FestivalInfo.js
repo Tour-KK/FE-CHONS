@@ -37,7 +37,6 @@ class FestivalInfoScreen extends Component {
             this.getFestivalData();
         });
     }
-    
     componentWillUnmount() {                         // 축제 상세 정보 렌더링전에 먼저 불러오게 세팅
         if (this.focusListener) {   
             console.log('DOM에서 해당 리스너 제거완료');
@@ -56,9 +55,7 @@ class FestivalInfoScreen extends Component {
                     'Authorization': `Bearer ${token}`,
                 }
             });
-
             console.log('getFestivalData Response:', response.data);
-
             const festival = {
                 id: response.data.contentId,
                 name: response.data.title,
@@ -173,9 +170,6 @@ class FestivalInfoScreen extends Component {
                                         title={festival.name}
                                         description={festival.address} 
                                         image={customMarkerIMG}>
-                                        {/* <Image
-                                            source={customMarkerIMG}
-                                            style={{ width: 50, height: 50 }} /> */}
                                         <Callout tooltip>
                                             <View style={styles.customCallout}>
                                                 <Text style={styles.calloutTitle}>{festival.address}</Text>

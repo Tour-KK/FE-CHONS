@@ -19,8 +19,7 @@ class HomeScreen extends Component {
         searchText: '',
         addr1: '',
         addr2: '',
-    
-        
+
         festivals: [                                   // 목록에 띄울 주변 축제 컨텐츠들
             { id: 1, 
                 name: "", 
@@ -36,7 +35,6 @@ class HomeScreen extends Component {
             this.getCurrentLocation();
         });
     }
-    
     componentWillUnmount() {                             // 탭바를 통해 홈화면으로 이동시 화면 렌더링 전 현재위치 받아오게 세팅
         if (this.focusListener) {
             console.log('DOM에서 해당 리스너 제거완료');
@@ -64,7 +62,6 @@ class HomeScreen extends Component {
     
         axios.get(url)
             .then(response => {
-                // console.log('Place API Response:', response);
                 if (response.data.results.length > 0) {
                     const addressComponents = response.data.results[0].address_components;
                     const administrativeArea = addressComponents.find(component => component.types.includes('administrative_area_level_1'));
@@ -78,7 +75,7 @@ class HomeScreen extends Component {
                         addr1: formattedArea,
                         addr2: formattedLocality
                     }, () => {
-                        this.fetchFestivals(this.state.addr1, this.state.addr2);                 // 아직 테스트 중
+                        this.fetchFestivals(this.state.addr1, this.state.addr2);              
                     });
     
                     console.log(`현재 위치: ${formattedArea}, ${formattedLocality}`);
@@ -142,8 +139,6 @@ class HomeScreen extends Component {
     }
 
   render() {
-
-
     return (
     <ScrollView style={styles.background} showsVerticalScrollIndicator={false} animationType="slide">   
         <View style={styles.container}>
@@ -163,7 +158,7 @@ class HomeScreen extends Component {
                         <Image style={styles.festivalIcon} source={festivalIconIMG}/>  
                         <Text style={styles.ContentText}>주변 축제 정보</Text>
                         <Image style={styles.LocationIcon} source={looactionIconIMG}/>  
-                        <Text style={styles.currentLocationText}>현재위치</Text>
+                        <Text style={styles.currentLocationText}>{this.state.addr2}</Text>
                     </View>
                     <ScrollView style={styles.todayContents} horizontal={true} showsHorizontalScrollIndicator={false}>
                         {this.state.festivals.map((festival, index) => (    

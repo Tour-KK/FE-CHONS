@@ -7,6 +7,7 @@ import { getToken } from './token';
 import axios from 'axios';
 
 
+
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import portOneIcon from './Image/포트원_로고.png';
@@ -217,15 +218,15 @@ class ReservationScreen extends Component {
 
         // 오늘 날짜 눌럿을때 생기는 이벤트 효과 동일적용
         const today = new Date().toISOString().split('T')[0];
+        
+        const markedDates = {
+            [selectedDate]: { selected: true, marked: true, selectedColor: 'green' }
+        };
+        
         // const markedDates = this.state.selectedDates.reduce((acc, date) => {
         //     acc[date] = { selected: true, marked: true, selectedColor: 'green' };
         //     return acc;
         // }, {});
-
-        const markedDates = {
-            [selectedDate]: { selected: true, marked: true, selectedColor: 'green' }
-        };
-
         return (
             <LinearGradient
             colors={['#F0F4FF', '#FFFFFF']} 
