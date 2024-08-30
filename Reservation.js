@@ -283,7 +283,7 @@ class ReservationScreen extends Component {
                             locale={'ko'} 
                             theme={{
                                 todayTextColor: 'lightgreen',
-                                selectedDayBackgroundColor: 'green',
+                                selectedDayBackgroundColor: '#00D282',
                                 selectedDayTextColor: '#ffffff'
                             }}
                             onDayPress={this.onCheckInSelect}
@@ -318,7 +318,7 @@ class ReservationScreen extends Component {
                             locale={'ko'} 
                             theme={{
                                 todayTextColor: 'lightgreen',
-                                selectedDayBackgroundColor: 'green',
+                                selectedDayBackgroundColor: '#00D282',
                                 selectedDayTextColor: '#ffffff'
                             }}
                             onDayPress={this.onCheckOutSelect}

@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput 
 import {launchImageLibrary} from 'react-native-image-picker';
 import { getToken } from './token'
 import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import houseAddIMG from './Image/사진추가_아이콘.png';
 import customMarkerIMG from "./Image/지도마커_아이콘.png";
-import { Calendar } from 'react-native-calendars';
 
 
 
@@ -248,17 +248,18 @@ class HouseAddScreen extends Component {
 
     renderSelectedDates = () => {
         const { selectedDates } = this.state;
-        return Object.keys(selectedDates).join(', ');
+        return Object.keys(selectedDates).join(',  ');
     }
     
     
-    removeDate = (date) => {
+
+
+    removeImage = (index) => {                      // image-picker에서 이미지 선택 취소
         this.setState(prevState => {
-            let selectedDates = { ...prevState.selectedDates };
-            delete selectedDates[date];
-            return { selectedDates };
+            const imageUri = prevState.imageUri.filter((_, i) => i !== index);
+            return { imageUri };
         });
-    }
+    };
     
     
     
@@ -268,16 +269,22 @@ render() {
     const { selectedDate } = this.state;
 
     // 달력 한국어 텍스트 커스텀
-    const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-    const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
+    const monthNames = [];
+    const dayNames = [];
+    const dayNamesShort = [];
+
+    LocaleConfig.locales['ko'] = {
+        monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+        monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+        dayNames: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+        dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+        today: '오늘'
+    };
+
+    LocaleConfig.defaultLocale = 'ko';
+
 
     // 오늘 날짜 눌럿을때 생기는 이벤트 효과 동일적용
-    const today = new Date().toISOString().split('T')[0];
-    
-    const markedDates = {
-        [selectedDate]: { selected: true, marked: true, selectedColor: 'green' }
-    };
 
     return (
             <ScrollView style={styles.background} showsVerticalScrollIndicator={false}>
@@ -313,35 +320,35 @@ render() {
 
                     <View style={styles.houseInfoView}>
                         <Text style={styles.houseName}> 숙소 예약 가능일 </Text>
+                    </View>
+                    <View style={styles.reservationView}>
+                        <ScrollView style={styles.scrollView} horizontal={true} showsHorizontalScrollIndicator={false}>
+                        {this.renderSelectedDates() === '' ? (
+                            <Text style={[styles.reservationDateplaceholder]}>날짜를 선택해주세요</Text>
+                            ) : (
+                                <Text style={styles.reservationDateInput}>{this.renderSelectedDates()}</Text>
+                            )}
+                        </ScrollView>
                         <TouchableOpacity style={styles.ModifySelectView}  onPress={this.toggleCalendar}>
-                            <Text style={styles.houseAddBtn}>{this.state.isCalendarVisible ? '달력 닫기' : '달력 열기'}</Text>
+                            <Text style={styles.houseAddBtn}>{this.state.isCalendarVisible ? '예약 가능 날짜 선택완료' : '예약 가능 날짜 선택하기'}</Text>
                         </TouchableOpacity>
                     </View>
                     {this.state.isCalendarVisible && (
                         <Calendar
-                        current={Date()}
-                        monthNames={monthNames}
-                        dayNames={dayNames}
-                        dayNamesShort={dayNamesShort}
-                        markedDates={{
-                            [this.state.checkInDate]: { selected: true, marked: true, selectedColor: 'green' }
-                        }}
-                        locale={'ko'} 
-                        theme={{
-                            todayTextColor: 'lightgreen',
-                            selectedDayBackgroundColor: 'green',
-                            selectedDayTextColor: '#ffffff'
-                        }}
                             onDayPress={this.onDaySelect}
                             markingType={'multi-dot'}
+                            markedDates={this.state.selectedDates}
+                            monthNames={monthNames}
+                            dayNames={dayNames}
+                            dayNamesShort={dayNamesShort}
+                            locale={'ko'}
+                            theme={{
+                                todayTextColor: 'lightgreen',
+                                selectedDayBackgroundColor: '#00D282',
+                                selectedDayTextColor: '#ffffff'
+                            }}
                         />
                     )}
-                    <TextInput
-                    style={styles.reservationDateInput}
-                    value={this.renderSelectedDates()}
-                    placeholder="예약가능 날짜를 선택해주세요"
-                    placeholderTextColor={'#B1B1B1'}
-                    editable={false} />
 
                   
                     <View style={styles.hostNameInfoView}>
@@ -379,9 +386,9 @@ render() {
 
 
                    <View style={styles.houseInfoView}>
-                        <Text style={styles.houseName}> 숙소 소개 사진 </Text>
-                        <TouchableOpacity style={styles.ModifySelectView} onPress={this.addImage}>
-                            <Text style={styles.houseAddBtn}> 사진 추가 </Text>
+                        <Text style={styles.houseIMGName}> 숙소 소개 사진 </Text>
+                        <TouchableOpacity style={styles.IMGSelectView} onPress={this.addImage}>
+                            <Text style={styles.houseIMGAddBtn}> 사진 추가 </Text>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.houseIMGView}>
@@ -397,6 +404,7 @@ render() {
                                             onPress={() => this.removeImage(index)}>
                                             <Text style={styles.removeBtnText}>ㅡ</Text>
                                         </TouchableOpacity>
+                                        
                                     </View>
                                 ))
                             ) : (
@@ -536,6 +544,15 @@ const styles = StyleSheet.create({
         fontFamily: 'Pretendard-Bold',
         // backgroundColor: 'gray',
     },
+    houseIMGName:{                            // 숙소 소개 사진 텍스트
+        fontSize: 20,
+        width:'63%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: "black",
+        fontFamily: 'Pretendard-Bold',
+        // backgroundColor: 'gray',
+    },
     hostInfoText: {                        // 호스트 정보 입력 value 텍스트
         fontSize: 16,
         height: 46,
@@ -567,26 +584,68 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     ModifySelectView: {                    // 수정하기 버튼 위쪾 마진 View
-        alignItems: 'center',
+        width: 170,
+        alignItems: "center",
+        justifyContent: 'center',
+        marginLeft: '3.3%',
+        // backgroundColor: 'blue',
+    },
+    IMGSelectView: {                    // 수정하기 버튼 위쪾 마진 View
+        width: 170,
+        alignItems: "center",
         justifyContent: 'center',
         // backgroundColor: 'blue',
     },
-    houseAddBtn:{                           // 사진추가 버튼
+    houseAddBtn:{                           // 숙소 예약일자선택 버튼
+        fontSize: 14,
+        color: "#00D282",  
+        borderWidth: 1,
+        borderColor: '#00D282',
+        borderRadius: 10,
+        width: 175,
+        height: 42,
+        textAlign:  'center',
+        textAlignVertical: "center",
+        backgroundColor: 'white',
+    },
+    houseIMGAddBtn:{                           // 사진추가 버튼
         fontSize: 17,
         marginBottom: '5%',
         color: "#00D282",  
         // backgroundColor: 'yellow',
     },
-    reservationDateInput: {                // 캘린더에서 선택한 날짜 본문 텍스트
-        width: 318,
-        marginTop: '2.2%',
-        marginBottom: '5%',
-        marginLeft: '4%',
-        fontSize: 16,
-        color: 'gray',
+    reservationView:{                       // 예약가능 날싸 선택버튼과 선택한 날짜 텍스트 담는 View
+        width: '94%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        margin: "4.4%",
+        // backgroundColor: "gray",
+    },
+    scrollView: {                           // Text 스크룔뷰 
+        width: 140,
+        height: 42,
         backgroundColor: "#F5F5F5",
         borderRadius: 10,
-        paddingLeft: "3%",
+        // backgroundColor: "yellow",
+    },
+    reservationDateInput: {                // 캘린더에서 선택한 날짜 본문 텍스트
+        height: 42,
+        fontSize: 14,
+        color: 'gray',
+        flexWrap: 'nowrap',
+        textAlignVertical: "center",
+        paddingLeft: 10,
+        paddingRight: 10,
+
+    },
+    reservationDateplaceholder:{                // 숙소 예약일자선택 Text placeholder
+        height: 42,
+        fontSize: 14,
+        flexWrap: 'nowrap',
+        textAlignVertical: "center",
+        paddingLeft: 10,
+        paddingRight: 10,
+        color: '#B1B1B1',
     },
     houseInfoText: {                        // 숙소 소개글
         fontSize: 16,
