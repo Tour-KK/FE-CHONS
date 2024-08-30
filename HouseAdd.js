@@ -663,15 +663,16 @@ const styles = StyleSheet.create({
     },
     hostInfoAddressText: {                  // 주소, 도로명 주소 입력받는 본문 텍스트
         fontSize: 16,
-        height: 46,
+        height: 60,
         width: '94%',
         marginTop: '11.4%',
         marginBottom: '4.4%',
-        textAlign: 'left',
+        textAlign: 'center',
         textAlignVertical: "center",
         borderRadius: 10,
         backgroundColor: '#F5F5F5',
         padding:"3%",
+        color: "gray",
     },
     hostInfoView: {                       // 호스트 정보 전체를 담는 View
         width: '94%',
