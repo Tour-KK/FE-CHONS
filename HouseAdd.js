@@ -4,11 +4,14 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import { getToken } from './token'
 import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
+import RNFS from 'react-native-fs';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import houseAddIMG from './Image/사진추가_아이콘.png';
 import customMarkerIMG from "./Image/지도마커_아이콘.png";
+import houseAddBtn from './Image/숙소등록버튼_아이콘.png';
+
 
 
 
@@ -369,7 +372,8 @@ render() {
                                 coordinate={this.state.markerPosition}
                                 image={customMarkerIMG}
                                 draggable={true}
-                                onDragEnd={(e) => this.onMarkerDragEnd(e.nativeEvent.coordinate)}>
+                                region={this.state.region}
+                                onRegionChangeComplete={(region) => this.setState({ region })}>
                                 <Callout tooltip>
                                     <View style={styles.customCallout}>
                                         <Text style={styles.calloutTitle}>{this.state.address}</Text>
@@ -440,7 +444,7 @@ render() {
                 </View>
 
                 <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postHouseData()}>
-                    <Text style={styles.reservationBtnText}> 숙소 등록하기</Text>
+                    <Image style={styles.reservationBtnText} source={houseAddBtn}/>
                 </TouchableOpacity>
 
                             
@@ -687,17 +691,15 @@ const styles = StyleSheet.create({
     },
     houseRuleText:{                          // 숙소 이용규칙 제목 텍스트
             marginTop: '8.8%',
-            fontSize: 28,
-            width: '100%',
-            marginLeft: '10%',
+            fontSize: 26,
+            width: '90%',
     },
     columnMiidle:{                           // 가로 가운데 정렬 - 숙소 이용규칙 본문담는 View 가운데 정렬
         alignItems: 'center',
     },
     houseRuleView: {                          // 숙소 이용규칙 본문 담는 View
-        marginTop: '5.5%',
-        paddingLeft: '4%',
-        width: 360,
+        marginTop: '3.3%',
+        width: "94%",
         heigh: 400,
         backgroundColor: 'white',
         borderRadius: 20,
@@ -719,21 +721,17 @@ const styles = StyleSheet.create({
         textAlign:'center',
     },
     reservationBtn:{                          // 숙소등록 버튼
-        backgroundColor : "#00D282", 
-        borderRadius: 16,
+        // backgroundColor : "#00D282", 
         width: '90%',
-        height: 55,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 5,                     
-        shadowColor: "#00D282",
-        shadowRadius: 10,
         marginTop: '10%',
     },
     reservationBtnText:{                        // 숙소등록하기 텍스트
-        color: 'white', 
-        fontSize: 24,
         marginBottom: '1.5%',
+        width: "100%",
+        height: 55,
+        resizeMode: "contain",
     },
     mapContainer: {                           // 구글 지도 화면
         width: 318,
@@ -750,19 +748,7 @@ const styles = StyleSheet.create({
         height: '100%',    
     },
     barMargin: {                               // 스클롤 탭바 마진
-        height: 75,
-    },
-
-    tagView: {                               // 무료제공서비스, 태그 담는 View
-        flexDirection: 'row',
-        width: '90%',
-        // backgroundColor: 'gray',
-    },
-    tagText: {                               // 무료제공서비스, 태그 담는 View 텍스트
-        fontSize: 16,
-        color: '#4285F4',  
-        marginBottom: '6.6%',
-        // backgroundColor: 'green',
+        height: 40,
     },
 
     imageContainer: {                               // 이미지 담는 View
@@ -790,9 +776,23 @@ const styles = StyleSheet.create({
         fontSize: 22,
         lineHeight: 28,  
     },
-    
-    tagTextmargin: {                         // 태그 텍스트 스크롤뷰 마진
-        width: 30,
+
+    customCallout: {                       // 마커 누르면 나오는 정보창 타이틀 스타일링    
+        padding: 10,
+        backgroundColor: '#ffffff',
+        borderRadius: 15,
+        alignItems: 'center',
+        borderColor: '#0AE090',
+        borderWidth: 1.2,
+        maxWidth: 250, 
+        flexDirection: 'row', 
+        justifyContent: 'center', 
+    },
+    calloutTitle: {                         // 마커 누르면 나오는 callout 텍스트 스타일링                        
+        fontSize: 14,
+        color: '#4B4B4B',
+        textAlign: 'center',
+        marginHorizontal: '8%',
     },
 });
 

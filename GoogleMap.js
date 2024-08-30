@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableWithoutFeedback, Keyboard, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableWithoutFeedback, Image, Text, TouchableOpacity } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
 import Geocoder from 'react-native-geocoding';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import LinearGradient from 'react-native-linear-gradient';
+
+// 이미지
+import customMarkerIMG from "./Image/지도마커_아이콘.png";
+import locationBtnIMG from "./Image/위치설정버튼_아이콘.png";
 
 const GoogleMapScreen = ({ navigation }) => {
   const [region, setRegion] = useState({
@@ -91,7 +96,7 @@ const GoogleMapScreen = ({ navigation }) => {
           style={styles.map}
           onRegionChangeComplete={setRegion}
         >
-          <Marker coordinate={region}>
+          <Marker coordinate={region} image={customMarkerIMG}>
             <Callout>
               <View style={styles.calloutView}>
                 <Text style={styles.calloutTitle}>현재 위치</Text>
@@ -102,8 +107,8 @@ const GoogleMapScreen = ({ navigation }) => {
         </MapView>
         <View style={styles.addressContainer}>
           <Text style={styles.addressText}>{address}</Text>
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegisterLocation}>
-            <Text style={styles.registerButtonText}>숙소위치 등록</Text>
+          <TouchableOpacity style={styles.locationButton} onPress={handleRegisterLocation}>
+            <Image style={styles.locationBtn} source={locationBtnIMG}/>
           </TouchableOpacity>
         </View>
       </View>
@@ -146,7 +151,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
@@ -156,15 +161,20 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     textAlign: 'left',
+    textAlignVertical: "center",
+    marginTop: 20,
+    marginBottom: 30,
+    // backgroundColor: '#4285F4',
   },
-  registerButton: {
-    backgroundColor: '#4285F4',
-    padding: 10,
-    borderRadius: 5,
-    marginLeft: 10,
+  locationButton: {
+    width: "100%",
+    height: 50,
+    // backgroundColor: '#4285F4',
   },
-  registerButtonText: {
-    color: 'white',
+  locationBtn:{               // '이 위치로 설정' 버튼
+    width: 340,
+    height: 50,
+    resizeMode: "contain",
   },
 });
 
