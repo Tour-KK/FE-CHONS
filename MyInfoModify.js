@@ -10,7 +10,6 @@ import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import profileIMG from './Image/프로필_아이콘.png';
 
 class MyInfoModifyScreen extends Component {
-    
     state={
         name: '이민규',
         email: 'adaddwafw@naver.com',

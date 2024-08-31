@@ -70,17 +70,18 @@ class HouseAddScreen extends Component {
 
     async postHouseData() {         // 숙소등록시 숙소와 관련된 데이터들을 서버에 보내는 함수
         try {   
-            const {                   	// 서버에 보내야하는 데이터들을 관리
-            hostName,
-            introText,
-            phoneNumber,
-            freeService,
-            price,
-            address,
-            maximumGuestNumber,
-            imageUri,
-            imageType,
-            imageName,
+            const {                 	// 서버에 보내야하는 데이터들을 관리
+                hostName,
+                introText,
+                phoneNumber,
+                freeService,
+                price,
+                address,
+                maximumGuestNumber,
+                imageUri,
+                imageType,
+                imageName,
+                selectedDates
             } = this.state;
     
             const formData = new FormData();      // fromData를 사용하기위해 FormData객체를 선언해주기
@@ -93,7 +94,8 @@ class HouseAddScreen extends Component {
             registrantId: 1,
             pricePerNight: Number(price.replace(/\D/g, '')),
             address,
-            maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, ''))
+            maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
+            availableDates: Object.keys(selectedDates)
             };
     
 
@@ -433,10 +435,10 @@ render() {
                 <Text style={styles.houseRuleText}> 유의사항 </Text>
                 <View style={styles.columnMiidle}>
                     <View style={styles.houseRuleView}>
-                        <Text style={styles.houseRuleOptionText}>●  욕설 및 공격적인 언행은 삼가해주세요. </Text>
-                        <Text style={styles.houseRuleOptionText}>●  소음제한 시간대에는 소음을 자제해주세요 </Text>
-                        <Text style={styles.houseRuleOptionText}>●  객실 내에서 흡연은 금지합니다. </Text>
-                        <Text style={styles.houseRuleOptionText}>●  호스트를 존중하고 배려해주세요. </Text>
+                        <Text style={styles.houseRuleOptionText}>• 욕설 및 공격적인 언행은 삼가해주세요. </Text>
+                        <Text style={styles.houseRuleOptionText}>• 소음제한 시간대에는 소음을 자제해주세요 </Text>
+                        <Text style={styles.houseRuleOptionText}>• 객실 내에서 흡연은 금지합니다. </Text>
+                        <Text style={styles.houseRuleOptionText}>• 호스트를 존중하고 배려해주세요. </Text>
                         <Text style={styles.houseRuleOptionTextMargin}> </Text>
                     </View>
                 
@@ -691,20 +693,23 @@ const styles = StyleSheet.create({
         // backgroundColor: 'green',
     },
     houseRuleText:{                          // 숙소 이용규칙 제목 텍스트
-            marginTop: '8.8%',
-            fontSize: 26,
-            width: '90%',
+        width: '90%',
+        marginTop: '8%',
+        fontSize: 20,
+        fontFamily: 'Pretendard-Bold',
+        color: 'black',
     },
     columnMiidle:{                           // 가로 가운데 정렬 - 숙소 이용규칙 본문담는 View 가운데 정렬
         alignItems: 'center',
+        width: '90%',
     },
     houseRuleView: {                          // 숙소 이용규칙 본문 담는 View
         marginTop: '3.3%',
-        width: "94%",
-        heigh: 400,
-        backgroundColor: 'white',
         borderRadius: 20,
+        width: '90%',
+        // backgroundColor: 'yellow',
     },
+
     houseRuleOptionText: {                    // 숙소 이용규칙 본문 텍스트
         marginTop: '4.4%',
         fontSize: 16,
