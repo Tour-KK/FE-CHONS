@@ -352,7 +352,6 @@ render() {
                             }}
                         />
                     )}
-
                   
                     <View style={styles.hostNameInfoView}>
                         <Text style={styles.hostName}> 숙소 위치 설정</Text>
@@ -446,8 +445,6 @@ render() {
                 <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postHouseData()}>
                     <Image style={styles.reservationBtnText} source={houseAddBtn}/>
                 </TouchableOpacity>
-
-                            
 
                 <View style={styles.barMargin}><Text> </Text></View>
 
