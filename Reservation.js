@@ -1,8 +1,7 @@
 import React, {Component, useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import Slider from '@react-native-community/slider';
-import { Calendar } from 'react-native-calendars'; 
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getToken } from './token';
 import axios from 'axios';
 
@@ -14,7 +13,8 @@ import portOneIcon from './Image/포트원_로고.png';
 import naverPayIcon from './Image/네이버페이_로고.png';
 import kakaoPayIcon from './Image/카카오페이_로고.png';
 import tossPayIcon from './Image/토스페이_로고.png';
-import reviewIconIMG from './Image/회색_별_아이콘.png';
+import reviewIconIMG from './Image/평점_별아이콘.png';
+import reservationBtn from './Image/예약요청버튼_아이콘.png';
 
 
 
@@ -51,7 +51,7 @@ class ReservationScreen extends Component {
         ],
     }
 
-    componentDidMount() {
+    componentDidMount() {                           // 렌더링전에 DOM에서 houseId 파라미터 전달받아 두기
         if (this.props.route.params) {
             const { houseId } = this.props.route.params;
             this.setState({ houseId: houseId });
@@ -59,7 +59,7 @@ class ReservationScreen extends Component {
         }
       }
 
-    sliderValueChange = (value) => {
+    sliderValueChange = (value) => {                // 호스트 관심도 세팅 슬라이드 바
         const roundedValue = parseFloat(value.toFixed(1));
         this.setState({ value: roundedValue });
     }
@@ -106,7 +106,7 @@ class ReservationScreen extends Component {
         }
     }
 
-    async joinReservationState() {
+    async joinReservationState() {                          // 예약상태 확인 테스트용
         try {
             const token = await getToken();
             const { reservationId } = this.state;  
@@ -137,14 +137,14 @@ class ReservationScreen extends Component {
     }
     
     
-    isCheckInPickerVisible = () => {
+    isCheckInPickerVisible = () => {                            // 입실날짜 관련 캘린더 visable 상태관리
         this.setState(prevState => ({
             isCheckInPickerVisible: !prevState.isCheckInPickerVisible,
             isCheckOutPickerVisible: false  
         }));
     };
     
-    isCheckOutPickerVisible = () => {
+    isCheckOutPickerVisible = () => {                            // 퇴실날짜 관련 캘린더 visable 상태관리
         this.setState(prevState => ({
             isCheckOutPickerVisible: !prevState.isCheckOutPickerVisible,
             isCheckInPickerVisible: false  
@@ -152,40 +152,27 @@ class ReservationScreen extends Component {
     };
 
 
-    onCheckInSelect = (day) => {
+    onCheckInSelect = (day) => {                                  // 입실 날짜 선택한 날짜들 관리 
         const { dateString } = day;
         this.setState({ checkInDate: dateString });
     };
     
-    onCheckOutSelect = (day) => {
+    onCheckOutSelect = (day) => {                                 // 퇴실 날짜 선택한 날짜들 관리
         const { dateString } = day;
         this.setState({ checkOutDate: dateString });
     };
 
 
-    renderCheckInSelectedDate = () => {
+    renderCheckInSelectedDate = () => {                             // 캘린더에서 입실날짜 관련 선택한 날짜들 렌더링 처리하기 위해 따로 다룸
         const { checkInDate } = this.state;
         return checkInDate
     };
 
-    renderCheckOutSelectedDate = () => {
+    renderCheckOutSelectedDate = () => {                            // 캘린더에서 퇴실날짜 관련 선택한 날짜들 렌더링 처리하기 위해 따로 다룸
         const { checkOutDate } = this.state;
         return checkOutDate
     };
-
-    editHostnameText = () => {
-        this.setState(prevState => ({ editHostNameState: !prevState.editHostNameState }));
-    };
-    editPhoneNumberText = () => {
-        this.setState(prevState => ({ editPhoneNumberState: !prevState.editPhoneNumberState }));
-    };
-    editMaximumGuestNumberText = () => {
-        this.setState(prevState => ({ editMaximumGuestNumberState: !prevState.editMaximumGuestNumberState }));
-    };
-    editIntroText = () => {
-        this.setState(prevState => ({ editIntroTextState: !prevState.editIntroTextState }));
-    };
-
+    
 
     changeHostName = (inputText) => {
         this.setState({ hostName: inputText });
@@ -212,9 +199,19 @@ class ReservationScreen extends Component {
         const { selectedDate } = this.state;
 
         // 달력 한국어 텍스트 커스텀
-        const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-        const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
+        const monthNames = [];
+        const dayNames = [];
+        const dayNamesShort = [];
+
+        LocaleConfig.locales['ko'] = {
+            monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+            monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+            dayNames: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+            dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+            today: '오늘'
+        };
+
+        LocaleConfig.defaultLocale = 'ko';
 
         // 오늘 날짜 눌럿을때 생기는 이벤트 효과 동일적용
         const today = new Date().toISOString().split('T')[0];
@@ -223,16 +220,7 @@ class ReservationScreen extends Component {
             [selectedDate]: { selected: true, marked: true, selectedColor: 'green' }
         };
         
-        // const markedDates = this.state.selectedDates.reduce((acc, date) => {
-        //     acc[date] = { selected: true, marked: true, selectedColor: 'green' };
-        //     return acc;
-        // }, {});
         return (
-            <LinearGradient
-            colors={['#F0F4FF', '#FFFFFF']} 
-            style={styles.linearGradient} 
-            start={{ x: 0, y: 0.8 }} 
-            end={{ x: 0, y: 0}} >
             <ScrollView style={styles.background} showsVerticalScrollIndicator={false}>
             <View style={styles.container}>
                 <View style={styles.titleView}>
@@ -241,7 +229,9 @@ class ReservationScreen extends Component {
                     </TouchableOpacity>
                     <Text style={styles.reservationText}> 예약하기 </Text>
                 </View>
-               
+                <View style={styles.grayHorizontalLine}/>
+
+                {/* 예약 선택한 숙소 정보 */}
                 {places.filter(place => place.reservaionState).map((place) => (
                     <TouchableOpacity style={styles.content} onPress={() => this.placeInfoDelivery(place.id)} >
                         <Image source={place.imageUrl} style={styles.houseIMG}/>
@@ -252,25 +242,27 @@ class ReservationScreen extends Component {
                                 <View style={styles.houseReviewView}>
                                     <Image style={styles.reviewIcon} source={reviewIconIMG} />
                                     <Text style={styles.houseReview}>{place.reviewScore}</Text>
-                                    <Text style={styles.houseReview}>({place.reviewCount})</Text>
+                                    <Text style={styles.houseReview}>(리뷰 {place.reviewCount}개)</Text>
                                 </View>
-                                <Text style={styles.housePrice}>₩{place.price}원</Text>
-                               
+                                <Text style={styles.housePrice}>₩{place.price}원<Text style={styles.PriceSubText}> /박</Text></Text>
                             </View>
                         </View>
                     </TouchableOpacity>
                 ))}
+                <View style={styles.grayHorizontalWideLine}/>
                
                 <Text style={styles.reservationDateText}> 예약 날짜 </Text>
                 <View style={styles.reservationView}>
+                    <Text style={styles.reservationDate}>입실 날짜</Text> 
                     <View style={styles.reservationSelectView}>
-                            <Text style={styles.reservationDate}>입실 날짜</Text>
-                            <TouchableOpacity style={styles.ModifySelectView} onPress={this.isCheckInPickerVisible}>
-                            {this.state.isCheckInPickerVisible ? (
-                                <Text style={styles.reservationDateSelect}>달력 닫기</Text>
-                            ):  <Text style={styles.reservationDateSelect}>달력 열기</Text>}
-                            </TouchableOpacity>
+                        <TextInput style={styles.reservationDateInput} value={this.renderCheckInSelectedDate()} placeholder="날짜를 선택해주세요" editable={false} />
+                        <TouchableOpacity style={styles.ModifySelectView} onPress={this.isCheckInPickerVisible}>
+                        {this.state.isCheckInPickerVisible ? (
+                            <Text style={styles.reservationDateSelect}>입실 날짜 선택완료</Text>
+                        ):  <Text style={styles.reservationDateSelect}>입실 날짜 선택하기</Text>}
+                        </TouchableOpacity>
                     </View>
+
                     {this.state.isCheckInPickerVisible && (
                         <Calendar
                             current={Date()}
@@ -288,24 +280,20 @@ class ReservationScreen extends Component {
                             }}
                             onDayPress={this.onCheckInSelect}
                         />
-                    )}
-                    <TextInput
-                    style={styles.reservationDateInput}
-                    value={this.renderCheckInSelectedDate()}
-                    placeholder="날짜를 선택해주세요"
-                    editable={false} />
+                    )}  
                 </View>
 
                 <View style={styles.reservationView}>
+                    <Text style={styles.reservationDate}>퇴실 날짜</Text>
                     <View style={styles.reservationSelectView}>
-                            <Text style={styles.reservationDate}>퇴실 날짜</Text>
+                            <TextInput style={styles.reservationDateInput} value={this.renderCheckOutSelectedDate()} placeholder="날짜를 선택해주세요" editable={false} />
                             <TouchableOpacity style={styles.ModifySelectView} onPress={this.isCheckOutPickerVisible}>
                             {this.state.isCheckOutPickerVisible ? (
-                                <Text style={styles.reservationDateSelect}>달력 닫기</Text>
-                            ):  <Text style={styles.reservationDateSelect}>달력 열기</Text>}
+                                <Text style={styles.reservationDateSelect}>퇴실 날짜 선택 완료</Text>
+                            ):  <Text style={styles.reservationDateSelect}>퇴실 날짜 선택하기</Text>}
                             </TouchableOpacity>
                     </View>
-              
+                                  
                     {this.state.isCheckOutPickerVisible && (
                         <Calendar
                             current={Date()}
@@ -324,48 +312,26 @@ class ReservationScreen extends Component {
                             onDayPress={this.onCheckOutSelect}
                         />
                     )}
-                    <TextInput
-                    style={styles.reservationDateInput}
-                    value={this.renderCheckOutSelectedDate()}
-                    placeholder="날짜를 선택해주세요"
-                    editable={false} />
                 </View>
+                <View style={styles.grayHorizontalWideLine2}/>
 
                 <Text style={styles.reservationInfoText}> 예약 정보 </Text>
-                   
                 <View style={styles.reservationInfoView}> 
                     <View style={styles.nameInfoView}>
                         <Text style={styles.nameInfo}> 이름 </Text>
-                        <TouchableOpacity style={styles.ModifySelectView} onPress={this.editHostnameText} >
-                            <Text style={styles.nameInfoModify} > {editHostNameState? '입력완료':'입력하기'} </Text>
-                        </TouchableOpacity>
+                        <TextInput style={styles.nameInfoText} onChangeText={this.changeHostName} placeholder="ex) 이진석" placeholderTextColor="#B1B1B1">{hostName}</TextInput>
                     </View>
-                    {editHostNameState?
-                        ( <TextInput style={styles.nameInfoText} onChangeText={this.changeHostName} placeholder="ex) 이진석" placeholderTextColor="#B1B1B1" editable={editHostNameState}>{hostName}</TextInput>)
-                        :( <TextInput style={styles.nameInfoText} onChangeText={this.changeHostName} placeholder="게스트명을 입력해주세요" placeholderTextColor="#B1B1B1" editable={editHostNameState}>{hostName}</TextInput>) 
-                    }
 
-                    <View style={styles.nameInfoView}>
-                        <Text style={styles.nameInfo}> 예약 인원 </Text>
-                        <TouchableOpacity style={styles.ModifySelectView} onPress={this.editMaximumGuestNumberText} >
-                            <Text style={styles.nameInfoModify} > {editMaximumGuestNumberState? '입력완료':'입력하기'} </Text>
-                        </TouchableOpacity>
+                    <View style={styles.GuestNumberInfoView}>
+                        <Text style={styles.GuestNumberInfo}> 예약 인원 </Text>
+                        <TextInput style={styles.GuestNumberInfoText} onChangeText={this.changeMaximumGuestNumber} placeholder="ex) 2명" placeholderTextColor="#B1B1B1" >{maximumGuestNumber}</TextInput>
                     </View>
-                    {editMaximumGuestNumberState?
-                        ( <TextInput style={styles.nameInfoText} onChangeText={this.changeMaximumGuestNumber} placeholder="ex) 2명" placeholderTextColor="#B1B1B1" editable={editMaximumGuestNumberState}>{maximumGuestNumber}</TextInput>)
-                        :( <TextInput style={styles.nameInfoText} onChangeText={this.changeMaximumGuestNumber} placeholder="게스트의 인원을 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editMaximumGuestNumberState}>{maximumGuestNumber}</TextInput>) 
-                    }
-
+                 
                     <View style={styles.phoneNumberInfoView}>
                         <Text style={styles.phoneNumberInfo}> 게스트 연락처 </Text>
-                        <TouchableOpacity style={styles.ModifySelectView} onPress={this.editPhoneNumberText} >
-                            <Text style={styles.phoneNumberInfoModify} > {editPhoneNumberState? '입력완료':'입력하기'} </Text>
-                        </TouchableOpacity>
+                        <TextInput style={styles.phoneNumberInfoText} onChangeText={this.changePhoneNumber} placeholder="ex) 010-1234-5678" placeholderTextColor="#B1B1B1" >{phoneNumber}</TextInput>
                     </View>
-                    {editPhoneNumberState?
-                        ( <TextInput style={styles.phoneNumberInfoText} onChangeText={this.changePhoneNumber} placeholder="ex) 010-1234-5678" placeholderTextColor="#B1B1B1" editable={editPhoneNumberState}>{phoneNumber}</TextInput>)
-                        :( <TextInput style={styles.phoneNumberInfoText} onChangeText={this.changePhoneNumber} placeholder="게스트의 연락처를 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editPhoneNumberState}>{phoneNumber}</TextInput>) 
-                    }
+
                 
                     <View style={styles.hostAttentionInfoView}>
                         <Text style={styles.hostAttentionInfo}> 호스트 관심도 </Text>
@@ -377,91 +343,79 @@ class ReservationScreen extends Component {
                             maximumValue={2}
                             onValueChange={this.sliderValueChange}
                             step={1}
-                            thumbTintColor="#4285F4"
-                            
+                            thumbTintColor="#00D282"
                         />
                         </TouchableOpacity>
                     </View>
                     <Text style={styles.hostAttentionInfoText}>  {labels[value]} </Text>
                     
-
-                    <View style={styles.phoneNumberInfoView}>
-                        <Text style={styles.phoneNumberInfo}> 요청사항 </Text>
-                        <TouchableOpacity style={styles.ModifySelectView} onPress={this.editIntroText} >
-                            <Text style={styles.phoneNumberInfoModify} > {editIntroTextState? '입력완료':'입력하기'} </Text>
-                        </TouchableOpacity>
-                    </View>
-                    {editIntroTextState?
-                        ( <TextInput style={styles.phoneNumberInfoText} onChangeText={this.changeIntroText} placeholder="ex) 1박 2일 동안 잘 부탁드립니다~!" placeholderTextColor="#B1B1B1" editable={editIntroTextState}>{introText}</TextInput>)
-                        :( <TextInput style={styles.phoneNumberInfoText} onChangeText={this.changeIntroText} placeholder="요청사항을 입력해주세요" placeholderTextColor="#B1B1B1"  editable={editIntroTextState}>{introText}</TextInput>) 
-                    }
+                    <Text style={styles.requestInfo}> 요청사항 </Text>
+                    <TextInput style={styles.requestInfoText} onChangeText={this.changeIntroText} placeholder="ex) 1박 2일 동안 잘 부탁드립니다~!" placeholderTextColor="#B1B1B1" multiline={true}>{introText}</TextInput>
                 </View>
 
-                    <View>
-                        <Text style={styles.explanation}> ※ 관심도란?</Text>
-                        <Text style={styles.explanationText}> 소극: 저희끼리 여행하는게 편해요. 터치하지 말아주세요</Text>
-                        <Text style={styles.explanationText}> 보통: 너무 관심없지도 너무 과하지 않게만 가이드해주세요</Text>
-                        <Text style={styles.explanationText}> 적극: 이것저것 적극적으로 해당 지역에 대해 가이드해주세요</Text>
+                <View style={styles.explanationView}>
+                    <Text style={styles.explanation}> ※ 관심도란?</Text>
+                    <Text style={styles.explanationText}> 소극: 호스트의 터치없이 개인시간을 가지고 싶어요</Text>
+                    <Text style={styles.explanationText}> 보통: 평소처럼 편하신대로 대해주세요 </Text>
+                    <Text style={styles.explanationText}> 적극: 호스트가 적극적으로 가이드 해주길 원해요</Text>
+                </View>
+                <View style={styles.grayHorizontalWideLine2}/>
+
+                <Text style={styles.payText}> 결제하기 </Text>
+                <View style={styles.payMethodView}>
+                    <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}>
+                    <View style={styles.payMethod}>
+                        <Image style={styles.portOneIcon} source={portOneIcon} />
+                        <Text style={styles.protOneText}> 포트원으로 결제하기 </Text>
                     </View>
+                    </TouchableOpacity>
 
-                    <Text style={styles.payText}> 결제하기 </Text>
-                    <View style={styles.payMethodView}>
-                        <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}>
-                        <View style={styles.payMethod}>
-                            <Image style={styles.portOneIcon} source={portOneIcon} />
-                            <Text style={styles.protOneText}> 포트원으로 결제하기 </Text>
-                        </View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}>
-                        <View style={styles.payMethod}>
-                            <Image style={styles.naverPayIcon} source={naverPayIcon}/>
-                            <Text style={styles.naverPayText}> 네이버 페이로 결제하기 </Text>
-                        </View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}>
-                        <View style={styles.payMethod}>
-                            <Image style={styles.kakaoPayIcon} source={kakaoPayIcon} />
-                            <Text style={styles.kakaoPayText}> 카카오 페이로 결제하기 </Text>
-                        </View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}> 
-                        <View style={styles.payMethod}>
-                            <Image style={styles.tossPayIcon} source={tossPayIcon} />
-                            <Text style={styles.tossPayText}> 토스 페이로 결제하기 </Text>
-                        </View>
-                        </TouchableOpacity>
+                    <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}>
+                    <View style={styles.payMethod}>
+                        <Image style={styles.naverPayIcon} source={naverPayIcon}/>
+                        <Text style={styles.naverPayText}> 네이버 페이로 결제하기 </Text>
                     </View>
+                    </TouchableOpacity>
 
-                    <Text style={styles.houseRuleText}> 유의사항 </Text>
-                    <View style={styles.columnMiidle}>
-                        <View style={styles.houseRuleView}>
-                            <Text style={styles.houseRuleOptionText}>●  욕설 및 공격적인 언행은 삼가해주세요. </Text>
-                            <Text style={styles.houseRuleOptionText}>●  소음제한 시간대에는 소음을 자제해주세요 </Text>
-                            <Text style={styles.houseRuleOptionText}>●  객실 내에서 흡연은 금지합니다. </Text>
-                            <Text style={styles.houseRuleOptionText}>●  호스트를 존중하고 배려해주세요. </Text>
-                            <Text style={styles.houseRuleOptionTextMargin}> </Text>
-                        </View>
-                    
-                        <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
+                    <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}>
+                    <View style={styles.payMethod}>
+                        <Image style={styles.kakaoPayIcon} source={kakaoPayIcon} />
+                        <Text style={styles.kakaoPayText}> 카카오 페이로 결제하기 </Text>
                     </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}> 
+                    <View style={styles.payMethod}>
+                        <Image style={styles.tossPayIcon} source={tossPayIcon} />
+                        <Text style={styles.tossPayText}> 토스 페이로 결제하기 </Text>
+                    </View>
+                    </TouchableOpacity>
+                </View>
+
+                <Text style={styles.houseRuleText}> 유의사항 </Text>
+                <View style={styles.columnMiidle}>
+                    <View style={styles.houseRuleView}>
+                        <Text style={styles.houseRuleOptionText}>• 욕설 및 공격적인 언행은 삼가해주세요. </Text>
+                        <Text style={styles.houseRuleOptionText}>• 소음제한 시간대에는 소음을 자제해주세요 </Text>
+                        <Text style={styles.houseRuleOptionText}>• 객실 내에서 흡연은 금지합니다. </Text>
+                        <Text style={styles.houseRuleOptionText}>• 호스트를 존중하고 배려해주세요. </Text>
+                        <Text style={styles.houseRuleOptionTextMargin}> </Text>
+                    </View>
+                
+                    <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
+                </View>
 
                 <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postReserationInfoData()}>
-                    <Text style={styles.reservationBtnText}>예약하기</Text>
-                </TouchableOpacity>
-             
-                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.joinReservationState()}>
-                    <Text style={styles.reservationBtnText}>예약현황 조회하기</Text>
+                <Image style={styles.reservationBtnIcon} source={reservationBtn}/>
                 </TouchableOpacity>
 
+                {/* <TouchableOpacity style={styles.reservationBtn} onPress={() => this.joinReservationState()}>
+                    <Text style={styles.reservationBtn}>예약현황 조회하기</Text>
+                </TouchableOpacity> */}
 
                 <View style={styles.barMargin}><Text> </Text></View>
             </View>
             </ScrollView>
-
-        </LinearGradient> 
     )
   }
 }
@@ -470,265 +424,380 @@ class ReservationScreen extends Component {
 const styles = StyleSheet.create({
   background: {                                // 전체화면 세팅                     
         flex: 1,
-    },
-    linearGradient: {                         // 그라데이션
-        flex: 0,
         width: '100%',
         height: '100%',
+        backgroundColor: 'white',
     },
     container : {                             // 컴포넌트들 가운데 정렬
         alignItems: 'center', 
     },
     titleView: {                             // 뒤로가기버튼, 예약하기 텍스트 담는 View
-        flex: 0,
         flexDirection: 'row',
-        alignItems: 'center', 
+        alignItems: 'flex-end',
         justifyContent: 'center',
+        height: 44,
         width: '100%',
-        height: 80,
-        
+        paddingLeft: "1.8%",
+        // backgroundColor: "yellow",
     },  
-    backBtnIcon: {                            // 뒤로가기 버튼
+    backBtnIcon: {                         // 뒤로가기 아이콘
         resizeMode: 'contain',
-        opacity: 0.38,
-        width: 30,
-        height: 30,
-        marginRight:'2%',
+        width: 20,
+        height: 20,
+        marginRight: '0.3%',
+        // backgroundColor: "gray"
         
     },
-    content: {                               // 예약버튼 누른 컨텐츠
-        width: 370,
-        height: 120,
-        alignItems: 'center',
+    content: {                      // 검색 리스트 컴포넌트, 내가 찜한 숙소 컨텐츠들 
+        width: 330,
+        height: 150,
+        alignItems: "center",
         flexDirection: 'row',
         backgroundColor: 'white',
-        marginTop: '3.3%',
+        marginTop: '3.8%',
         borderRadius: 20,
-        elevation: 1,
+        // elevation: 1,
     },
     houseIMG: {                      // 숙소 이미지
         alignItems: 'center',
         borderRadius: 10, 
-        width: 100,
-        height: 100,
+        width: 105,
+        height: 130,
         resizeMode: 'cover',
-        margin: '3%',
+        margin: '2.2%',
     },
     Info: {                          // 숙소데이터 담는 View
-        flex: 0,
-        width: '55%',
-        height: '100%',
+        flex: 1,
+        width: '51%',
+        height: 150,
+        marginLeft: "1.8%",
+        marginTop: "1.8%",
         // backgroundColor:'gray'
     },
     houseName: {                        // 숙소명 텍스트
-        width: 200,
+        width: 210,
         textAlign: 'left',
         fontSize: 20,
-        marginTop: '8.8%',
-        color:'#393939',
+        marginTop: '6.6%',
+        color:'black',
+        fontFamily: 'Pretendard-Bold',
         // backgroundColor: 'yellow',
     },
-    houseAddress: {                  // 찜한숙소 상세 주소
-        width: 200,
-        textAlign: 'left',
-        fontSize: 12,
-        marginLeft: '2%',
+    addressView:{                    // 숙소 주소, 위치 아이콘 가로로 담는 View
+        width: 160,
+        flexDirection: "row",
+        alignItems: "center",
+        marginLeft: '1%',
         marginTop: '1.1%',
-        color: '#777777',
+        // backgroundColor: 'green',
+    },
+    addressIcon:{                                // 상세주소 위치 아이콘 
+        width: 10,
+        height: 14,
+        resizeMode: "contain",
+        marginRight: "2.2%",
+    },
+    houseAddress: {                                // 찜한숙소 상세 주소
+        width: 150,
+        textAlign: 'left',
+        fontSize: 15,
+        color: '#A8A8A8',
+        fontFamily: 'Pretendard-Regular', 
         // backgroundColor: 'yellow',
     },
-    houseReviewView: {              // 평점 아이콘, 평점 텍스트 담는 View
+    houseReviewView: {                           // 평점 아이콘, 평점 텍스트 담는 View
+        width: 170,
+        height: 26,
         flexDirection: 'row',
         alignItems:'center',
-        marginTop: '1.1%',
+        marginTop: '1.1%',  
+        // backgroundColor: 'gray',
+
+    },
+    houseReview: {                              // 찜한숙소 평점및 리뷰 갯수
+        textAlign: 'left',
+        fontSize: 15,
+        marginLeft: '1.5%',
+        color: '#777777',
+        fontFamily: 'Pretendard-Regular', 
         // backgroundColor: 'gray',
     },
-    houseReview: {                  // 찜한숙소 평점및 리뷰 갯수
-        textAlign: 'left',
-        fontSize: 12,
-        marginLeft: '4.4%',
-        color: '#777777',
+    reviewIcon:{                               // 리뷰 별 아이콘
+        marginLeft: '0.5%',
+        marginRight: '1.5%',
+        width: 15.4,
+        height: 15.4,
+        // backgroundColor: 'yellow',
+    },  
+    housePrice:{                              // 숙소 가격
+        position: 'absolute',
+        width: 165,
+        bottom: 18,
+        fontSize: 20,
+        marginLeft: '1.5%',
+        color: '#0AE090',
+        fontWeight: '500',
         // backgroundColor: 'yellow',
     },
-    reviewIcon:{                    // 리뷰 별 아이콘
-        marginLeft: '2.2%',
-        width: 11,
-        height: 11,
-        // backgroundColor: 'yellow',
-    },
-    housePrice:{                    // 숙소 가격
-        marginTop: '4.4%',
+    PriceSubText:{                           // 가격옆에 서브 텍스트 (/박) 
         fontSize: 18,
-        marginLeft: '4.4%',
-        color: '#777777',
-        fontWeight: 'bold',
+        color: 'black',
+        fontWeight: "300",
     },
-    favoriteIcon: {                 // 찜버튼 아이콘
-        width: 24,
-        height: 24,
-        resizeMode: 'cover',
+    FavoriteIconTouchView: {
+        width: 40,  
+        height: 40,
+        alignItems: "flex-start",
+        justifyContent: "center",
+        marginTop: "27%",
+        // backgroundColor: 'gray',
     },
-    reservationStateText: {         // 예약 요청중, 예약완료 텍스트
-        marginTop: '5.5%',
-        fontSize: 18,
-        color: '#AFAFAF',
+    favoriteIcon: {                          // 찜버튼 아이콘
+        width: 22,
+        height: 22,
+        resizeMode: 'contain',
     },
 
     reservationText: {                      // 예약하기 텍스트  
-        marginBottom: '0.5%',
-        fontSize: 28,
-        width: '88%',
+            fontSize: 22,
+            color: "black",
+            width: '88%',
+            // backgroundColor: "gray"
     },  
+    grayHorizontalLine: {                  // 회색 가로선
+        width: '100%',
+        height: 1.8,
+        backgroundColor: '#BFBFBF',
+        marginTop: "5%",
+    },
+    grayHorizontalWideLine:{                // 두꺼운 회색 가로선
+        width: '100%',
+        height: 10,
+        backgroundColor: '#F5F5F5',
+        marginTop: "5%",
+    },
+    grayHorizontalWideLine2:{                // 두꺼운 회색 가로선2 (위쪽 마진값만 다름)
+        width: '100%',
+        height: 10,
+        backgroundColor: '#F5F5F5',
+        marginTop: "7.7%",
+    },
     reservationDateText: {                  // 예약날짜 제목 텍스트
         marginTop: '6.6%',
-        fontSize: 28,
-        width: '88%',
+        fontSize: 22,
+        width: '90%',
+        color: 'black',
+        fontFamily: 'Pretendard-Bold',
     },
     reservationView: {                      // 예약날짜 본문 텍스트 담는 view
-        width: '90%',
-        borderRadius: 15,
-        marginTop: '6.6%',
+        width: '84%',
+        marginTop: '3.3%',
         flexdirection: 'row',
-        backgroundColor: 'white',
+        justifyContent: "center",
+        alignItems: 'center',
+        // backgroundColor: 'gray',
+        
     },
     reservationSelectView:{                 // 예약날짜, 예약날짜 선택 가로로 배치하는 View
         flexDirection: 'row',
-        alignitems: 'center',
-    },
-    reservationDate: {                      // 예약날짜 본문 텍스트
+        width: '100%',
+        alignItems: "center",
         marginTop: '3.3%',
-        marginLeft: '3.3%',
-        fontSize: 22,
-        width:'74%',
+        // backgroundColor: 'yellow',
+    },
+    reservationDate: {                      // 입실날짜, 퇴실날짜 텍스트
+        marginTop: '2.4%',
+        fontSize: 18,
+        width:'100%',
         alignItems: 'center',
         justifyContent: 'center',
+        fontFamily: 'Pretendard-Bold',
+        color: 'black',
         // backgroundColor: 'yellow',
     },
     ModifySelectView: {                    // 날짜 선택, 입력하기 세로 위치조절 ToucableOpacity View
-        marginTop: '4.4%',
-        // backgroundColor: 'gray',
-    },
-    reservationDateSelect: {               // 날짜 선택하기 텍스트
-        fontSize: 16,
-        color: '#4285F4',
+        width: '20%',
+        marginLeft: '3.3%',
+
         // backgroundColor: 'green',
     },
+    reservationDateSelect: {               // 날짜 선택하기 텍스트
+        fontSize: 14,
+        color: "#00D282",  
+        borderWidth: 1,
+        borderColor: '#00D282',
+        borderRadius: 10,
+        width: 170,
+        height: 42,
+        textAlign:  'center',
+        textAlignVertical: "center",
+        backgroundColor: 'white',
+    },
     reservationDateInput: {                // 입력한 날짜 본문 텍스트
-        marginTop: '2.2%',
-        marginBottom: '5%',
-        marginLeft: '4%',
-        fontSize: 16,
-        color: 'gray',
+        height: 42,
+        width: 130,
+        fontSize: 14,
+        textAlignVertical: "center",
+        paddingLeft: 10,
+        paddingRight: 10,
+        color: 'black',
+        backgroundColor: '#F5F5F5',
+        borderRadius: 10,
     },
     reservationInfoText:{                  // 예약 정보 제목 텍스트
         marginTop: '6.6%',
-        fontSize: 28,
-        width: '88%',
+        fontSize: 22,
+        width: '90%',
+        color: 'black',
+        fontFamily: 'Pretendard-Bold',
     },
     reservationInfoView: {                 // 예약 정보 본문 View
         width: '90%',
-        borderRadius: 15,
-        marginTop: '6.6%',
-        flexdirection: 'row',
-        backgroundColor: 'white',
+        marginTop: '3.3%',
+        alignItems: 'center',
+        // backgroundColor: 'green',
     },
     nameInfoView: {                        // 이름 , 입력하기 텍스트담는 가로 배치 View
-        flexDirection: 'row',
-        alignitems: 'center',
+        marginTop: '5.5%',
+        width: '94%',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        // backgroundColor: 'green',
     },
     nameInfo: {                            // '이름' 텍스트
-        marginTop: '3.3%',
-        marginLeft: '3.3%',
-        fontSize: 22,
-        width:'74%',
+        fontSize: 18,
+        width:'94%',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#8D8D8D',
-    },
-    nameInfoModify:{                       // 입력하기 텍스트
-        fontSize: 17,
-        color: '#4285F4',
+        color: "black",
+        fontFamily: 'Pretendard-Bold',
+        // backgroundColor: 'gray',
     },
     nameInfoText: {                        // 이름 본문 텍스트
-        marginTop: '2.2%',
-        marginBottom: '2%',
-        marginLeft: '4%',
         fontSize: 16,
-        color: '#8D8D8D',
+        height: 46,
+        width: '100%',
+        marginTop: '3.8%',
+        marginBottom: '4.4%',
+        textAlign: 'left',
+        textAlignVertical: "center",
+        borderRadius: 10,
+        backgroundColor: '#F5F5F5',
+        padding:"3%",
+    },
+    GuestNumberInfoView: {                        // 이름 , 입력하기 텍스트담는 가로 배치 View
+        marginTop: '5.5%',
+        width: '94%',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        // backgroundColor: 'green',
+    },
+    GuestNumberInfo: {                            // '이름' 텍스트
+        fontSize: 18,
+        width:'94%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: "black",
+        fontFamily: 'Pretendard-Bold',
+        // backgroundColor: 'gray',
+    },
+    GuestNumberInfoText: {                        // 이름 본문 텍스트
+        fontSize: 16,
+        height: 46,
+        width: '100%',
+        marginTop: '3.8%',
+        marginBottom: '4.4%',
+        textAlign: 'left',
+        textAlignVertical: "center",
+        borderRadius: 10,
+        backgroundColor: '#F5F5F5',
+        padding:"3%",
     },
     phoneNumberInfoView: {                 // 게스트 연락처 , 입력하기 텍스트담는 가로 배치 View
-        flexDirection: 'row',
-        alignitems: 'center',
+        marginTop: '5.5%',
+        width: '94%',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        // backgroundColor: 'green',
     },
     phoneNumberInfo: {                     // '게스트 연락처' 텍스트
-        marginTop: '3.3%',
-        marginLeft: '3.3%',
-        fontSize: 22,
-        width:'74%',
+        fontSize: 18,
+        width:'94%',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    phoneNumberInfoModify:{                // 입력하기 텍스트
-        fontSize: 17,
-        color: '#4285F4',
+        color: "black",
+        fontFamily: 'Pretendard-Bold',
+        // backgroundColor: 'gray',
     },
     phoneNumberInfoText: {                 // 게스트 연락처 본문 텍스트
-        marginTop: '2.2%',
-        marginBottom: '2%',
-        marginLeft: '4%',
         fontSize: 16,
-        color: '#8D8D8D',
+        height: 46,
+        width: '100%',
+        marginTop: '3.8%',
+        marginBottom: '4.4%',
+        textAlign: 'left',
+        textAlignVertical: "center",
+        borderRadius: 10,
+        backgroundColor: '#F5F5F5',
+        padding:"3%",
     },
     hostAttentionInfoView: {                 // 호스트 관심도 , 입력하기 텍스트담는 가로 배치 View
+        marginTop: '5.5%',
+        width: '94%',
         flexDirection: 'row',
-        alignitems: 'center',
+        alignItems: 'center',
+        // backgroundColor: 'green',
     },
     hostAttentionInfo: {                     // '호스트 관심도' 텍스트
-        marginTop: '3.3%',
-        marginLeft: '3.3%',
-        fontSize: 22,
-        width:'72%',
+        fontSize: 18,
+        width:'62%',
         alignItems: 'center',
         justifyContent: 'center',
+        color: "black",
+        fontFamily: 'Pretendard-Bold',
+        // backgroundColor: 'gray',
     },
     slider: {                                // 호스트 관심도 설정 슬라이더
-        width: 90,
-        color:'red',
+        width: 110,
     },
     hostAttentionInfoText: {                 // 호스트 관심도 본문 텍스트
-        marginTop: '2.2%',
-        marginBottom: '2%',
-        marginLeft: '4%',
         fontSize: 16,
-        color: '#8D8D8D',
-    },
-    requestInfoView: {                       // 요청사항 , 입력하기 텍스트담는 가로 배치 View
-        flexDirection: 'row',
-        alignitems: 'center',
+        height: 46,
+        width: '94%',
+        marginTop: '3.8%',
+        marginBottom: '4.4%',
+        textAlign: 'left',
+        textAlignVertical: "center",
+        borderRadius: 10,
+        backgroundColor: '#F5F5F5',
     },
     requestInfo: {                           // '요청사항' 텍스트
-        marginTop: '3.3%',
-        marginLeft: '3.3%',
-        fontSize: 22,
-        width:'74%',
+        marginTop: '5.5%',
+        fontSize: 18,
+        width:'94%',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    requestInfoModify:{                      // 입력하기 텍스트
-        fontSize: 17,
-        color: '#4285F4',
+        color: "black",
+        fontFamily: 'Pretendard-Bold',
+        // backgroundColor: 'gray',
     },
     requestInfoText: {                      // 요청 사항 본문 텍스트
-        marginTop: '2.2%',      
-        marginBottom: '2.2%',      
-        marginBottom: '2%',
-        marginLeft: '4%',
         fontSize: 16,
+        width: '94%',
+        marginTop: '3.8%',
+        marginBottom: '4.4%',
+        textAlign: 'left',
+        textAlignVertical: "center",
+        borderRadius: 10,
+        backgroundColor: '#F5F5F5',
+        padding:"3%",
     },
     payText: {                              // 결제하기 제목 텍스트
-        marginTop: '8.8%',
-        fontSize: 28,
-        width: '88%',
+        marginTop: '6.6%',
+        fontSize: 22,
+        width: '90%',
+        color: 'black',
+        fontFamily: 'Pretendard-Bold',
     },
     payMethodTouchView:{                   // 결제수단 touchableOpacity View
         width: '90%',
@@ -826,54 +895,53 @@ const styles = StyleSheet.create({
         textAlign:'center',
     },
     barMargin: {                              // 스클롤 탭바 마진
-        height: 40,
+        height: 70,
     },
     reservationBtn:{                          // 예약 버튼
-        backgroundColor : '#4285F4',  
-        borderRadius: 16,
         width: '90%',
-        height: 55,
-        flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 5,                     
-        shadowColor: '#4285F4',
-        shadowRadius: 10,
         marginTop: '10%',
+        // backgroundColor : "#00D282", 
     },
-    reservationBtnText:{                         // 예약하기 텍스트
-        color: 'white', 
-        fontSize: 24,
+    reservationBtnIcon:{                         // 예약하기 버튼
         marginBottom: '1.5%',
+        width: "100%",
+        height: 55,
+        resizeMode: "contain",
+    },
+    explanationView:{
+        width: '90%',
+        marginTop: '4.4%',
+        marginBottom: '1%',
     },
     explanation: {                           // 관심온도란? 텍스트
         fontSize: 20,
-        marginTop: '10%',
-        marginBottom: '1%',
         color: '#7C7C7C',
         width: 360,
         },
     explanationText: {                       // 관심온도 설명 텍스트
         fontSize: 14,
-        marginTop: '1%',
+        marginTop: '1.8%',
+        marginLeft: '1.1%',
         color: '#7C7C7C'
     },
-    houseRuleText:{                          // 유의사항 제목 텍스트
-            marginTop: '8.8%',
-            fontSize: 28,
-            width: '100%',
-            marginLeft: '9%',
+    houseRuleText:{                          // 숙소 이용규칙 제목 텍스트
+        width: '90%',
+        marginTop: '8%',
+        fontSize: 20,
+        fontFamily: 'Pretendard-Bold',
+        color: 'black',
     },
     columnMiidle:{                           // 가로 가운데 정렬 - 숙소 이용규칙 본문담는 View 가운데 정렬
         alignItems: 'center',
+        width: '90%',
     },
     houseRuleView: {                          // 숙소 이용규칙 본문 담는 View
-        marginTop: '5.5%',
-        paddingLeft: '4%',
-        width: 360,
-        heigh: 400,
-        backgroundColor: 'white',
+        marginTop: '3.3%',
         borderRadius: 20,
+        width: '90%',
+        // backgroundColor: 'yellow',
     },
     houseRuleOptionText: {                    // 숙소 이용규칙 본문 텍스트
         marginTop: '4.4%',
@@ -886,8 +954,8 @@ const styles = StyleSheet.create({
     },
     ruleAlertText: {                          // 숙소 이용규칙 패널티에 대한 텍스트
         fontSize: 14,
-        width: 340,
-        color: '#4285F4',
+        width: 300,
+        color: "#00D282",
         marginTop: '5.5%',
         textAlign:'center',
     },

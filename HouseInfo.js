@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     },
     grayHorizontalLine: {                  // 회색 가로선
         width: '100%',
-        height: '0.4%',
+        height: 6.6,
         backgroundColor: '#F5F5F5',
         marginTop: "6.6%",
     },

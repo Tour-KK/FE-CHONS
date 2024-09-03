@@ -256,9 +256,6 @@ class HouseAddScreen extends Component {
         return Object.keys(selectedDates).join(',  ');
     }
     
-    
-
-
     removeImage = (index) => {                      // image-picker에서 이미지 선택 취소
         this.setState(prevState => {
             const imageUri = prevState.imageUri.filter((_, i) => i !== index);
@@ -338,6 +335,7 @@ render() {
                             <Text style={styles.houseAddBtn}>{this.state.isCalendarVisible ? '예약 가능 날짜 선택완료' : '예약 가능 날짜 선택하기'}</Text>
                         </TouchableOpacity>
                     </View>
+                    
                     {this.state.isCalendarVisible && (
                         <Calendar
                             onDayPress={this.onDaySelect}
@@ -495,7 +493,7 @@ const styles = StyleSheet.create({
     },  
     grayHorizontalLine: {                  // 회색 가로선
         width: '100%',
-        height: '0.1%',
+        height: 1.8,
         backgroundColor: '#BFBFBF',
         marginTop: "5%",
     },
@@ -727,11 +725,11 @@ const styles = StyleSheet.create({
         textAlign:'center',
     },
     reservationBtn:{                          // 숙소등록 버튼
-        // backgroundColor : "#00D282", 
         width: '90%',
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: '10%',
+        // backgroundColor : "#00D282", 
     },
     reservationBtnText:{                        // 숙소등록하기 텍스트
         marginBottom: '1.5%',

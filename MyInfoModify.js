@@ -183,9 +183,10 @@ const styles = StyleSheet.create({
 
     grayHorizontalLine: {       // 회색 가로선
         width: '100%',
-        height: '0.3%',
+        height: 1.8,
         backgroundColor: '#BFBFBF',
         marginTop: "3.8%",
+        marginBottom: "1.4%",
     },
     myInfoCard: {               // 프로필 카드 View
         width: '100%',

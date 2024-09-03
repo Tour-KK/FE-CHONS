@@ -9,6 +9,7 @@ import RNFS from 'react-native-fs';
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import houseAddIMG from './Image/사진추가_아이콘.png';
+import reviewAddIMG from './Image/후기작성완료버튼_아이콘.png';
 
 
 class ReviewAddScreen extends Component {
@@ -168,19 +169,15 @@ class ReviewAddScreen extends Component {
     const { name } = this.props.route.params;
 
     return (
-        <LinearGradient
-        colors={['#E8ECFF', '#FFFFFF']} 
-        style={styles.linearGradient} 
-        start={{ x: 0, y: 1 }} 
-        end={{ x: 0, y: 0}} >
             <ScrollView style={styles.background} showsHorizontalScrollIndicator={false}>
             <View style={styles.container}>
-                <View style={styles.titleView}>
-                    <TouchableOpacity  onPress={() => this.props.navigation.goBack()}>
+                <View style={styles.reviewAddView}>
+                    <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
                     <Image style={styles.backBtnIcon} source={backBtnIMG} />  
                     </TouchableOpacity>
-                    <Text style={styles.reviewWriteText}> 후기 작성하기 </Text>
+                    <Text style={styles.reviewAddText}> 후기 작성하기 </Text>
                 </View>
+                <View style={styles.grayHorizontalLine}/>
 
                 <View style={styles.reviewScoreView}>
                     <Text style={styles.InterviewText}> {name}님과의 스테이는 어떠셨나요? </Text>
@@ -199,6 +196,7 @@ class ReviewAddScreen extends Component {
                     <Text style={styles.ratingText}> {Math.round(this.state.rating)}점 </Text>
                     </View>       
                 </View>
+                <View style={styles.grayHorizontalLine2}/>
 
                 <View style={styles. reviewWriteView}>
                     <Text style={styles.ReviewText} > 아래에 후기를 남겨주세요. </Text>
@@ -236,65 +234,64 @@ class ReviewAddScreen extends Component {
                 
                 <View style={styles.reservationBtnView}>
                 <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postReview()}>
-                    <Text style={styles.reservationBtnText}> 후기 작성 완료</Text>
+                    <Image style={styles.reviewAddBtn} source={reviewAddIMG}/>
                 </TouchableOpacity>
                 </View>
       
                 <View style={styles.barMargin}><Text> </Text></View>
             </View>
             </ScrollView>
-
-               
-
-        </LinearGradient> 
     )
   }
 }
 
 // 스타일 시트
 const styles = StyleSheet.create({
-  background: {                     // 전체화면 세팅                     
+    background: {                     // 전체화면 세팅                     
         flex: 1,
-    },
-    linearGradient: {               // 그라데이션
-        flex: 0,
         width: '100%',
         height: '100%',
+        backgroundColor: "white",
     },
     container : {                   // 컴포넌트들 가운데 정렬
         alignItems: 'center', 
     },
-    titleView: {                   // 뒤로가기버튼, 예약하기 텍스트 담는 View
-        flex: 0,
+    reviewAddView: {                   // 뒤로가기버튼,  숙소등록 제목 담는 View
         flexDirection: 'row',
-        alignItems: 'center', 
+        alignItems: 'center',
         justifyContent: 'center',
+        height: 44,
         width: '100%',
-        height: 80,
-        
+        paddingLeft: "1.8%",
+        marginTop: '2.8%',
+        // backgroundColor: "yellow",
     },  
-    backBtnIcon: {                  // 뒤로가기 버튼
+    backBtnIcon: {                         // 뒤로가기 아이콘
         resizeMode: 'contain',
-        opacity: 0.38,
-        width: 30,
-        height: 30,
-        marginRight:'2%',
+        width: 20,
+        height: 20,
+        marginRight: '0.3%',
+        // backgroundColor: "gray"
         
     },
-    reviewWriteText: {                       // 후기작성 제목 텍스트  
-        marginBottom: '0.5%',
-        fontSize: 28,
+    reviewAddText: {                        // 최상단 '후기작성' 제목 텍스트
+        fontSize: 22,
+        color: "black",
         width: '88%',
+        fontFamily: 'Pretendard-Bold',
+        // backgroundColor: "gray"
     },  
-    content: {                                // 예약버튼 누른 컨텐츠
-        width: 370,
-        height: 120,
-        alignItems: 'center',
-        flexDirection: 'row',
-        backgroundColor: 'white',
-        marginTop: '1.1%',
-        borderRadius: 20,
-        elevation: 2,
+    grayHorizontalLine: {                  // 회색 가로선
+        width: '100%',
+        height: 1.8,
+        backgroundColor: '#BFBFBF',
+        marginTop: "2.2%",
+    },
+    grayHorizontalLine2: {                  // 별점부분 회색 가로선2
+        width: '100%',
+        height: 1.8,
+        backgroundColor: '#DADADA',
+        marginTop: "2.2%",
     },
     houseIMG:{                                // 숙소 이미지
         alignItems: 'center',
@@ -304,56 +301,24 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
         margin: '2%',
     },
-    houseInfo: {                             // 숙소정보 Text담는 View
-        flex: 0,
-        width: '55%',
-        height: '100%',
-    },
-    houseName:{                              // 숙소명
-        width:'100%',
-        textAlign: 'left',
-        fontSize: 20,
-        marginTop: '12%',
-        marginLeft: 2,
-    },
-    houseAddress: {                         // 숙소주소
-        width:'100%',
-        textAlign: 'left',
-        fontSize: 12,
-        marginLeft: 7,
-        marginTop: 2,
-    },
-    houseReview: {                          // 숙소리뷰
-        width:'100%',
-        textAlign: 'left',
-        fontSize: 18,
-        marginLeft: 5,
-        marginTop: 4,
-    },
-    reviewHouseText: {                      // 리뷰하는 숙소명 제목 텍스트
-        fontSize: 24,
-        width: '90%',
-        marginTop: '6.6%',
-        },
     reviewScoreView:{                       // 리뷰 인터뷰텍스트랑 평점 부여기능 담는 VIew
-        marginTop: '4%',
+        marginTop: '2.2%',
         width: '90%',
-        backgroundColor:'white',
-        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 2,
     },
     InterviewText: {                        // 호스트님과 함꼐한 여행은 어떠셨나요 텍스트
         marginTop: '6.6%',
         fontSize: 20,
-        width: '88%',
-        // backgroundColor:'gray',
+        width: '100%',
+        color: "black",
+        fontFamily: 'Pretendard-Bold',
+        // backgroundColor:'green',
     },
     ratingView: {                           // 리뷰 평점을 주는 Rating 기능을 담는 View
         flexDirection: 'row',
-        width: '88%',
-        marginLeft: '5.5%',
+        paddingLeft: '1.1%',
+        width: '100%',
         marginTop: '5%',
         marginBottom: '5.5%',
         // backgroundColor:'gray',
@@ -366,7 +331,7 @@ const styles = StyleSheet.create({
     rating: {
         // backgroundColor: 'gray',
         alignItems: 'flex-start',
-        width: '80%',
+        width: '74%',
         
     },
     reviewWriteView: {                      // 후기 작성해달라는 문구와 사진추가 텍스트 담은 View
@@ -378,53 +343,56 @@ const styles = StyleSheet.create({
 
     },
     ReviewText: {                           // 후기 작성해달라는 문구 텍스트
-        fontSize: 22,
+        fontSize: 20,
         width: '72%',
+        color: "black",
+        fontFamily: 'Pretendard-Bold',
         // backgroundColor: 'gray',
     },
     addIMGText:{                            // 사진추가 텍스트
         fontSize: 16,
         alignItems: 'center',
-        color: '#4285F4',
+        color: '#0AE090',
     },
     reviewTextInputView:{                    // 후기 textinput 을 담은 View
-           marginTop: '12%',
-           width: '84%',
-           backgroundColor:'white',
-           borderRadius: 20,
+           marginTop: '4.4%',
+           width: '100%',
            alignItems: 'center',
            justifyContent: 'center',
-           elevation: 2,
+        //    backgroundColor:'green',
     },
     reviewTextInput: {                      // 후기작성 Input텍스트 
-        width: '90%',
         fontSize: 16,
+        width: '88%',
+        marginTop: '3.8%',
+        marginBottom: '4.4%',
+        textAlign: 'left',
+        textAlignVertical: "center",
+        borderRadius: 10,
+        backgroundColor: '#F5F5F5',
+        padding:"3%",
     },
     reservationBtnView:{                    // 버튼 가운데 정렬하기 위한 Veiw
         marginBottom: '6%',
-        alignItems: 'center',
         width: '100%',
+        alignItems: 'center',
     },
     reservationBtn:{                          // 숙소등록 버튼
-        backgroundColor : '#4285F4',  
-        borderRadius: 16,
-        width: '80%',
+        width: '100%',
         height: 55,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 5,                     
-        shadowColor: '#4285F4',
-        shadowRadius: 10,
         marginTop: '15%',
+        // backgroundColor : '#4285F4',  
     },
-    reservationBtnText:{                        // 숙소등록하기 텍스트
-        color: 'white', 
-        fontSize: 24,
-        marginBottom: '1.5%',
+    reviewAddBtn:{                          // '후기작성완료' 버튼
+        width: '88%',
+        height: 55,  
+        resizeMode: 'contain',
     },
     reviewIMGView: {                       // 리뷰 이미지 담는 Scroll View 대신 스타일링
         width: '88%',
-        marginTop: '12%',
+        marginTop: '10%',
         alignItems:'center',
         // backgroundColor: 'gray',
     },
@@ -455,17 +423,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    
     removeBtnText: {                                // 이미지 제거 버튼 'ㅡ' 텍스트
         color: '#FF774C',
         fontWeight: 'bold',
         fontSize: 22,
         lineHeight: 28,  
     },
-    
-
     barMargin: {                    // 스클롤 탭바 마진
-        height: 10,
+        height: 30,
     },
 
 });

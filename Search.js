@@ -318,7 +318,8 @@ class SearchScreen extends Component {
     render() {
         const { searchText, modalVisible, places, filters, selectedFilterTitle } = this.state;           
 
-        const filteredPlaces = places.filter(place => {                   // Hangul 모듈을 활용해 검색어와 숙소의 name, address값 같은게 있는지 비교
+        // Hangul 모듈을 활용해 검색어와 숙소의 name, address값 같은게 있는지 비교
+        const filteredPlaces = places.filter(place => {                   
         return Hangul.search(place.name, searchText) >= 0 || Hangul.search(place.address, searchText) >= 0;     
         }); 
         
