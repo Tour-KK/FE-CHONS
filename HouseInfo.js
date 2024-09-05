@@ -255,9 +255,8 @@ class HouseInfoScreen extends Component {
                 </View>
                 </ScrollView>
 
-               
                 <View style={styles.reservationView}>
-                    <Text style={styles.priceText}>₩43000원</Text>
+                    <Text style={styles.priceText}>  ₩{filteredPlaces.length > 0 ? filteredPlaces[0].price.toLocaleString() : '0'}원</Text>
                     <TouchableOpacity  style={styles.reservationBtn} onPress={() => this.props.navigation.navigate('예약', { houseId: houseId })}>
 
 

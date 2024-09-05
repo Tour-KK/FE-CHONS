@@ -143,6 +143,116 @@ class HouseInfoModifyScreen extends Component {
         }
     }
 
+    async PutHouseModifyData() {                      // 수정한 숙소 정보들을 불러오는 함수
+        try {   
+            this.deleteHouseData();
+            const {                 	// 서버에 보내야하는 데이터들을 관리
+                hostName,
+                introText,
+                phoneNumber,
+                freeService,
+                price,
+                address,
+                maximumGuestNumber,
+                imageUri,
+                imageType,
+                imageName,
+                selectedDates
+            } = this.state;
+    
+            const formData = new FormData();      // fromData를 사용하기위해 FormData객체를 선언해주기
+    
+            const dto = {
+            hostName,
+            houseIntroduction: introText,
+            freeService,
+            phoneNumber,
+            registrantId: 1,
+            pricePerNight: Number(price.replace(/\D/g, '')),
+            address,
+            maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
+            availableDates: Object.keys(selectedDates)
+            };
+    
+
+            const jsonString = JSON.stringify(dto);
+            const fileName = 'dto.json';
+            const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
+
+            await RNFS.writeFile(filePath, jsonString, 'utf8');
+
+            formData.append('dto', {
+                uri: `file://${filePath}`,
+                type: 'application/json',
+                name: fileName
+            });
+
+            this.state.imageUri.forEach((uri, index) => {
+            RNFS.stat(uri)
+                .then((stats) => {
+                    console.log(`Image ${index}:`, stats);
+                    if (stats.isFile()) {
+                        console.log(`파일이 저장된 Uri: ${uri}`);
+                        console.log(`파일크기: ${stats.size} bytes`);
+                        console.log(`최근 수정일: ${stats.mtime}`);
+                        console.log(`파일 존재여부: ${stats.isFile()}`);
+                    }
+                })
+                .catch((error) => {
+                    console.error(`Error retrieving file stats for URI ${uri}:`, error);
+                });
+            });
+    
+            imageUri.forEach((filePath, index) => {
+            formData.append('photos', {
+                uri: filePath,
+                name: `image-${index}.jpg`,
+                type: imageType,
+            });
+            });
+
+            for (let pair of formData._parts) {
+            console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
+            }
+
+            const token = await getToken();
+            const response = await fetch('http://223.130.131.166:8080/api/v1/house', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    // 'Content-Type': 'multipart/form-data',
+                },
+                body: formData,
+            });
+        
+            const responseData = await response.json();
+            console.log("Response JSON:", responseData);
+            this.props.navigation.navigate('메인', { refresh: true });
+        } catch (error) {
+            console.log('숙소 데이터 보내는 도중 에러발생:', error);
+            if (error.response) {
+            console.log('Error status:', error.response.status);
+            console.log('Error data:', error.response.data);
+            console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+            console.log('Request that triggered error:', error.request);
+            } else {
+            console.log('Error message:', error.message);
+            }
+        }
+    }
+   
+
+    async deleteHouseData() {                        // 수정한 숙소 삭제하는 함수
+        const { houseId } = this.props.route.params;
+        const token = await getToken();
+        const response = await axios.delete(`http://223.130.131.166:8080/api/v1/house/${houseId}`,{     // 기존 숙소 데이터 먼저 삭제
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+    
     onMarkerDragEnd = (coordinate) => {
         this.setState({
             markerPosition: {
@@ -423,7 +533,7 @@ render() {
                     <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
                 </View>
 
-                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postHouseData()}>
+                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.PutHouseModifyData()}>
                     <Image style={styles.reservationBtnText} source={houseModifyBtn}/>
                 </TouchableOpacity>
 
