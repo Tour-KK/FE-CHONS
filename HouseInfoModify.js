@@ -4,27 +4,32 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import { getToken } from './token'
 import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
+import axios from 'axios';
+import Geocoder from 'react-native-geocoding';
 import RNFS from 'react-native-fs';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import houseAddIMG from './Image/사진추가_아이콘.png';
 import customMarkerIMG from "./Image/지도마커_아이콘.png";
-import houseAddBtn from './Image/숙소등록버튼_아이콘.png';
+import houseModifyBtn from './Image/숙소수정완료버튼_아이콘.png';
+
+
+
 
 class HouseInfoModifyScreen extends Component {
-      state = {
-        hostName: '김갑순', 
-        phoneNumber: '010-1122-3344',
-        maximumGuestNumber: '2명',
-        streetAddress: '강원도 속초시 중도문길 95',
-        price: '43000원',
-        freeService: '#와이파이 #침대 #욕실 #음료 #세면도구 #드라이기 #냉장고',
-        introText: '강원도 60년 토박이 생활로 어지간한 맛집, 관광지, 자연경관들은 꿰고 있고, 식사는 강원도 현지 음식으로 삼시세끼 대접해드립니다. 자세한 내용은 아래 연락처로 문의 부탁드려요.',
-        address: '강원도 속초시 신림면',
+    state = {
+        hostName: '데이터를 불러오지 못했습니다.', 
+        introText: '',
+        freeService: '',
+        address: '',
+        phoneNumber: '',
+        price: '',
+        maximumGuestNumber: '',
         imageUri: [],
         imageType: null, 
         imageName: null,
+        houseId: 1,
 
         isCalendarVisible: false,
         selectedDates: {},
@@ -32,17 +37,113 @@ class HouseInfoModifyScreen extends Component {
         region: {
             latitude: 37.541,
             longitude: 126.986,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
+            latitudeDelta: 0.003,
+            longitudeDelta: 0.003,
         },
         markerPosition: {
             latitude: 37.541,
             longitude: 126.986,
         },
-      };
-    
+    };
 
-      onMarkerDragEnd = (coordinate) => {
+    componentDidMount() {               // 렌더링하기전에 DOM에서 기존 숙소정보 먼저 불러오기 + houseId
+        if (this.props.route.params) {
+            const { houseId } = this.props.route.params;
+            this.setState({ houseId: houseId });
+          console.log('Received houseId:', houseId);
+        }
+        this.focusListener = this.props.navigation.addListener('focus', () => {
+            console.log('DOM에서 먼저 렌더링 완료');
+            this.getAddedHouseData();
+        });
+    }
+    componentWillUnmount() {              // 렌더링하기전에 DOM에서 기존 숙소정보 먼저 불러오기
+        if (this.focusListener) {
+            console.log('DOM에서 해당 리스너 제거완료');
+            this.focusListener();
+        }
+    }
+      
+    componentDidUpdate(prevProps) {
+        console.log("Current Props:", this.props.route.params);
+        console.log("Previous Props:", prevProps.route.params);
+      
+        if (prevProps.route.params.address !== this.props.route.params.address ||
+            JSON.stringify(prevProps.route.params.region) !== JSON.stringify(this.props.route.params.region)) {
+          this.setState({
+            address: this.props.route.params.address,
+            region: {
+              latitude: this.props.route.params.region.latitude,
+              longitude: this.props.route.params.region.longitude,
+              latitudeDelta: 0.003,
+              longitudeDelta: 0.003,
+            },
+            markerPosition: {
+              latitude: this.props.route.params.region.latitude,
+              longitude: this.props.route.params.region.longitude
+            }
+          });
+        }
+      }
+      
+      
+    async getAddedHouseData() {         // 숙소등록시 숙소와 관련된 데이터들을 서버에 보내는 함수
+        try{
+            const { houseId } = this.props.route.params;
+            const token = await getToken();
+
+            if (this.state.address === '') {
+                const response = await axios.get(`http://223.130.131.166:8080/api/v1/house/${houseId}`,{
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                console.log(response.data);
+                
+                const house = response.data;
+                let latitude = null, longitude = null;
+                const geocodingResponse = await Geocoder.from(house.address);
+                if (geocodingResponse.results.length > 0) {
+                    latitude = geocodingResponse.results[0].geometry.location.lat;
+                    longitude = geocodingResponse.results[0].geometry.location.lng;
+                }
+
+                this.setState({
+                    hostName: house.hostName,
+                    introText: house.houseIntroduction ,
+                    freeService: house.freeService,
+                    address: house.address ,
+                    phoneNumber: house.phoneNumber ,
+                    price: house.pricePerNight.toString(),
+                    maximumGuestNumber: house.maxNumPeople.toString(),
+                    imageUri: house.photos || [],
+                    region: {
+                        latitude: latitude || this.state.region.latitude,
+                        longitude: longitude || this.state.region.longitude, 
+                        latitudeDelta: 0.003,
+                        longitudeDelta: 0.003
+                    },
+                    markerPosition: {
+                        latitude: latitude || this.state.region.latitude,
+                        longitude: longitude || this.state.region.longitude
+                    }
+                });
+            }
+        } catch(error) {
+            if (error.response) {
+            console.log('Error status:', error.response.status);
+            console.log('Error data:', error.response.data);
+            console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+            console.log('No response received:', error.request);
+            } else {
+            console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+        }
+    }
+
+    onMarkerDragEnd = (coordinate) => {
         this.setState({
             markerPosition: {
                 latitude: coordinate.latitude,
@@ -137,8 +238,17 @@ class HouseInfoModifyScreen extends Component {
         });
     };
     
+    formatAddress(address) {                        // 정규식을 활용하여 도로명을 주소명으로 바꾸기
+        const regex = /([\S]+[도시])\s*([\S]+[구군시])?\s*([\S]*[동리면읍가구])?/;
+        const match = address.match(regex);
+        console.log("Original Address:", address);
+        console.log("Matched Segments:", match);
+        return match ? match.slice(1).join(' ') : "주소를 불러오는데 문제가 발생하였습니다.";
+    }
+    
 render() {
-    const { hostName, phoneNumber, address,  maximumGuestNumber, price, freeService, introText } = this.state;
+
+    const { hostName, phoneNumber, address,  maximumGuestNumber, price, freeService, introText, houseId } = this.state;
     const { selectedDate } = this.state;
 
     // 달력 한국어 텍스트 커스텀
@@ -155,173 +265,179 @@ render() {
     };
 
     LocaleConfig.defaultLocale = 'ko';
+
+
+    // 오늘 날짜 눌럿을때 생기는 이벤트 효과 동일적용
+
     return (
-        <ScrollView style={styles.background} showsVerticalScrollIndicator={false}>
-        <View style={styles.container}>
-            <View style={styles.houseAddView}>
-                <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
-                <Image style={styles.backBtnIcon} source={backBtnIMG} />  
-                </TouchableOpacity>
-                <Text style={styles.houseAddText}> 숙소 등록하기 </Text>
-            </View>
-            <View style={styles.grayHorizontalLine}/>
-
-            <View style={styles.hostInfoView}> 
-                <View style={styles.hostNameInfoView}>
-                    <Text style={styles.hostName}> 호스트 이름 </Text>
-                    <TextInput style={styles.hostInfoText} onChangeText={this.changeHostName} placeholder="ex) 이진석" placeholderTextColor="#B1B1B1">{hostName}</TextInput>
-                </View>
-
-                <View style={styles.hostNameInfoView}>
-                    <Text style={styles.hostName}> 호스트 연락처 </Text>
-                    <TextInput style={styles.hostInfoText} onChangeText={this.changePhoneNumber} placeholder="ex) 010-1234-5678" placeholderTextColor="#B1B1B1">{phoneNumber}</TextInput>
-                </View>
-            
-                <View style={styles.hostNameInfoView}>
-                    <Text style={styles.hostName}> 총 수용가능 인원 </Text>
-                    <TextInput style={styles.hostInfoText} onChangeText={this.changeMaximumGuestNumber} placeholder="ex) 2명" placeholderTextColor="#B1B1B1">{maximumGuestNumber}</TextInput>
-                </View>
-
-                <View style={styles.hostNameInfoView}>
-                    <Text style={styles.hostName}> 숙박 가격 (1박기준) </Text>
-                    <TextInput style={styles.hostInfoText} onChangeText={this.changePrice} placeholder="ex) 34000원" placeholderTextColor="#B1B1B1" >{price}</TextInput>
-                </View>
-
-                <View style={styles.houseInfoView}>
-                    <Text style={styles.houseName}> 숙소 예약 가능일 </Text>
-                </View>
-                <View style={styles.reservationView}>
-                    <ScrollView style={styles.scrollView} horizontal={true} showsHorizontalScrollIndicator={false}>
-                    {this.renderSelectedDates() === '' ? (
-                        <Text style={[styles.reservationDateplaceholder]}>날짜를 선택해주세요</Text>
-                        ) : (
-                            <Text style={styles.reservationDateInput}>{this.renderSelectedDates()}</Text>
-                        )}
-                    </ScrollView>
-                    <TouchableOpacity style={styles.ModifySelectView}  onPress={this.toggleCalendar}>
-                        <Text style={styles.houseAddBtn}>{this.state.isCalendarVisible ? '예약 가능 날짜 선택완료' : '예약 가능 날짜 선택하기'}</Text>
+            <ScrollView style={styles.background} showsVerticalScrollIndicator={false}>
+            <View style={styles.container}>
+                <View style={styles.houseAddView}>
+                    <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+                    <Image style={styles.backBtnIcon} source={backBtnIMG} />  
                     </TouchableOpacity>
+                    <Text style={styles.houseAddText}> 숙소정보 수정하기 </Text>
                 </View>
+                <View style={styles.grayHorizontalLine}/>
+
+                <View style={styles.hostInfoView}> 
+                    <View style={styles.hostNameInfoView}>
+                        <Text style={styles.hostName}> 호스트 이름 </Text>
+                        <TextInput style={styles.hostInfoText} onChangeText={this.changeHostName} placeholder="ex) 이진석" placeholderTextColor="#B1B1B1">{hostName}</TextInput>
+                    </View>
+
+                    <View style={styles.hostNameInfoView}>
+                        <Text style={styles.hostName}> 호스트 연락처 </Text>
+                        <TextInput style={styles.hostInfoText} onChangeText={this.changePhoneNumber} placeholder="ex) 010-1234-5678" placeholderTextColor="#B1B1B1">{phoneNumber}</TextInput>
+                    </View>
                 
-                {this.state.isCalendarVisible && (
-                    <Calendar
-                        onDayPress={this.onDaySelect}
-                        markingType={'multi-dot'}
-                        markedDates={this.state.selectedDates}
-                        monthNames={monthNames}
-                        dayNames={dayNames}
-                        dayNamesShort={dayNamesShort}
-                        locale={'ko'}
-                        theme={{
-                            todayTextColor: 'lightgreen',
-                            selectedDayBackgroundColor: '#00D282',
-                            selectedDayTextColor: '#ffffff'
-                        }}
-                    />
-                )}
-              
-                <View style={styles.hostNameInfoView}>
-                    <Text style={styles.hostName}> 숙소 위치 설정</Text>
-                </View>
-                <View style={styles.mapContainer}>
-                    <MapView
-                        provider={PROVIDER_GOOGLE}
-                        style={styles.locationMap} 
-                        region={this.state.region}
-                        initialRegion={{
-                            latitude: this.state.markerPosition.latitude,
-                            longitude: this.state.markerPosition.longitude,
-                            latitudeDelta: 0.0007, 
-                            longitudeDelta: 0.0007
-                        }}>
-                        <Marker
-                            coordinate={this.state.markerPosition}
-                            image={customMarkerIMG}
-                            draggable={true}
+                    <View style={styles.hostNameInfoView}>
+                        <Text style={styles.hostName}> 총 수용가능 인원 </Text>
+                        <TextInput style={styles.hostInfoText} onChangeText={this.changeMaximumGuestNumber} placeholder="ex) 2명" placeholderTextColor="#B1B1B1">{maximumGuestNumber}</TextInput>
+                    </View>
+
+                    <View style={styles.hostNameInfoView}>
+                        <Text style={styles.hostName}> 숙박 가격 (1박기준) </Text>
+                        <TextInput style={styles.hostInfoText} onChangeText={this.changePrice} placeholder="ex) 34000원" placeholderTextColor="#B1B1B1" >{price}</TextInput>
+                    </View>
+
+                    <View style={styles.houseInfoView}>
+                        <Text style={styles.houseName}> 숙소 예약 가능일 </Text>
+                    </View>
+                    <View style={styles.reservationView}>
+                        <ScrollView style={styles.scrollView} horizontal={true} showsHorizontalScrollIndicator={false}>
+                        {this.renderSelectedDates() === '' ? (
+                            <Text style={[styles.reservationDateplaceholder]}>날짜를 선택해주세요</Text>
+                            ) : (
+                                <Text style={styles.reservationDateInput}>{this.renderSelectedDates()}</Text>
+                            )}
+                        </ScrollView>
+                        <TouchableOpacity style={styles.ModifySelectView}  onPress={this.toggleCalendar}>
+                            <Text style={styles.houseModifyBtn}>{this.state.isCalendarVisible ? '예약 가능 날짜 선택완료' : '예약 가능 날짜 선택하기'}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    
+                    {this.state.isCalendarVisible && (
+                        <Calendar
+                            onDayPress={this.onDaySelect}
+                            markingType={'multi-dot'}
+                            markedDates={this.state.selectedDates}
+                            monthNames={monthNames}
+                            dayNames={dayNames}
+                            dayNamesShort={dayNamesShort}
+                            locale={'ko'}
+                            theme={{
+                                todayTextColor: 'lightgreen',
+                                selectedDayBackgroundColor: '#00D282',
+                                selectedDayTextColor: '#ffffff'
+                            }}
+                        />
+                    )}
+                  
+                    <View style={styles.hostNameInfoView}>
+                        <Text style={styles.hostName}> 숙소 위치 설정</Text>
+                    </View>
+                    <View style={styles.mapContainer}>
+                        <MapView
+                            provider={PROVIDER_GOOGLE}
+                            style={styles.locationMap} 
                             region={this.state.region}
-                            onRegionChangeComplete={(region) => this.setState({ region })}>
-                            <Callout tooltip>
-                                <View style={styles.customCallout}>
-                                    <Text style={styles.calloutTitle}>{this.state.address}</Text>
-                                </View>
-                            </Callout>
-                        </Marker>
-                    </MapView>
-                </View>
+                            initialRegion={{
+                                latitude: this.state.markerPosition.latitude,
+                                longitude: this.state.markerPosition.longitude,
+                                latitudeDelta: 0.0007, 
+                                longitudeDelta: 0.0007
+                            }}>
+                            <Marker
+                                coordinate={this.state.markerPosition}
+                                image={customMarkerIMG}
+                                draggable={true}
+                                region={this.state.region}
+                                onRegionChangeComplete={(region) => this.setState({ region })}>
+                                <Callout tooltip>
+                                    <View style={styles.customCallout}>
+                                        <Text style={styles.calloutTitle}>{this.state.address}</Text>
+                                    </View>
+                                </Callout>
+                            </Marker>
+                        </MapView>
+                    </View>
 
-                <TouchableOpacity style={styles.locationSelectView}  onPress={() => this.props.navigation.navigate('구글지도')} >
-                    <Text style={styles.locationSelectBtn}>지도에서 숙소위치 선택하기</Text>
-                </TouchableOpacity>
-                <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="지도에서 위치를 선택해주세요" placeholderTextColor="#B1B1B1" editable={false} multiline={true} numberOfLines={4} >{address}</TextInput>
-
-
-               <View style={styles.houseInfoView}>
-                    <Text style={styles.houseIMGName}> 숙소 소개 사진 </Text>
-                    <TouchableOpacity style={styles.IMGSelectView} onPress={this.addImage}>
-                        <Text style={styles.houseIMGAddBtn}> 사진 추가 </Text>
+                    <TouchableOpacity style={styles.locationSelectView}  onPress={() => this.props.navigation.navigate('숙소구글지도', { houseId: houseId } )} >
+                        <Text style={styles.locationSelectBtn}>지도에서 숙소위치 선택하기</Text>
                     </TouchableOpacity>
-                </View>
-                <View style={styles.houseIMGView}>
-                <ScrollView style={styles.addHouseIMGView}  
-                    showsHorizontalScrollIndicator={false}  
-                    horizontal={true}>
-                        {this.state.imageUri.length > 0 ? (
-                            this.state.imageUri.map((uri, index) => (
-                                <View key={index} style={styles.imageContainer}>
-                                    <Image style={styles.houseIMG} source={{ uri: uri }} />
-                                    <TouchableOpacity 
-                                        style={styles.removeBtn} 
-                                        onPress={() => this.removeImage(index)}>
-                                        <Text style={styles.removeBtnText}>ㅡ</Text>
-                                    </TouchableOpacity>
-                                    
-                                </View>
-                            ))
-                        ) : (
-                            <TouchableOpacity style={styles.ModifySelectView} onPress={this.addImage}>
-                                <Image style={styles.houseIMG} source={houseAddIMG}/>
-                            </TouchableOpacity>
-                        )}
-                </ScrollView>
-               </View>
+                    <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="지도에서 위치를 선택해주세요" placeholderTextColor="#B1B1B1" editable={false} multiline={true} numberOfLines={4} >{address}</TextInput>
 
-                <View style={styles.hostNameInfoView}>
-                    <Text style={styles.hostName}> 소개글 </Text>
-                    <TextInput style={styles.houseInfoText} onChangeText={this.changeIntroText} placeholder="숙소와 호스트님을 소개해주세요" placeholderTextColor="#B1B1B1" multiline={true}>{introText}</TextInput>
+
+                   <View style={styles.houseInfoView}>
+                        <Text style={styles.houseIMGName}> 숙소 소개 사진 </Text>
+                        <TouchableOpacity style={styles.IMGSelectView} onPress={this.addImage}>
+                            <Text style={styles.houseIMGAddBtn}> 사진 추가 </Text>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.houseIMGView}>
+                    <ScrollView style={styles.addHouseIMGView}  
+                        showsHorizontalScrollIndicator={false}  
+                        horizontal={true}>
+                            {this.state.imageUri.length > 0 ? (
+                                this.state.imageUri.map((uri, index) => (
+                                    <View key={index} style={styles.imageContainer}>
+                                        <Image style={styles.houseIMG} source={{ uri: uri }} />
+                                        <TouchableOpacity 
+                                            style={styles.removeBtn} 
+                                            onPress={() => this.removeImage(index)}>
+                                            <Text style={styles.removeBtnText}>ㅡ</Text>
+                                        </TouchableOpacity>
+                                        
+                                    </View>
+                                ))
+                            ) : (
+                                <TouchableOpacity style={styles.ModifySelectView} onPress={this.addImage}>
+                                    <Image style={styles.houseIMG} source={houseAddIMG}/>
+                                </TouchableOpacity>
+                            )}
+                    </ScrollView>
+                   </View>
+
+                    <View style={styles.hostNameInfoView}>
+                        <Text style={styles.hostName}> 소개글 </Text>
+                        <TextInput style={styles.houseInfoText} onChangeText={this.changeIntroText} placeholder="숙소와 호스트님을 소개해주세요" placeholderTextColor="#B1B1B1" multiline={true}>{introText}</TextInput>
+                    </View>
+
+                  <View style={styles.hostNameInfoView}>
+                        <Text style={styles.hostName}> 무료 제공 서비스 </Text>
+                        <TextInput style={styles.houseInfoText} onChangeText={this.changeFreeService} placeholder="태그 입력를 입력해주세요 (ex: #냉장고 #음료)" placeholderTextColor="#B1B1B1" multiline={true}>{freeService}</TextInput>
+                    </View>
                 </View>
 
-              <View style={styles.hostNameInfoView}>
-                    <Text style={styles.hostName}> 무료 제공 서비스 </Text>
-                    <TextInput style={styles.houseInfoText} onChangeText={this.changeFreeService} placeholder="태그 입력를 입력해주세요 (ex: #냉장고 #음료)" placeholderTextColor="#B1B1B1" multiline={true}>{freeService}</TextInput>
+                <Text style={styles.houseRuleText}> 유의사항 </Text>
+                <View style={styles.columnMiidle}>
+                    <View style={styles.houseRuleView}>
+                        <Text style={styles.houseRuleOptionText}>• 욕설 및 공격적인 언행은 삼가해주세요. </Text>
+                        <Text style={styles.houseRuleOptionText}>• 소음제한 시간대에는 소음을 자제해주세요 </Text>
+                        <Text style={styles.houseRuleOptionText}>• 객실 내에서 흡연은 금지합니다. </Text>
+                        <Text style={styles.houseRuleOptionText}>• 호스트를 존중하고 배려해주세요. </Text>
+                        <Text style={styles.houseRuleOptionTextMargin}> </Text>
+                    </View>
+                
+                    <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
                 </View>
+
+                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postHouseData()}>
+                    <Image style={styles.reservationBtnText} source={houseModifyBtn}/>
+                </TouchableOpacity>
+
+                <View style={styles.barMargin}><Text> </Text></View>
+
             </View>
-
-            <Text style={styles.houseRuleText}> 유의사항 </Text>
-            <View style={styles.columnMiidle}>
-                <View style={styles.houseRuleView}>
-                    <Text style={styles.houseRuleOptionText}>• 욕설 및 공격적인 언행은 삼가해주세요. </Text>
-                    <Text style={styles.houseRuleOptionText}>• 소음제한 시간대에는 소음을 자제해주세요 </Text>
-                    <Text style={styles.houseRuleOptionText}>• 객실 내에서 흡연은 금지합니다. </Text>
-                    <Text style={styles.houseRuleOptionText}>• 호스트를 존중하고 배려해주세요. </Text>
-                    <Text style={styles.houseRuleOptionTextMargin}> </Text>
-                </View>
-            
-                <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
-            </View>
-
-            <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postHouseData()}>
-                <Image style={styles.reservationBtnText} source={houseAddBtn}/>
-            </TouchableOpacity>
-
-            <View style={styles.barMargin}><Text> </Text></View>
-
-        </View>
-        </ScrollView>
+            </ScrollView>
     )
   }
 }
+
+// 스타일 시트  내폰 width-300, 애뮬레이터 width-340세팅 + 이미지 크기 가로,세로 각각200 (애뮬레이터)
 const styles = StyleSheet.create({
-background: {                     // 전체화면 세팅                     
+  background: {                     // 전체화면 세팅                     
         flex: 1,
         width: '100%',
         height: '100%',
@@ -462,7 +578,7 @@ background: {                     // 전체화면 세팅
         justifyContent: 'center',
         // backgroundColor: 'blue',
     },
-    houseAddBtn:{                           // 숙소 예약일자선택 버튼
+    houseModifyBtn:{                           // 숙소 예약일자선택 버튼
         fontSize: 14,
         color: "#00D282",  
         borderWidth: 1,
@@ -661,5 +777,5 @@ background: {                     // 전체화면 세팅
         marginHorizontal: '8%',
     },
 });
-  
+
 export default HouseInfoModifyScreen;

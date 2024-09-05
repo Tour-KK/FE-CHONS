@@ -85,7 +85,8 @@ class MyInfoScreen extends Component {
                     <Text style={styles.optionText}> 숙소정보 등록하기</Text>    
                     <Image style={styles.nextBtn} source={nextBtnIMG}/>
                 </TouchableOpacity>                                    
-                <TouchableOpacity style={styles.settingOption} onPress={() => this.props.navigation.navigate('숙소정보수정')}>
+                <TouchableOpacity style={styles.settingOption} onPress={() => this.props.navigation.navigate('숙소수정리스트')}>
+                {/* <TouchableOpacity style={styles.settingOption} > */}
                     <Text style={styles.optionText}> 숙소정보 수정하기</Text>    
                     <Image style={styles.nextBtn} source={nextBtnIMG}/>
                 </TouchableOpacity>                                    
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     infoText: {                 // 프로필 텍스트 담는 View
-        width: '54%',
+        width: '52%',
         height: '80%',
         marginLeft: '8.8%',
         justifyContent: "center",        

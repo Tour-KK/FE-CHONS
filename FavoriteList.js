@@ -10,12 +10,11 @@ import reviewIconIMG from './Image/평점_별아이콘.png';
 import noImage from './Image/이미지없음표시.png';
 import locationFilterGrayIcon from './Image/검색화면_클릭전_지역필터링아이콘.png';
 
-
-
-
 class FavoriteListScreen extends Component {
 
     state = {
+        formattedAddresses: {},
+
         places: [                                   // 목록에 띄울 데이터들 관
             {
                 id: "",
@@ -27,47 +26,16 @@ class FavoriteListScreen extends Component {
                 reviewCount: 0, 
                 favoriteState: false,
             },
-            {
-                id: "1",
-                name: "이민호", 
-                address: "경기도 용인시 수지구", 
-                reviewScore: 4.3, 
-                reviewCount: 21, 
-                imageUri: [],
-                price: 32000, 
-                favoriteState: true, 
-            },
-            {
-                id: "2",
-                name: "[이름없음]", 
-                address: "[주소없음]", 
-                reviewScore: 3.8, 
-                reviewCount: 21, 
-                imageUri: [],
-                price: 27400, 
-                favoriteState: true, 
-            },
-            {
-                id: "3",
-                name: "[이름없음]", 
-                address: "[주소없음]", 
-                reviewScore: 4.1, 
-                reviewCount: 11, 
-                imageUri: [],
-                price: 35900, 
-                favoriteState: true, 
-            },
         ],
     };
 
-    componentDidMount() {
+    componentDidMount() {                           // 렌더링전에 DOM에서 축제정보들 먼저 불러오기
         this.focusListener = this.props.navigation.addListener('focus', () => {
             console.log('DOM에서 먼저 렌더링 완료');
             this.getFavoriteData();
         });
     }
-    
-    componentWillUnmount() {
+    componentWillUnmount() {                        // 렌더링전에 DOM에서 축제정보들 먼저 불러오기
         if (this.focusListener) {
             console.log('DOM에서 해당 리스너 제거완료');
             this.focusListener();
@@ -89,6 +57,7 @@ class FavoriteListScreen extends Component {
                 id: house.id,
                 name: house.hostName,
                 address: house.address,
+                formattedAddress: this.formatAddress(house.address),
                 price: house.pricePerNight,
                 imageUri: house.photos, 
                 reviewScore: house.starAvg, 
@@ -162,6 +131,14 @@ class FavoriteListScreen extends Component {
         this.props.navigation.navigate('숙소정보', { houseId: houseId });
     }
     
+
+    formatAddress(address) {                        // 정규식을 활용하여 도로명을 주소명으로 바꾸기
+        const regex = /([\S]+[도시])\s*([\S]+[구군시])?\s*([\S]*[동리면읍가구])?/;
+        const match = address.match(regex);
+        console.log("Original Address:", address);
+        console.log("Matched Segments:", match);
+        return match ? match.slice(1).join(' ') : "주소를 불러오는데 문제가 발생하였습니다.";
+    }
     
     render() {
         const filteredPlaces =  this.state.places.filter(place => place.favoriteState);
@@ -181,7 +158,7 @@ class FavoriteListScreen extends Component {
                             <Text style={styles.houseName}>{place.name}님의 거주지</Text>
                             <View style={styles.addressView}>
                                 <Image style={styles.addressIcon}source={locationFilterGrayIcon}/>
-                                <Text style={styles.houseAddress}>{place.address}</Text>
+                                <Text style={styles.houseAddress}>{place.formattedAddress}</Text>
                             </View>
                             <TouchableOpacity style={styles.houseReviewView} onPress={ ()=>this.props.navigation.navigate('후기', { houseId: place.id, name: place.name })}>
                                 <Image style={styles.reviewIcon} source={reviewIconIMG} />

@@ -15,6 +15,7 @@ import FavoriteListScreen from './FavoriteList';
 import MyInfoScreen from './MyInfo';
 import MyInfoModifyScreen from './MyInfoModify';
 import HouseInfoScreen from './HouseInfo';
+import HouseInfoModifyListScreen from './HouseInfoModifyList';
 import HouseInfoModifyScreen from './HouseInfoModify';
 import ReservationScreen from './Reservation';
 import HouseAddScreen from './HouseAdd';
@@ -28,6 +29,7 @@ import GoogleAPIScreen from './GoogleAPI';
 import KakaoAPIScreen from './KakaoAPI';
 import NaverAPIScreen from './NaverAPI';
 import GoogleMapScreen from './GoogleMap';
+import HouseModifyGoogleMapScreen from './HouseModifyGoogleMap';
 
 
 const Tab = createBottomTabNavigator();
@@ -119,6 +121,7 @@ class App extends Component {
                     <Stack.Screen name="내정보수정" component={MyInfoModifyScreen} />
                     <Stack.Screen name="숙소정보" component={HouseInfoScreen} />
                     <Stack.Screen name="숙소등록" component={HouseAddScreen} />
+                    <Stack.Screen name="숙소수정리스트" component={HouseInfoModifyListScreen} />
                     <Stack.Screen name="숙소정보수정" component={HouseInfoModifyScreen} />
                     <Stack.Screen name="축제정보" component={FestivalInfoScreen} />
                     <Stack.Screen name="테스트" component={AxiosTestScreen} />
@@ -126,6 +129,7 @@ class App extends Component {
                     <Stack.Screen name="카카오API" component={KakaoAPIScreen} />
                     <Stack.Screen name="네이버API" component={NaverAPIScreen} />
                     <Stack.Screen name="구글지도" component={GoogleMapScreen} />
+                    <Stack.Screen name="숙소구글지도" component={HouseModifyGoogleMapScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
             </SafeAreaProvider>

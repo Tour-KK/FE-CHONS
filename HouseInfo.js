@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, Scrol
 import axios from 'axios';
 import { getToken } from './token';
 import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
+import Geocoder from 'react-native-geocoding';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -16,6 +17,8 @@ import customMarkerIMG from "./Image/지도마커_아이콘.png";
 
 class HouseInfoScreen extends Component {
     state = {
+        formattedAddresses: {},
+
         places: [                                   // 목록에 띄울 데이터들 관리
             { id: 1, 
                 name: "", 
@@ -36,6 +39,9 @@ class HouseInfoScreen extends Component {
     }
 
     componentDidMount() {                                       // 렌더링 하기전에 DOM에서 해당 숙소 상세정보들 불러오기
+        Geocoder.init('AIzaSyCd9l-dsU0O4PMnRS2BeP0OCZtOv-atoJE', { language: "ko" });
+
+
         this.focusListener = this.props.navigation.addListener('focus', () => {
             console.log('DOM에서 먼저 숙소 상제정보 렌더링 완료');
             this.getHouseData();
@@ -62,6 +68,13 @@ class HouseInfoScreen extends Component {
             console.log(response.data);
             
             const house = response.data;
+            let latitude = null, longitude = null;
+            const geocodingResponse = await Geocoder.from(house.address);
+            if (geocodingResponse.results.length > 0) {
+                latitude = geocodingResponse.results[0].geometry.location.lat;
+                longitude = geocodingResponse.results[0].geometry.location.lng;
+            }
+
             const data = [{
                 id: house.id,
                 name: house.hostName,
@@ -72,12 +85,15 @@ class HouseInfoScreen extends Component {
                 registrantId: house.registrantId,
                 price: house.pricePerNight,
                 address: house.address,
+                formattedAddress: this.formatAddress(house.address),
                 maximumGuestNumber: house.maxNumPeople,
                 reviewScore: house.starAvg, 
                 reviewCount: house.reviewNum, 
                 favoriteState: house.liked, 
                 reservationState: false, 
-                clearReservation: false 
+                clearReservation: false ,
+                latitude,
+                longitude
             }];
 
             this.setState({ places: data });
@@ -96,6 +112,13 @@ class HouseInfoScreen extends Component {
             }
     }
    
+    formatAddress(address) {                        // 정규식을 활용하여 도로명을 주소명으로 바꾸기
+        const regex = /([\S]+[도시])\s*([\S]+[구군시])?\s*([\S]*[동리면읍가구])?/;
+        const match = address.match(regex);
+        console.log("Original Address:", address);
+        console.log("Matched Segments:", match);
+        return match ? match.slice(1).join(' ') : "주소를 불러오는데 문제가 발생하였습니다.";
+    }
     
     render() {
 
@@ -139,7 +162,7 @@ class HouseInfoScreen extends Component {
                         </View>
                         <View style={styles.houseAddress}>
                             <Image style={styles.subLocationIcon} source={subLocationIcon} />
-                            <Text style={styles.houseAddressSubText}>{place.address}</Text>
+                            <Text style={styles.houseAddressSubText}>{place.formattedAddress}</Text>
                         </View>
                         <View style={styles.houseReviewView}>
                             <TouchableOpacity style={styles.houseReview} onPress={ ()=>this.props.navigation.navigate('후기', { houseId: place.id, name: place.name })}>
@@ -177,31 +200,31 @@ class HouseInfoScreen extends Component {
                             </View>
                             <Text style={styles.locationText}>{place.address}</Text>
                             <View style={styles.mapContainer}>
-                                <MapView
-                                    provider={PROVIDER_GOOGLE} 
-                                    initialRegion={{
-                                    latitude: 37.541,
-                                    longitude: 126.986,
-                                    latitudeDelta: 0.0922,
-                                    longitudeDelta: 0.0421,
+                            <MapView
+                                provider={PROVIDER_GOOGLE}
+                                style={styles.locationMap}
+                                initialRegion={{
+                                    latitude: place.latitude || 37.541,  
+                                    longitude: place.longitude || 126.986,
+                                    latitudeDelta: 0.003,
+                                    longitudeDelta: 0.003,
+                                }}>
+                                <Marker
+                                    coordinate={{
+                                        latitude: place.latitude || 37.541,
+                                        longitude: place.longitude || 126.986,
                                     }}
-                                    style={styles.locationMap}>
-
-                                    <Marker
-                                        coordinate={{
-                                            latitude: 37.541,
-                                            longitude: 126.986,
-                                        }}
-                                        title="수정해야함"
-                                        description="수정해야함"
-                                        image={customMarkerIMG}>
-                                        <Callout tooltip>
-                                            <View style={styles.customCallout}>
-                                                <Text style={styles.calloutTitle}>{places.address}</Text>
-                                            </View>
-                                        </Callout>
-                                    </Marker>
-                                </MapView>
+                                    title={`${place.name} 위치`}
+                                    description={place.address}
+                                    image={customMarkerIMG}
+                                >
+                                    <Callout tooltip>
+                                        <View style={styles.customCallout}>
+                                            <Text style={styles.calloutTitle}>{place.address}</Text>
+                                        </View>
+                                    </Callout>
+                                </Marker>
+                            </MapView>
                             </View>
                         </View>
                         <View style={styles.introView}>
@@ -303,7 +326,7 @@ const styles = StyleSheet.create({
         marginTop: '0.6%',
         width: '90%',
         justifyContent: 'flex-start',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         flexDirection: "row",
         // backgroundColor: 'gray',
     },
@@ -312,6 +335,7 @@ const styles = StyleSheet.create({
         height: 12,
         resizeMode: 'contain',
         marginRight: '1.1%',
+        marginTop: '1.8%',
         // backgroundColor: 'yellow',
     },
     houseAddressSubText:{                       // 숙소명 밑 숙소위치 표시 텍스트

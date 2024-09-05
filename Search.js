@@ -27,6 +27,7 @@ class SearchScreen extends Component {
     
     state = {
         searchText: '',
+        formattedAddresses: {},
         modalVisible: false,
 
         tempFilter: null,
@@ -43,7 +44,7 @@ class SearchScreen extends Component {
             guestCount: ''
         },
         
-        places: [                                   // 목록에 띄울 데이터들 관
+        places: [                                   // 목록에 띄울 데이터들 관리
             { id: 1, 
                 name: "이민호", 
                 address: "경기도 용인시 수지구", 
@@ -60,39 +61,6 @@ class SearchScreen extends Component {
                 reviewCount: 0, 
                 imageUri: [],
                 price: 28300, 
-                favoriteState: false, 
-                reservaionState: false, 
-                clearReservation: false 
-            },
-            { id: 3, 
-                name: "[이름없음]", 
-                address: "[주소없음]", 
-                reviewScore: 0,     
-                reviewCount: 0, 
-                imageUri: [],
-                price: 0, 
-                favoriteState: false, 
-                reservaionState: false, 
-                clearReservation: false 
-            },
-            { id: 4, 
-                name: "[이름없음]", 
-                address: "[주소없음]", 
-                reviewScore: 0, 
-                reviewCount: 0, 
-                imageUri: [],
-                price: 0, 
-                favoriteState: false, 
-                reservaionState: false, 
-                clearReservation: false 
-            },
-            { id: 5, 
-                name: "[이름없음]", 
-                address: "[주소없음]", 
-                reviewScore: 0, 
-                reviewCount: 0, 
-                imageUri: [],
-                price: 0, 
                 favoriteState: false, 
                 reservaionState: false, 
                 clearReservation: false 
@@ -147,14 +115,13 @@ class SearchScreen extends Component {
         ],
       }
 
-    componentDidMount() {
+    componentDidMount() {               // 렌더링하기전에 DOM에서 숙소 리스트 먼저 불러오기
         this.focusListener = this.props.navigation.addListener('focus', () => {
             console.log('DOM에서 먼저 렌더링 완료');
             this.getHouseListData();
         });
     }
-    
-    componentWillUnmount() {
+    componentWillUnmount() {            // 렌더링하기전에 DOM에서 숙소 리스트 먼저 불러오기
         if (this.focusListener) {
             console.log('DOM에서 해당 리스너 제거완료');
             this.focusListener();
@@ -208,6 +175,7 @@ class SearchScreen extends Component {
                 id: house.id,
                 name: house.hostName,
                 address: house.address,
+                formattedAddress: this.formatAddress(house.address),
                 price: house.pricePerNight,
                 imageUri: house.photos, 
                 reviewScore: house.starAvg, 
@@ -271,8 +239,6 @@ class SearchScreen extends Component {
             }));
         }
     };
-    
-    
 
     changeFavoriteState = async (id) => {                    // 즐겨찾기시 체크표시후 서버 api로 상태보내기
         const updatedPlaces = this.state.places.map(place => {
@@ -314,8 +280,15 @@ class SearchScreen extends Component {
           }
     };
     
+    formatAddress(address) {                        // 정규식을 활용하여 도로명을 주소명으로 바꾸기
+        const regex = /([\S]+[도시])\s*([\S]+[구군시])?\s*([\S]*[동리면읍가구])?/;
+        const match = address.match(regex);
+        console.log("Original Address:", address);
+        console.log("Matched Segments:", match);
+        return match ? match.slice(1).join(' ') : "주소를 불러오는데 문제가 발생하였습니다.";
+    }
     
-    render() {
+    render() {  
         const { searchText, modalVisible, places, filters, selectedFilterTitle } = this.state;           
 
         // Hangul 모듈을 활용해 검색어와 숙소의 name, address값 같은게 있는지 비교
@@ -382,7 +355,7 @@ class SearchScreen extends Component {
                                 <Text style={styles.houseName}>{place.name}님의 거주지</Text>
                                 <View style={styles.addressView}>
                                     <Image style={styles.addressIcon}source={locationFilterGrayIcon}/>
-                                    <Text style={styles.houseAddress}>{place.address}</Text>
+                                    <Text style={styles.houseAddress}>{place.formattedAddress}</Text>
                                 </View>
                                 <TouchableOpacity style={styles.houseReviewView} onPress={ ()=>this.props.navigation.navigate('후기', { houseId: place.id, name: place.name })}>
                                     <Image style={styles.reviewIcon} source={reviewIconIMG} />
@@ -422,7 +395,6 @@ const styles = StyleSheet.create({
         flex: 0,
         width: '100%',
         height: '100%',
-       
     },
     container : {                   // 컴포넌트들 가운데 정렬
         alignItems: 'center', 
@@ -523,7 +495,7 @@ const styles = StyleSheet.create({
     addressView:{                    // 숙소 주소, 위치 아이콘 가로로 담는 View
         width: 160,
         flexDirection: "row",
-        alignItems: "center",
+        alignItems: 'flex-start',
         marginLeft: '1%',
         marginTop: '1.1%',
         // backgroundColor: 'green',
@@ -533,6 +505,7 @@ const styles = StyleSheet.create({
         height: 14,
         resizeMode: "contain",
         marginRight: "2.2%",
+        marginTop: "1.8%",
     },
     houseAddress: {                  // 찜한숙소 상세 주소
         width: 150,

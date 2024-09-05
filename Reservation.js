@@ -1,11 +1,9 @@
 import React, {Component, useState} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, Alert } from 'react-native'; 
 import Slider from '@react-native-community/slider';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getToken } from './token';
 import axios from 'axios';
-
-
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
@@ -15,8 +13,10 @@ import kakaoPayIcon from './Image/카카오페이_로고.png';
 import tossPayIcon from './Image/토스페이_로고.png';
 import reviewIconIMG from './Image/평점_별아이콘.png';
 import reservationBtn from './Image/예약요청버튼_아이콘.png';
-
-
+import checkFavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
+import FavoriteIconIMG from './Image/즐겨찾기_아이콘.png';
+import noImage from './Image/이미지없음표시.png';
+import locationFilterGrayIcon from './Image/검색화면_클릭전_지역필터링아이콘.png';
 
 
 class ReservationScreen extends Component {
@@ -26,6 +26,10 @@ class ReservationScreen extends Component {
         labels: ["소극", "보통", "적극"],
         houseId: 1,
         reservationId: 1,
+        formattedAddresses: {},
+        maximumGuestNumber: '',
+        phoneNumber: '', 
+        
 
         editHostNameState: false,
         editPhoneNumberState: false,
@@ -43,7 +47,7 @@ class ReservationScreen extends Component {
                 address:'강원도 속초시 신림면', 
                 reviewScore: "4.2", 
                 reviewCount: 48, 
-                imageUrl: require('./Image/여행지1.png'), 
+                imageUrl: [], 
                 favoriteState: true, 
                 price: 43000, 
                 reservaionState: true, 
@@ -57,6 +61,7 @@ class ReservationScreen extends Component {
             this.setState({ houseId: houseId });
           console.log('Received houseId:', houseId);
         }
+            this.getHouseData();
       }
 
     sliderValueChange = (value) => {                // 호스트 관심도 세팅 슬라이드 바
@@ -72,14 +77,15 @@ class ReservationScreen extends Component {
     async postReserationInfoData() {
         try {
             const token = await getToken();
-            const { houseId } = this.state;  
+            const { houseId, checkInDate, checkOutDate, maximumGuestNumber, phoneNumber } = this.state;
     
             const response = await axios.post(`http://223.130.131.166:8080/api/v1/reservation/${houseId}`, 
                 {
-                    startAt: "2024-08-02",
-                    endAt: "2024-08-02",
-                    personNum: 2,  
-                    phoneNum: "01012345678"  
+                    startAt: checkInDate,
+                    endAt: checkOutDate,
+                    personNum: maximumGuestNumber,  
+                    personNum: Number(maximumGuestNumber.replace(/\D/g, '')),
+                    phoneNum: phoneNumber.replace(/\D/g, ''),
                 },
                 {
                     headers: {
@@ -87,17 +93,25 @@ class ReservationScreen extends Component {
                     }
                 }
             );
-
             this.setState({ reservationId : response.id});
     
             console.log('응답받은 데이터:', response.data);
+            this.placeInfoDelivery(this.state.houseId);
+            
     
         } catch (error) {
             console.error('예약 요청 중 에러 발생:', error);
+            
             if (error.response) {
                 console.log('Error status:', error.response.status);
                 console.log('Error data:', error.response.data);
                 console.log('Error headers:', error.response.headers);
+
+                Alert.alert(
+                    "예약 요청 실패", 
+                    `에러 메시지: ${error.response.data.message}`, 
+                    [{ text: "확인", onPress: () => console.log('Alert closed') }] 
+                );
             } else if (error.request) {
                 console.log('No response received:', error.request);
             } else {
@@ -136,6 +150,53 @@ class ReservationScreen extends Component {
         }
     }
     
+    async getHouseData() {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 리스트들을 불러오는 함수
+        try {
+            const { houseId } = this.props.route.params;
+            const token = await getToken();
+            const response = await axios.get(`http://223.130.131.166:8080/api/v1/house/${houseId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log('API response:', response.data);  
+            const house = response.data;
+
+            const data = [{
+                id: house.id,
+                name: house.hostName,
+                introText: house.houseIntroduction,
+                freeService: house.freeService,
+                imageUri: house.photos && house.photos.length > 0 ? house.photos  : [{noImage}],
+                phoneNumber: house.phoneNumber,
+                registrantId: house.registrantId,
+                price: house.pricePerNight,
+                address: house.address,
+                formattedAddress: this.formatAddress(house.address),
+                maximumGuestNumber: house.maxNumPeople,
+                reviewScore: house.starAvg,
+                reviewCount: house.reviewNum,
+                favoriteState: house.liked,
+                reservationState: false,
+                clearReservation: false,
+              }];
+              
+
+            this.setState({ places: data });
+
+        } catch (error) {
+            console.error('Error fetching house data:', error);
+        }
+    }
+        
+   
+    formatAddress(address) {                        // 정규식을 활용하여 도로명을 주소명으로 바꾸기
+        const regex = /([\S]+[도시])\s*([\S]+[구군시])?\s*([\S]*[동리면읍가구])?/;
+        const match = address.match(regex);
+        console.log("Original Address:", address);
+        console.log("Matched Segments:", match);
+        return match ? match.slice(1).join(' ') : "주소를 불러오는데 문제가 발생하였습니다.";
+    }
     
     isCheckInPickerVisible = () => {                            // 입실날짜 관련 캘린더 visable 상태관리
         this.setState(prevState => ({
@@ -155,6 +216,11 @@ class ReservationScreen extends Component {
     onCheckInSelect = (day) => {                                  // 입실 날짜 선택한 날짜들 관리 
         const { dateString } = day;
         this.setState({ checkInDate: dateString });
+    };
+    
+    onCheckOutSelect = (day) => {
+        const { dateString } = day;
+        this.setState({ checkOutDate: dateString });
     };
     
     onCheckOutSelect = (day) => {                                 // 퇴실 날짜 선택한 날짜들 관리
@@ -189,7 +255,6 @@ class ReservationScreen extends Component {
     
 
     render() {
-
         const { places, value, labels } = this.state;
         const { checkInDate, checkOutDate, isCheckInPickerVisible, isCheckOutPickerVisible  } = this.state;
 
@@ -231,24 +296,25 @@ class ReservationScreen extends Component {
                 </View>
                 <View style={styles.grayHorizontalLine}/>
 
-                {/* 예약 선택한 숙소 정보 */}
-                {places.filter(place => place.reservaionState).map((place) => (
-                    <TouchableOpacity style={styles.content} onPress={() => this.placeInfoDelivery(place.id)} >
-                        <Image source={place.imageUrl} style={styles.houseIMG}/>
-                        <View key={place.id} style={styles.Info}>
-                            <View style={styles.Info}>
-                                <Text style={styles.houseName}>{place.name}</Text>
-                                <Text style={styles.houseAddress}>{place.address}</Text>
-                                <View style={styles.houseReviewView}>
-                                    <Image style={styles.reviewIcon} source={reviewIconIMG} />
-                                    <Text style={styles.houseReview}>{place.reviewScore}</Text>
-                                    <Text style={styles.houseReview}>(리뷰 {place.reviewCount}개)</Text>
-                                </View>
-                                <Text style={styles.housePrice}>₩{place.price}원<Text style={styles.PriceSubText}> /박</Text></Text>
-                            </View>
+                {places.length > 0 && places.map((place) => (
+                    <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
+                        <Image source={place.imageUri && place.imageUri.length > 0  ? { uri: place.imageUri[0] }  : noImage} style={styles.houseIMG}/>
+                    <View style={styles.Info}>
+                        <Text style={styles.houseName}>{place.name}님의 거주지</Text>
+                        <View style={styles.addressView}>
+                            <Image style={styles.addressIcon}source={locationFilterGrayIcon}/>
+                            <Text style={styles.houseAddress}>{place.formattedAddress}</Text>
                         </View>
-                    </TouchableOpacity>
-                ))}
+                        <TouchableOpacity style={styles.houseReviewView} onPress={ ()=>this.props.navigation.navigate('후기', { houseId: place.id, name: place.name })}>
+                            <Image style={styles.reviewIcon} source={reviewIconIMG} />
+                            <Text style={styles.houseReview}>{place.reviewScore}</Text>
+                            <Text style={styles.houseReview}>(리뷰 {place.reviewCount}개)</Text>
+                            </TouchableOpacity>
+                        <Text style={styles.housePrice}>₩{place.price}원<Text style={styles.PriceSubText}> /박</Text></Text>
+                    </View>
+                </TouchableOpacity>
+            ))}
+
                 <View style={styles.grayHorizontalWideLine}/>
                
                 <Text style={styles.reservationDateText}> 예약 날짜 </Text>
