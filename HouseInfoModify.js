@@ -47,6 +47,8 @@ class HouseInfoModifyScreen extends Component {
     };
 
     componentDidMount() {               // 렌더링하기전에 DOM에서 기존 숙소정보 먼저 불러오기 + houseId
+        Geocoder.init('AIzaSyCd9l-dsU0O4PMnRS2BeP0OCZtOv-atoJE', { language: "ko" });
+
         if (this.props.route.params) {
             const { houseId } = this.props.route.params;
             this.setState({ houseId: houseId });
@@ -145,7 +147,6 @@ class HouseInfoModifyScreen extends Component {
 
     async PutHouseModifyData() {                      // 수정한 숙소 정보들을 불러오는 함수
         try {   
-            this.deleteHouseData();
             const {                 	// 서버에 보내야하는 데이터들을 관리
                 hostName,
                 introText,
@@ -215,9 +216,13 @@ class HouseInfoModifyScreen extends Component {
             console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
             }
 
+            // const { houseId } = this.props.route.params;
+            // console.log('houseId: ' +houseId);
             const token = await getToken();
-            const response = await fetch('http://223.130.131.166:8080/api/v1/house', {
+            // const response = await fetch(`http://223.130.131.166:8080/api/v1/house/${houseId}`, {
+            const response = await fetch(`http://223.130.131.166:8080/api/v1/house`, {
                 method: 'POST',
+                // method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     // 'Content-Type': 'multipart/form-data',
@@ -227,6 +232,7 @@ class HouseInfoModifyScreen extends Component {
         
             const responseData = await response.json();
             console.log("Response JSON:", responseData);
+            this.deleteHouseData();                                         // 숙소 새로 추가했으면 기존꺼 삭제하는 식으롱 임시 구현
             this.props.navigation.navigate('메인', { refresh: true });
         } catch (error) {
             console.log('숙소 데이터 보내는 도중 에러발생:', error);

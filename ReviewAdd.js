@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { Rating } from 'react-native-ratings';
 import { launchImageLibrary} from 'react-native-image-picker';
 import { getToken } from './token'
@@ -29,10 +28,6 @@ class ReviewAddScreen extends Component {
     handleRating = (rating) => {            // 평점 선택 UI 정수형태로 실시간 반영
         this.setState({ tempRating: rating });
     }
-
-    // changeInputText = (inputText) => {
-    //     this.setState({ reviewText: inputText });
-    // };
 
     addImage = () => {                      // 이미지를 로컬앨범에서 선택하는 불러오는 함수
         const options = {
