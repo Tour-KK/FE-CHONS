@@ -80,7 +80,6 @@ class HouseAddScreen extends Component {
                 maximumGuestNumber,
                 imageUri,
                 imageType,
-                imageName,
                 selectedDates
             } = this.state;
     

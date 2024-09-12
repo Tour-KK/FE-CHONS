@@ -83,7 +83,7 @@ class ReviewAddScreen extends Component {
     
             const dto = {
                 content: reviewText,
-                star: `${rating}`,
+                star: rating,
                 houseId: houseId,
             };
     
@@ -119,8 +119,8 @@ class ReviewAddScreen extends Component {
             if (reviewIMG.length > 0) {
                 reviewIMG.forEach((img, index) => {
                     formData.append('photos', {
-                        uri: img.uri,
-                        type: img.type || 'image/jpeg',
+                        uri: img,
+                        type: imageType || 'image/jpeg',
                         name: `photo${index}.jpg`
                     });
                 });
@@ -141,7 +141,7 @@ class ReviewAddScreen extends Component {
                 },
                 body: formData,
             });
-        
+
             const responseData = await response.json();
             console.log("Response JSON:", responseData);
             this.props.navigation.navigate('메인', { refresh: true });

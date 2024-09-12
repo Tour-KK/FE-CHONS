@@ -5,6 +5,7 @@ import { login, getProfile as getKakaoProfile,} from "@react-native-seoul/kakao-
 import NaverLogin, { GetProfileResponse, NaverLoginResponse } from '@react-native-seoul/naver-login';
 import axios from 'axios';
 import { setToken } from './token';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 // 이미지
@@ -28,13 +29,18 @@ class LoginScreen extends Component {
     });
   }
   
-  postLoginData = async (userInfo, socialType) => { // axios로 서버에 로그인 data를 post하는 함수
+  postLoginData = async (userInfo, socialType) => {                    // axios로 서버에 로그인 data를 post하는 함수
     try {
       console.log(socialType);
       console.log(userInfo.user.email);
       console.log(userInfo.user.id);
       console.log(userInfo.user.name);
       console.log(userInfo.user.givenName);
+      // Alert.alert(socialType);
+      // Alert.alert(userInfo.user.email),
+      // Alert.alert(userInfo.user.id),
+      // Alert.alert(userInfo.user.name),
+      // Alert.alert(userInfo.user.givenName),
       
       const response = await axios.post('http://223.130.131.166:8080/api/v1/auth/login', {
         email: userInfo.user.email,
@@ -42,8 +48,6 @@ class LoginScreen extends Component {
         socialType: socialType,
         name: userInfo.user.name,
         nickname: userInfo.user.givenName,
-        birthYear: "", 
-        birthDay: "",
       });
       console.log('제대로 보내졌나? 응답 메세지:', response.data);
 
@@ -56,13 +60,13 @@ class LoginScreen extends Component {
     }
   }
 
-  googleSignin = async () => {
+  googleSignin = async () => {          // 구글 로그인
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       const socialType = "GOOGLE";
   
-      await this.postLoginData({
+      await this.postLoginData({      
         user: {
           email: userInfo.user.email,      
           id: userInfo.user.id,             
@@ -81,16 +85,16 @@ class LoginScreen extends Component {
     }
   };
   
-  naverSignIn = async () => {
+  naverSignIn = async () => {         // 네이버 로그인
     try {
       const { successResponse, failureResponse } = await NaverLogin.login();
       const socialType = "NAVER";
 
       if (successResponse) {
-        console.log('Naver Login Success:', successResponse);
+        console.log('네이버 로그인에 성공하였습니다.:', successResponse);
         
         const profileResult = await NaverLogin.getProfile(successResponse.accessToken);
-        console.log('Naver Profile Data:', profileResult);
+        console.log('네이버 프로필 정보:', profileResult);
   
         const userInfo = {
           user: {
@@ -104,39 +108,62 @@ class LoginScreen extends Component {
   
         await this.postLoginData(userInfo, socialType);
       } else if (failureResponse) {
-        console.error('Naver Login Failed:', failureResponse);
+        console.error('네이버 로그인에 실패하였습니다.:', failureResponse);
       }
     } catch (error) {
-      console.error('Naver Login Error:', error);
+      console.error('네이버 로그인 도중 에러가 발생하였습니다.:', error);
     }
   };
   
 
 
 
-  kakaoSignIn = async () => {
+  // kakaoSignIn = async () => {
+  //   try {
+  //     const token = await login(); // 카카오 로그인
+  //     console.log(JSON.stringify(token));
+  //     const profile = await getKakaoProfile(); // 프로필 정보 가져오기
+  //     console.log(JSON.stringify(profile));
+  //     const socialType = "KAKAO";
+  
+  //     await this.postLoginData({
+  //       user: {
+  //         email: profile.email,  
+  //         id: profile.id,        
+  //         name: profile.nickname,       // 임시용 
+  //         // name: profile.name,    
+  //         givenName: profile.nickname
+  //       }
+  //     }, socialType);
+  //   } catch (err) {
+  //     console.error("login err", err);
+  //   }
+  // };
+  
+  kakaoSignIn = async () => {           // 카카오 로그인
     try {
-      const token = await login(); // 카카오 로그인
-      console.log(JSON.stringify(token));
-      const profile = await getKakaoProfile(); // 프로필 정보 가져오기
-      console.log(JSON.stringify(profile));
-      const socialType = "KAKAO";
-  
-      await this.postLoginData({
-        user: {
-          email: profile.email,  
-          id: profile.id,        
-          name: profile.nickname,       // 임시용 
-          // name: profile.name,    
-          givenName: profile.nickname
-        }
-      }, socialType);
+        const token = await login(); 
+        console.log(JSON.stringify(token));
+
+        await AsyncStorage.setItem('kakaoToken', token.accessToken);
+
+        const profile = await getKakaoProfile(); // 프로필 정보 가져오기
+        console.log(JSON.stringify(profile));
+        const socialType = "KAKAO";
+
+        await this.postLoginData({
+            user: {
+                email: profile.email,
+                id: profile.id,
+                name: profile.nickname,
+                givenName: profile.nickname
+            }
+        }, socialType);
     } catch (err) {
-      console.error("login err", err);
+        console.error("login err", err);
     }
-  };
-  
-  
+};
+
   
   render() {
   
@@ -154,8 +181,8 @@ class LoginScreen extends Component {
               <Image source={GoogleLogoIMG} style={styles.googleLogo}/>
               <Text style={styles.googleText}> 구글 로그인 </Text>
           </TouchableOpacity>
-          {/* <TouchableOpacity style={styles.naverLogin} onPress={() => this.naverSignIn()}> */}
-          <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} >
+          <TouchableOpacity style={styles.naverLogin} onPress={() => this.naverSignIn()}>
+          {/* <TouchableOpacity style={styles.naverLogin}  onPress={() => this.props.navigation.navigate('메인')} > */}
               <Image source={NaverLogoIMG} style={styles.naverLogo}/>
               <Text style={styles.naverText}> 네이버 로그인 </Text>
           </TouchableOpacity>

@@ -4,7 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Rating } from 'react-native-ratings';
 import { launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
-import { getToken } from './token';
+import { getToken, refreshAccessToken } from './token';
 import RNFS from 'react-native-fs';
 
 //이미지
@@ -85,77 +85,223 @@ class ReviewModifyScreen extends Component {
             }
     }
 
-    putReviewData = async () => {                 // axios를 활용한 api통신을 통해 서버로부터 수정한 리뷰를 서버로 다시 보내주는 함수
-        try{
-            const {                             	// 서버에 보내야하는 데이터들을 관리
-                rating,
-                imageType,
-                reviewText,
-            } = this.state;
+    deleteReview = async () => {                       // 리뷰삭제하기 - 삭제권한없으면 수정권한없다고 표시하기
+        try {
+            const token = await getToken();  
+            const { reviewId } = this.props.route.params;
+            
+            const response = await axios.delete(`http://223.130.131.166:8080/api/v1/review/${reviewId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch(error) {
+            if (error.response) {
+              alert('수정할 권한이 없습니다.');
+              console.log('Error status:', error.response.status);
+              console.log('Error data:', error.response.data);
+              console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+              console.log('No response received:', error.request);
+            } else {
+              console.log('Error message:', error.message);
+            }
+            console.log('Error config:', error.config);
+          }
+    }
 
-            const { reviewId, name } = this.props.route.params;
-
+    putReviewData = async () => {
+        try {
+            const { reviews, imageType, rating } = this.state;
+            const reviewText = reviews[0].reviewText;  
+            const { reviewId,houseId } = this.props.route.params;
+    
+            const token = await getToken();
             const formData = new FormData();
-
-            const dto = {
+            
+            const reviewData = {
                 content: reviewText,
                 star: rating,
-                reviewId: reviewId,
+                houseId: houseId,
+                // reviewId: reviewId, 
             };
-            
-            console.log("put요청 버튼누름");
-
-            const jsonString = JSON.stringify(dto);
+    
+            const jsonString = JSON.stringify(reviewData);
             const fileName = 'dto.json';
             const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
-
+    
             await RNFS.writeFile(filePath, jsonString, 'utf8');
-
+    
             formData.append('dto', {
                 uri: `file://${filePath}`,
                 type: 'application/json',
                 name: fileName
             });
+
+            reviews[0].images.forEach((uri, index) => {
+                formData.append('photos', {
+                    uri: uri,
+                    name: `image-${index}.jpg`, 
+                    type: imageType || 'image/jpeg',
+                });
+            });
+
+            reviews[0].images.forEach((uri, index) => {
+                RNFS.stat(uri)
+                .then((stats) => {
+                    console.log(`Image ${index}:`, stats);
+                    if (stats.isFile()) {
+                        console.log(`파일이 저장된 Uri: ${uri}`);
+                        console.log(`파일크기: ${stats.size} bytes`);
+                        console.log(`최근 수정일: ${stats.mtime}`);
+                        console.log(`파일 존재여부: ${stats.isFile()}`);
+                    }
+                })
+                .catch((error) => {
+                    console.error(`Error retrieving file stats for URI ${uri}:`, error);
+                });
+            });
     
-            this.state.reviews[0].images.forEach((filePath, index) => {
-            formData.append('photos', {
-                uri: filePath,
-                name: `image-${index}.jpg`,
-                type: imageType,
-            });
-            });
-
-            for (let pair of formData._parts) {
-            console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
-            };
-
-            const token = await getToken();
-
-            const response = await axios.put(`http://223.130.131.166:8080/api/v1/review/${reviewId}`,{
+            const response = await fetch('http://223.130.131.166:8080/api/v1/review', {
+                method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
                 },
                 body: formData,
             });
-            console.log(response.data);
-            this.props.navigation.navigate('검색',);
-
-            } catch(error) {
-                if(error.status === '401'){
-                    alert("수정권한이 없습니다.");
-                }
-                if (error.response) {
-                console.log('Error status:', error.response.status);
-                console.log('Error data:', error.response.data);
-                console.log('Error headers:', error.response.headers);
-                } else if (error.request) {
-                console.log('No response received:', error.request);
-                } else {
-                console.log('Error message:', error.message);
-                }
-                console.log('Error config:', error.config);
+    
+            const responseData = await response.json();
+            console.log("Server response:", responseData);
+    
+            this.deleteReview();
+            this.props.navigation.navigate('메인', { refresh: true });
+        } catch (error) {
+            console.error('Error while sending review data:', error);
+            if (error.response) {
+                console.error('Response Error:', error.response.status);
+            } else if (error.request) {
+                console.error('Request Error:', error.request);
+            } else {
+                console.error('Unexpected Error:', error.message);
             }
-    }
+        }
+    };
+    
+
+
+    // putReviewData = async () => {                 // axios를 활용한 api통신을 통해 서버로부터 수정한 리뷰를 서버로 다시 보내주는 함수
+    //     try{
+    //         const {                                // 서버에 보내야하는 데이터들을 관리
+    //             rating,
+    //             imageType,
+    //             reviewText,
+    //         } = this.state;
+
+    //         const { reviewId, name } = this.props.route.params;
+
+    //         const formData = new FormData();
+
+    //         const dto = {
+    //             content: reviewText,
+    //             star: rating,
+    //             reviewId: reviewId,
+    //         };
+            
+    //         console.log("put요청 버튼누름");
+
+    //         const jsonString = JSON.stringify(dto);
+    //         const fileName = 'dto.json';
+    //         const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
+
+    //         await RNFS.writeFile(filePath, jsonString, 'utf8');
+
+    //         formData.append('dto', {
+    //             uri: `file://${filePath}`,
+    //             type: 'application/json',
+    //             name: fileName
+    //         });
+    
+    //         this.state.reviews[0].images.forEach((filePath, index) => {
+    //         formData.append('photos', {
+    //             uri: filePath,
+    //             name: `image-${index}.jpg`,
+    //             type: imageType || 'image/jpeg',
+    //         });
+    //         });
+
+    //         for (let pair of formData._parts) {
+    //         console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
+    //         };
+
+    //         const token = await getToken();
+
+    //         const response = await axios.put(`http://223.130.131.166:8080/api/v1/review/${reviewId}`,formData, {
+    //             headers: {
+    //                 'Authorization': `Bearer ${token}`
+    //             },
+    //         });
+    //         console.log(response.data);
+    //         this.props.navigation.navigate('검색',);
+
+    //         } catch(error) {
+    //             if (error.response && error.response.status === 401) {          
+    //                 console.log('토큰 재발급 요청중...');
+                
+    //             const newAccessToken = await refreshAccessToken();                 
+
+    //             const {                                
+    //                 rating,
+    //                 imageType,
+    //                 reviewText,
+    //             } = this.state;
+
+    //             const { reviewId, name } = this.props.route.params;
+
+    //             const formData = new FormData();
+
+    //             const dto = {
+    //                 content: reviewText,
+    //                 star: rating,
+    //                 reviewId: reviewId,
+    //             };
+                
+    //             console.log("put요청 버튼누름");
+
+    //             const jsonString = JSON.stringify(dto);
+    //             const fileName = 'dto.json';
+    //             const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
+
+    //             await RNFS.writeFile(filePath, jsonString, 'utf8');
+
+    //             formData.append('dto', {
+    //                 uri: `file://${filePath}`,
+    //                 type: 'application/json',
+    //                 name: fileName
+    //             });
+
+    //             this.state.reviews[0].images.forEach((filePath, index) => {
+    //             formData.append('photos', {
+    //                 uri: filePath,
+    //                 name: `image-${index}.jpg`,
+    //                 type: imageType || 'image/jpeg',
+    //             });
+    //             });
+
+    //             for (let pair of formData._parts) {
+    //             console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
+    //             };
+
+    //             console.log("서버에 요청한 토큰: "+newAccessToken)
+    //             const response = await axios.put(`http://223.130.131.166:8080/api/v1/review/${reviewId}`, formData, {
+    //                 headers: {
+    //                     'Authorization': `Bearer ${newAccessToken}`,
+    //                 },
+    //                 });
+    //             console.log(response.data);
+    //             this.props.navigation.navigate('검색',);
+
+    //         }
+    //     }
+    // }
 
     ratingCompleted = (rating) => {
         this.setState({ rating: rating });
@@ -170,7 +316,7 @@ class ReviewModifyScreen extends Component {
             } else {
                 // 새로운 이미지의 URI 추출
                 const newImages = response.assets.map(asset => asset.uri);
-               const imageTypes = response.assets.map(asset => asset.type);
+                const imageTypes = response.assets.map(asset => asset.type);
     
                 // 기존 이미지 목록에 새 이미지 추가
                 this.setState(prevState => ({
@@ -183,6 +329,16 @@ class ReviewModifyScreen extends Component {
             }
         });
     };
+
+    removeImage = (index) => {
+        this.setState(prevState => ({
+            reviews: prevState.reviews.map(review => ({
+                ...review,
+                images: review.images.filter((_, imgIndex) => imgIndex !== index) 
+            }))
+        }));
+    }
+    
 
     onChangeInput = (text) => {                // 검색하면 inputText에 변경된 값 적용시킬 때 입력한담아두는 함수
         this.setState(prevState => ({

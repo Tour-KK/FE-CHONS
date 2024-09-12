@@ -64,8 +64,8 @@ class ReviewScreen extends Component {
         }));
     };
 
-    modifyReview = (reviewId, name) => {             // 후기수정버튼시 후기수정화면으로 이동
-        this.props.navigation.navigate('후기수정', { reviewId, name });
+    modifyReview = (reviewId, houseId) => {             // 후기수정버튼시 후기수정화면으로 이동
+        this.props.navigation.navigate('후기수정', { reviewId, houseId });
     }
 
     async getReviewList() {                      // axios를 활용한 api통신을 통해 서버로부터 해당숙소의 리뷰 리스트들을 불러오는 함수
@@ -109,7 +109,6 @@ class ReviewScreen extends Component {
 
     async deleteReview(id) {
         try {
-
             const token = await getToken();  
             
             const response = await axios.delete(`http://223.130.131.166:8080/api/v1/review/${id}`, {
@@ -132,7 +131,7 @@ class ReviewScreen extends Component {
     };
    
     renderReviews = () => {
-        const { name } = this.props.route.params;
+        const { houseId } = this.props.route.params;
 
         return this.state.reviews.map((review, index) => (
             <View key={index} style={styles.reviewView}>
@@ -152,7 +151,7 @@ class ReviewScreen extends Component {
                 </View>
                 {review.optionsVisible && (
                     <View style={styles.optionsView}>
-                        <TouchableOpacity style={styles.optionButton} onPress={() => this.modifyReview(review.id, name)}>
+                        <TouchableOpacity style={styles.optionButton} onPress={() => this.modifyReview(review.id, houseId)}>
                             <Text style={styles.ButtonText}>수정하기</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.optionButton} onPress={()=>this.deleteReview(review.id)}>

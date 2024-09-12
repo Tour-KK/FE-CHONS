@@ -69,7 +69,7 @@ class SearchScreen extends Component {
 
         filters: [                                // 필터링 목록의 필터링 컨텐츠들
             { key: 'location', text: '숙소지역', icon: locationFilterIcon},
-            { key: 'period', text: '숙박기간', icon: periodFilterIcon},  
+            // { key: 'period', text: '숙박기간', icon: periodFilterIcon},  
             { key: 'price', text: '숙박가격', icon: priceFilterIcon},  
             { key: 'guestCount', text: '전체 인원수', icon: guestNumFilterIcon},  
         ],
@@ -91,7 +91,7 @@ class SearchScreen extends Component {
             { id:'14', text: '전북'},
             { id:'15', text: '전남'},
             { id:'16', text: '제주'},
-            { id:'17', text: '기타'},
+            { id:'17', text: '필터 없음'},
         ],
         periodFilter: [
             { id: '1', text: '1박 2일' },
@@ -100,18 +100,21 @@ class SearchScreen extends Component {
             { id: '4', text: '5박 6일' },
             { id: '5', text: '6박 7일' },
             { id: '6', text: '7박 이상' },
+            { id: '7', text: '필터 없음' },
         ],
         priceFilter: [
-            { id: '1', text: '50000원 이하' },
+            { id: '1', text: '0원 ~ 50000원' },
             { id: '2', text: '50000원 ~ 100000원' },
             { id: '3', text: '100000원 ~ 200000원' },
-            { id: '4', text: '300000원 이상' },
+            // { id: '4', text: '300000원 이상' },
+            { id: '5', text: '필터 없음' },
         ],
         guestCountFilter: [
             { id: '1', text: '1명' },
             { id: '2', text: '2명' },
             { id: '3', text: '3명' },
             { id: '4', text: '4명 이상' },
+            { id: '5', text: '필터 없음' },
         ],
       }
 
@@ -163,11 +166,29 @@ class SearchScreen extends Component {
     async getHouseListData() {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 리스트들을 불러오는 함수
         try{
             const token = await getToken();
+            let { location, price, guestCount } = this.state.appliedFilters;
             
-            const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list',{
+            
+            let startPrice = ''; 
+            let endPrice = ''; 
+            
+            if (price) {
+                startPrice = price.split(' ')[0];
+                endPrice = price.split(' ')[2];
+                startPrice = Number(startPrice.replace(/\D/g, ''))
+                endPrice = Number(endPrice.replace(/\D/g, ''))
+            }
+            guestCount = Number(guestCount.replace(/\D/g, ''))
+            
+            console.log('location: '+location);
+            console.log('guestCount: '+guestCount);
+            console.log('startPrice: '+startPrice);
+            console.log('endPrice: '+endPrice);
+
+            const response = await axios.get(`http://223.130.131.166:8080/api/v1/house/list?region=${location}&numPeople=${guestCount}&startPrice=${startPrice}&endPrice=${endPrice}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
-                }
+                },
             });
             console.log(response.data);
             
@@ -212,15 +233,61 @@ class SearchScreen extends Component {
         })
     }
 
-    selectFilterItem = (text) => {                     // 필터링 목록들 배열로 추출
+    // selectFilterItem = (text) => {                        // 필터링 목록들 배열로 추출
+    //     this.setState(prevState => {
+    //         const isSelected = prevState.tempFilter && prevState.tempFilter.value === text;
+    //         return {
+    //             tempFilter: isSelected ? null : { type: prevState.currentFilterType, value: text },
+    //             selectedFilterItem: isSelected ? null : text,
+    //         };
+    //     });
+    // };
+
+    selectFilterItem = (text) => {
         this.setState(prevState => {
             const isSelected = prevState.tempFilter && prevState.tempFilter.value === text;
+            const isNoneSelected = text === '필터 없음';
+    
+            let newFilters = prevState.filters.map(filter => {
+                if (filter.key === prevState.currentFilterType) {
+                    return {
+                        ...filter,
+                        text: isNoneSelected ? this.getDefaultFilterText(filter.key) : text
+                    };
+                }
+                return filter;
+            });
+            
+            this.getHouseListData();
             return {
-                tempFilter: isSelected ? null : { type: prevState.currentFilterType, value: text },
+                tempFilter: isSelected ? null : isNoneSelected ? null : { type: prevState.currentFilterType, value: text },
                 selectedFilterItem: isSelected ? null : text,
+                filters: newFilters,
+                appliedFilters: isNoneSelected 
+                  ? { ...prevState.appliedFilters, [prevState.currentFilterType]: '' } 
+                  : prevState.appliedFilters,
+                modalVisible: !isNoneSelected 
             };
         });
     };
+    
+    
+    
+    getDefaultFilterText = (filterKey) => {
+        switch (filterKey) {
+            case 'location':
+                return '숙소지역';
+            case 'period':
+                return '숙박기간';
+            case 'price':
+                return '숙박가격';
+            case 'guestCount':
+                return '전체 인원수';
+            default:
+                return '';
+        }
+    }
+    
         
     
     applyFilter = () => {                               // 선택한 필터 적용시키기
@@ -238,6 +305,7 @@ class SearchScreen extends Component {
                 selectedFilterItem: null
             }));
         }
+        this.getHouseListData();
     };
 
     changeFavoriteState = async (id) => {                    // 즐겨찾기시 체크표시후 서버 api로 상태보내기
@@ -336,7 +404,7 @@ class SearchScreen extends Component {
                     </Modal>
 
                     {/* //필터 리스트 */}
-                    <ScrollView style={styles.filterView} horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 140 }}>
+                    <ScrollView style={styles.filterView} horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 70 }}>
                         {this.state.filters.map((filter) => (
                             <TouchableOpacity key={filter.key} style={[ styles.filterTouch, this.state.appliedFilters[filter.key] ? styles.selectedFilterBackground : {} ]} onPress={() => this.setModalVisible(true, filter.key)} >
                                 <Image style={styles.filterIcon} source={filter.icon}/>
