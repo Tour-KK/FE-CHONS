@@ -15,7 +15,7 @@ import reviewModifyIcon from './Image/후기수정완료버튼_아이콘.png';
 
 class ReviewModifyScreen extends Component {
     state = {
-        rating: "만",
+        rating: 5,
         imageType: "",
 
         reviews: [
@@ -172,8 +172,8 @@ class ReviewModifyScreen extends Component {
             const responseData = await response.json();
             console.log("Server response:", responseData);
     
-            this.deleteReview();
             this.props.navigation.navigate('메인', { refresh: true });
+            this.deleteReview();
         } catch (error) {
             console.error('Error while sending review data:', error);
             if (error.response) {
@@ -369,9 +369,11 @@ class ReviewModifyScreen extends Component {
         images,
         optionsVisible,
     } = this.state.reviews[0] || {};
-    
+
+    const imagesExist = images && images.length > 0;
 
     return (
+        
             <ScrollView style={styles.background} showsHorizontalScrollIndicator={false}>
             <View style={styles.container}>
             <View style={styles.reviewAddView}>

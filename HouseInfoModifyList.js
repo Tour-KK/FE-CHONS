@@ -124,7 +124,7 @@ render() {
                                 </View>
                                 <TouchableOpacity style={styles.houseReviewView} onPress={ ()=>this.props.navigation.navigate('후기', { houseId: place.id, name: place.name })}>
                                     <Image style={styles.reviewIcon} source={reviewIconIMG} />
-                                    <Text style={styles.houseReview}>{place.reviewScore}</Text>
+                                    <Text style={styles.houseReview}>{parseFloat(place.reviewScore).toFixed(1)}</Text>
                                     <Text style={styles.houseReview}>(리뷰 {place.reviewCount}개)</Text>
                                     </TouchableOpacity>
                                 <Text style={styles.housePrice}>₩{place.price}원<Text style={styles.PriceSubText}> /박</Text></Text>
