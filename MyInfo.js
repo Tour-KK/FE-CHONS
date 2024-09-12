@@ -47,6 +47,7 @@ class MyInfoScreen extends Component {
             if (error.response && error.response.status === 401) {              // 토큰 재발급 예외처리 후 다시 실행
                 try {
                   const newToken = await refreshAccessToken();
+                  console.log('새로운 엑세스 토큰: ' + newToken);
                   const response = await axios.get('http://223.130.131.166:8080/api/v1/user', {
                     headers: {
                       'Authorization': `Bearer ${newToken}`

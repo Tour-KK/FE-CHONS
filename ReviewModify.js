@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
         width: 200,
         height: 200,
         resizeMode: 'cover',
-        margin: '2%',
+        // margin: '2%',
     },
     reviewScoreView:{                       // 리뷰 인터뷰텍스트랑 평점 부여기능 담는 VIew
         marginTop: '2.2%',
