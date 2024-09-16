@@ -233,13 +233,13 @@ background: {                     // 전체화면 세팅
     },
     Info: {                          // 숙소데이터 담는 View
         flex: 1,
-        width: '51%',
+        width: '44%',
         height: 150,
         marginLeft: "0.8%",
         // backgroundColor:'gray'
     },
     houseName: {                        // 숙소명 텍스트
-        width: 210,
+        width: '100%',
         textAlign: 'left',
         fontSize: 20,
         marginTop: '6.6%',

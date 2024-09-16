@@ -62,7 +62,7 @@ class MyReservationListScreen extends Component {
                 }
             });
             console.log(response.data);
-            
+
             const data = response.data.map(Reservation => ({
                 id: Reservation.reservationId,
                 name: Reservation.hostName,
@@ -244,7 +244,7 @@ background: {                     // 전체화면 세팅
         // backgroundColor:'gray'
     },
     houseName: {                        // 숙소명 텍스트
-        width: 210,
+        width: '100%',
         textAlign: 'left',
         fontSize: 20,
         marginTop: '6.6%',

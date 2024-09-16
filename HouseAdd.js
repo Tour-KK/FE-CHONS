@@ -125,14 +125,24 @@ class HouseAddScreen extends Component {
                     console.error(`Error retrieving file stats for URI ${uri}:`, error);
                 });
             });
-    
-            imageUri.forEach((filePath, index) => {
-            formData.append('photos', {
-                uri: filePath,
-                name: `image-${index}.jpg`,
-                type: imageType,
-            });
-            });
+
+            if (imageUri.length > 0) {
+                imageUri.forEach((uri, index) => {
+                    formData.append('photos', {
+                        uri: uri,
+                        name: `image-${index}.jpg`,
+                        type: imageType || 'image/jpeg',
+                    });
+                });
+            } else {
+                const emptyFilePath = `${RNFS.TemporaryDirectoryPath}/empty.txt`;
+                await RNFS.writeFile(emptyFilePath, '', 'utf8'); 
+                formData.append('photos', {
+                    uri: `file://${emptyFilePath}`,
+                    type: 'text/plain', 
+                    name: 'empty.txt',
+                });
+            }
 
             for (let pair of formData._parts) {
             console.log(pair[0] + ': ' + JSON.stringify(pair[1]));

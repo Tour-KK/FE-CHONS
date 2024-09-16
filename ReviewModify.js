@@ -17,6 +17,8 @@ class ReviewModifyScreen extends Component {
     state = {
         rating: 5,
         imageType: "",
+        photosToDelete: [],
+        newImages: [],
 
         reviews: [
             {
@@ -85,28 +87,28 @@ class ReviewModifyScreen extends Component {
             }
     }
 
-    deleteReview = async () => {                       // 리뷰삭제하기 - 삭제권한없으면 수정권한없다고 표시하기
-        try {
-            const token = await getToken();  
-            const { reviewId } = this.props.route.params;
+    // deleteReview = async () => {                       // 리뷰삭제하기 - 삭제권한없으면 수정권한없다고 표시하기
+    //     try {
+    //         const token = await getToken();  
+    //         const { reviewId } = this.props.route.params;
             
-            const response = await axios.delete(`http://223.130.131.166:8080/api/v1/review/${reviewId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-        } catch(error) {
-            if (error.response) {
-              alert('수정할 권한이 없습니다.');
-              console.log('Error status:', error.response.status);
-              console.log('Error data:', error.response.data);
-              console.log('Error headers:', error.response.headers);
-            } else if (error.request) {
-              console.log('No response received:', error.request);
-            } else {
-              console.log('Error message:', error.message);
-            }
-            console.log('Error config:', error.config);
-          }
-    }
+    //         const response = await axios.delete(`http://223.130.131.166:8080/api/v1/review/${reviewId}`, {
+    //             headers: { 'Authorization': `Bearer ${token}` }
+    //         });
+    //     } catch(error) {
+    //         if (error.response) {
+    //           alert('수정할 권한이 없습니다.');
+    //           console.log('Error status:', error.response.status);
+    //           console.log('Error data:', error.response.data);
+    //           console.log('Error headers:', error.response.headers);
+    //         } else if (error.request) {
+    //           console.log('No response received:', error.request);
+    //         } else {
+    //           console.log('Error message:', error.message);
+    //         }
+    //         console.log('Error config:', error.config);
+    //       }
+    // }
 
     // putReviewData = async () => {                // post+ delete로 임시구현
     //     try {
@@ -188,65 +190,77 @@ class ReviewModifyScreen extends Component {
     
 
 
-    putReviewData = async () => {
-        try {
-            const { reviews, imageType, rating } = this.state;
-            const reviewText = reviews[0].reviewText;  
-            const { reviewId } = this.props.route.params;
+    putReviewData = async () => {                                   // 리뷰 수정 put 요청 보내는 함수
+        const { reviews, imageType, rating, photosToDelete, newImages } = this.state;
+        const reviewText = reviews[0].reviewText;
+        const reviewId = reviews[0].id; 
     
-            const token = await getToken();
-            const formData = new FormData();
-            
-            const reviewData = {
-                content: reviewText,
-                star: rating,
-                photos: [], 
-            };
+        const token = await getToken();
+        const formData = new FormData();
     
-            const jsonString = JSON.stringify(reviewData);
-            const fileName = 'dto.json';
-            const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
-    
-            await RNFS.writeFile(filePath, jsonString, 'utf8');
-    
-            formData.append('dto', {
-                uri: `file://${filePath}`,
-                type: 'application/json',
-                name: fileName
-            });
+        console.log("photosToDelete: ", photosToDelete);
 
-            reviews[0].images.forEach((uri, index) => {
+        const reviewData = {
+            content: reviewText,
+            star: rating,
+            photos: photosToDelete, 
+        };
+
+    
+        const jsonString = JSON.stringify(reviewData);
+        const fileName = 'dto.json';
+        const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
+        await RNFS.writeFile(filePath, jsonString, 'utf8');
+    
+        formData.append('dto', {
+            uri: `file://${filePath}`,
+            type: 'application/json',
+            name: fileName,
+        });
+    
+        if (newImages.length > 0) {
+            newImages.forEach((uri, index) => {
                 formData.append('photos', {
                     uri: uri,
-                    name: `image-${index}.jpg`, 
+                    name: `image-${index}.jpg`,
                     type: imageType || 'image/jpeg',
                 });
             });
+        } else {
+            const emptyFilePath = `${RNFS.TemporaryDirectoryPath}/empty.txt`;
+            await RNFS.writeFile(emptyFilePath, '', 'utf8'); 
+            formData.append('photos', {
+                uri: `file://${emptyFilePath}`,
+                type: 'text/plain', 
+                name: 'empty.txt',
+            });
+        }
+
+        for (let pair of formData._parts) {
+            console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
+        }
     
+    
+        try {
             const response = await fetch(`http://223.130.131.166:8080/api/v1/review/${reviewId}`, {
-                method: 'PUT',  
+                method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
                 },
-                body: formData
+                body: formData,
             });
     
             const responseData = await response.json();
-            console.log("Server response:", responseData);
+            console.log('Server response:', responseData);
     
             this.props.navigation.navigate('메인', { refresh: true });
+    
         } catch (error) {
-            console.error('Error while sending review data:', error);
-            if (error.response) {
-                console.error('Response Error:', error.response.status);
-            } else if (error.request) {
-                console.error('Request Error:', error.request);
-            } else {
-                console.error('Unexpected Error:', error.message);
-            }
+            console.error('Error during the PUT request:', error);
         }
     };
+    
 
 
     ratingCompleted = (rating) => {
@@ -270,20 +284,31 @@ class ReviewModifyScreen extends Component {
                     reviews: prevState.reviews.map(review => ({
                         ...review,
                         images: [...review.images, ...newImages] // 기존 이미지에 새 이미지 추가
-                    }))
+                    })),
+                    newImages: [...prevState.newImages, ...newImages] 
                 }));
             }
         });
     };
 
-    removeImage = (index) => {
-        this.setState(prevState => ({
+removeImage = (index) => {
+    this.setState(prevState => {
+        const imageUriToRemove = prevState.reviews[0].images[index];
+        const updatedImages = prevState.reviews[0].images.filter((_, i) => i !== index);
+        const updatedPhotosToDelete = [...prevState.photosToDelete, imageUriToRemove]; 
+
+        return {
             reviews: prevState.reviews.map(review => ({
                 ...review,
-                images: review.images.filter((_, imgIndex) => imgIndex !== index) 
-            }))
-        }));
-    }
+                images: updatedImages
+            })),
+            photosToDelete: updatedPhotosToDelete
+        };
+    }, () => {
+        console.log('image-picker에서 추가된 photosToDelete:', this.state.photosToDelete);
+    });
+}
+
     
 
     onChangeInput = (text) => {                // 검색하면 inputText에 변경된 값 적용시킬 때 입력한담아두는 함수

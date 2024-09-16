@@ -311,7 +311,7 @@ class HouseInfoModifyScreen extends Component {
     removeImage = (index) => {
         this.setState(prevState => {
             const imageUri = [...prevState.imageUri];
-            const uriToRemove = imageUri[index]; // 제거할 이미지의 URI 저장
+            const uriToRemove = imageUri[index]; 
             const updatedImages = imageUri.filter((_, i) => i !== index);
     
             // 이미지 URL을 photosToDelete 배열에 추가

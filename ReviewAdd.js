@@ -100,7 +100,7 @@ class ReviewAddScreen extends Component {
                 name: fileName
             });
 
-            this.state.reviewIMG.forEach((uri, index) => {
+            reviewIMG.forEach((uri, index) => {
             RNFS.stat(uri)
                 .then((stats) => {
                     console.log(`Image ${index}:`, stats);
@@ -117,12 +117,20 @@ class ReviewAddScreen extends Component {
             });
     
             if (reviewIMG.length > 0) {
-                reviewIMG.forEach((img, index) => {
+                reviewIMG.forEach((uri, index) => {
                     formData.append('photos', {
-                        uri: img,
+                        uri: uri,
+                        name: `image-${index}.jpg`,
                         type: imageType || 'image/jpeg',
-                        name: `photo${index}.jpg`
                     });
+                });
+            } else {
+                const emptyFilePath = `${RNFS.TemporaryDirectoryPath}/empty.txt`;
+                await RNFS.writeFile(emptyFilePath, '', 'utf8'); 
+                formData.append('photos', {
+                    uri: `file://${emptyFilePath}`,
+                    type: 'text/plain', 
+                    name: 'empty.txt',
                 });
             }
             
