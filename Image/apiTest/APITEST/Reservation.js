@@ -79,14 +79,11 @@ class ReservationScreen extends Component {
             const token = await getToken();
             const { houseId, checkInDate, checkOutDate, maximumGuestNumber, phoneNumber } = this.state;
     
-            console.log("startAt:", checkInDate);
-            console.log("endAt:", checkOutDate);
-            console.log("personNum:",  Number(maximumGuestNumber.replace(/\D/g, '')));
-            console.log("phoneNum:", phoneNumber.replace(/\D/g, ''));
             const response = await axios.post(`http://223.130.131.166:8080/api/v1/reservation/${houseId}`, 
                 {
                     startAt: checkInDate,
                     endAt: checkOutDate,
+                    personNum: maximumGuestNumber,  
                     personNum: Number(maximumGuestNumber.replace(/\D/g, '')),
                     phoneNum: phoneNumber.replace(/\D/g, ''),
                 },

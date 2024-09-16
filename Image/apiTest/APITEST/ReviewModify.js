@@ -298,6 +298,14 @@ class ReviewModifyScreen extends Component {
 
   render() {
     const { name } = this.props.route.params;
+    // const{
+    //     id,
+    //     profileName,
+    //     reviewText,
+    //     reviewScore,
+    //     images,
+    //     optionsVisible,
+    // } = this.state.reviews
 
     const {
         id,

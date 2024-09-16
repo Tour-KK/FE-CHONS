@@ -9,7 +9,6 @@ import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import modifyBtnIcon from './Image/수정하기버튼_아이콘.png';
 import reviewIconIMG from './Image/평점_별아이콘.png';
 import noImage from './Image/이미지없음표시.png';
-import deleteBtnIcon from './Image/닫기버튼_아이콘2.png';
 import locationFilterGrayIcon from './Image/검색화면_클릭전_지역필터링아이콘.png';
 
 class HouseInfoModifyListScreen extends Component {
@@ -86,34 +85,6 @@ class HouseInfoModifyListScreen extends Component {
         }
     }
 
-    async deleteHouse(houseId) {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 등록 취소 요청하기
-        try{
-            const token = await getToken();
-
-            console.log("houseId: ",houseId);
-            
-            const response = await axios.delete(`http://223.130.131.166:8080/api/v1/house/${houseId}`,{
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            console.log(response.data);
-
-            this.getAddedHouseListData();
-        } catch(error) {
-            if (error.response) {
-            console.log('Error status:', error.response.status);
-            console.log('Error data:', error.response.data);
-            console.log('Error headers:', error.response.headers);
-            } else if (error.request) {
-            console.log('No response received:', error.request);
-            } else {
-            console.log('Error message:', error.message);
-            }
-            console.log('Error config:', error.config);
-        }
-    }
-
     placeInfoDelivery = (houseId) => {             // 숙소 컨텐츠 클릭시 해당 숙소 정보를 같이 보내 숙소정보화면으로 이동
         this.props.navigation.navigate('숙소정보', { houseId: houseId });
     }
@@ -158,14 +129,9 @@ render() {
                                     </TouchableOpacity>
                                 <Text style={styles.housePrice}>₩{place.price}원<Text style={styles.PriceSubText}> /박</Text></Text>
                             </View>
-                            <View style={styles.menuBtnView}>
-                                <TouchableOpacity style={styles.deleteIconTouchView} onPress={ ()=>this.deleteHouse(place.id) }>
-                                    <Image style={styles.deleteBtnIcon} source={deleteBtnIcon} />
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.modifyIconTouchView} onPress={ ()=>this.props.navigation.navigate('숙소정보수정',{houseId: place.id})}>
-                                    <Image style={styles.modifyBtnIcon} source={modifyBtnIcon} />
-                                </TouchableOpacity>
-                            </View>
+                            <TouchableOpacity style={styles.modifyIconTouchView} onPress={ ()=>this.props.navigation.navigate('숙소정보수정', { houseId: place.id })}>
+                                <Image style={styles.modifyBtnIcon} source={modifyBtnIcon} />
+                            </TouchableOpacity>
                         </TouchableOpacity>
                     ))}
             <View style={styles.barMargin}><Text> </Text></View>
@@ -309,32 +275,13 @@ background: {                     // 전체화면 세팅
         color: 'black',
         fontWeight: "300",
     },
-    menuBtnView:{                   // 수정, 삭제버튼 세로로 배열하는 View
-        flexDirection: "column",
-        height: 150,
-     //   backgroundColor: 'blue',
-    },
-    deleteIconTouchView: {          // 삭제버튼 담는 View
+    modifyIconTouchView: {
         width: 40,  
         height: 40,
         alignItems: "flex-start",
         justifyContent: "center",
         marginTop: "27%",
-      //  backgroundColor: 'gray',
-    },
-    deleteBtnIcon: {                 // 찜버튼 아이콘
-        width: 22,
-        height: 22,
-        resizeMode: 'contain',
-    },
-    modifyIconTouchView: {          // 수정버튼 담는 View
-        width: 40,  
-        height: 40,
-        alignItems: "flex-start",
-        justifyContent: "center",
-        marginTop: "120%",
-        bottom: 0,
-       // backgroundColor: 'gray',
+        // backgroundColor: 'gray',
     },
     modifyBtnIcon: {                 // 찜버튼 아이콘
         width: 22,

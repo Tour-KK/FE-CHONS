@@ -30,7 +30,6 @@ class HouseInfoModifyScreen extends Component {
         imageType: null, 
         imageName: null,
         houseId: 1,
-        photosToDelete: [],
 
         isCalendarVisible: false,
         selectedDates: {},
@@ -146,68 +145,108 @@ class HouseInfoModifyScreen extends Component {
         }
     }
 
-    async PutHouseModifyData() {
-        try {
-            const {
-                hostName, introText, phoneNumber, freeService, price,
-                address, maximumGuestNumber, selectedDates, photosToDelete, imageUri
+    async PutHouseModifyData() {                      // 수정한 숙소 정보들을 불러오는 함수
+        try {   
+            const {                 	// 서버에 보내야하는 데이터들을 관리
+                hostName,
+                introText,
+                phoneNumber,
+                freeService,
+                price,
+                address,
+                maximumGuestNumber,
+                imageUri,
+                imageType,
+                imageName,
+                selectedDates
             } = this.state;
     
-            const formData = new FormData();
+            const formData = new FormData();      // fromData를 사용하기위해 FormData객체를 선언해주기
     
             const dto = {
-                hostName,
-                houseIntroduction: introText,
-                freeService,
-                photos: photosToDelete, 
-                phoneNumber,
-                pricePerNight: Number(price.replace(/\D/g, '')),
-                address,
-                maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
-                availableDates: Object.keys(selectedDates),
+            hostName,
+            houseIntroduction: introText,
+            freeService,
+            phoneNumber,
+            registrantId: 1,
+            pricePerNight: Number(price.replace(/\D/g, '')),
+            address,
+            maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
+            availableDates: Object.keys(selectedDates)
             };
     
+
             const jsonString = JSON.stringify(dto);
             const fileName = 'dto.json';
             const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
+
             await RNFS.writeFile(filePath, jsonString, 'utf8');
+
             formData.append('dto', {
                 uri: `file://${filePath}`,
                 type: 'application/json',
                 name: fileName
             });
-    
-            imageUri.forEach((uri, index) => {
-                formData.append('photos', {
-                    uri: uri,
-                    name: `image-${index}.jpg`,
-                    type: 'image/jpeg',
+
+            this.state.imageUri.forEach((uri, index) => {
+            RNFS.stat(uri)
+                .then((stats) => {
+                    console.log(`Image ${index}:`, stats);
+                    if (stats.isFile()) {
+                        console.log(`파일이 저장된 Uri: ${uri}`);
+                        console.log(`파일크기: ${stats.size} bytes`);
+                        console.log(`최근 수정일: ${stats.mtime}`);
+                        console.log(`파일 존재여부: ${stats.isFile()}`);
+                    }
+                })
+                .catch((error) => {
+                    console.error(`Error retrieving file stats for URI ${uri}:`, error);
                 });
             });
     
-            const { houseId } = this.state;
-    
+            imageUri.forEach((filePath, index) => {
+            formData.append('photos', {
+                uri: filePath,
+                name: `image-${index}.jpg`,
+                type: imageType,
+            });
+            });
+
+            for (let pair of formData._parts) {
+            console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
+            }
+
+            // const { houseId } = this.props.route.params;
+            // console.log('houseId: ' +houseId);
             const token = await getToken();
-            const response = await fetch(`http://223.130.131.166:8080/api/v1/house/${houseId}`, {
-                method: 'PUT',
+            // const response = await fetch(`http://223.130.131.166:8080/api/v1/house/${houseId}`, {
+            const response = await fetch(`http://223.130.131.166:8080/api/v1/house`, {
+                method: 'POST',
+                // method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data',
+                    // 'Content-Type': 'multipart/form-data',
                 },
                 body: formData,
             });
-    
-            if (!response.ok) throw new Error('Failed to update house info');
-    
+        
             const responseData = await response.json();
             console.log("Response JSON:", responseData);
+            this.deleteHouseData();                                         // 숙소 새로 추가했으면 기존꺼 삭제하는 식으롱 임시 구현
             this.props.navigation.navigate('메인', { refresh: true });
-    
         } catch (error) {
-            console.error('Failed to send house modification data:', error);
+            console.log('숙소 데이터 보내는 도중 에러발생:', error);
+            if (error.response) {
+            console.log('Error status:', error.response.status);
+            console.log('Error data:', error.response.data);
+            console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+            console.log('Request that triggered error:', error.request);
+            } else {
+            console.log('Error message:', error.message);
+            }
         }
     }
-    
    
 
     async deleteHouseData() {                        // 수정한 숙소 삭제하는 함수
@@ -308,22 +347,12 @@ class HouseInfoModifyScreen extends Component {
         return Object.keys(selectedDates).join(',  ');
     }
     
-    removeImage = (index) => {
+    removeImage = (index) => {                      // image-picker에서 이미지 선택 취소
         this.setState(prevState => {
-            const imageUri = [...prevState.imageUri];
-            const uriToRemove = imageUri[index]; // 제거할 이미지의 URI 저장
-            const updatedImages = imageUri.filter((_, i) => i !== index);
-    
-            // 이미지 URL을 photosToDelete 배열에 추가
-            const photosToDeleteUpdate = [...prevState.photosToDelete, uriToRemove];
-    
-            return {
-                imageUri: updatedImages,
-                photosToDelete: photosToDeleteUpdate
-            };
+            const imageUri = prevState.imageUri.filter((_, i) => i !== index);
+            return { imageUri };
         });
     };
-    
     
     formatAddress(address) {                        // 정규식을 활용하여 도로명을 주소명으로 바꾸기
         const regex = /([\S]+[도시])\s*([\S]+[구군시])?\s*([\S]*[동리면읍가구])?/;

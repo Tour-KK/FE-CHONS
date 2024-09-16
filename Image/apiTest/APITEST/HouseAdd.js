@@ -4,22 +4,20 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import { getToken } from './token'
 import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import axios from 'axios';
-import Geocoder from 'react-native-geocoding';
 import RNFS from 'react-native-fs';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import houseAddIMG from './Image/사진추가_아이콘.png';
 import customMarkerIMG from "./Image/지도마커_아이콘.png";
-import houseModifyBtn from './Image/숙소수정완료버튼_아이콘.png';
+import houseAddBtn from './Image/숙소등록버튼_아이콘.png';
 
 
 
 
-class HouseInfoModifyScreen extends Component {
+class HouseAddScreen extends Component {
     state = {
-        hostName: '데이터를 불러오지 못했습니다.', 
+        hostName: '', 
         introText: '',
         freeService: '',
         address: '',
@@ -29,8 +27,6 @@ class HouseInfoModifyScreen extends Component {
         imageUri: [],
         imageType: null, 
         imageName: null,
-        houseId: 1,
-        photosToDelete: [],
 
         isCalendarVisible: false,
         selectedDates: {},
@@ -38,188 +34,139 @@ class HouseInfoModifyScreen extends Component {
         region: {
             latitude: 37.541,
             longitude: 126.986,
-            latitudeDelta: 0.003,
-            longitudeDelta: 0.003,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
         },
         markerPosition: {
             latitude: 37.541,
             longitude: 126.986,
         },
-    };
+      };
 
-    componentDidMount() {               // 렌더링하기전에 DOM에서 기존 숙소정보 먼저 불러오기 + houseId
-        Geocoder.init('AIzaSyCd9l-dsU0O4PMnRS2BeP0OCZtOv-atoJE', { language: "ko" });
-
-        if (this.props.route.params) {
-            const { houseId } = this.props.route.params;
-            this.setState({ houseId: houseId });
-          console.log('Received houseId:', houseId);
-        }
-        this.focusListener = this.props.navigation.addListener('focus', () => {
-            console.log('DOM에서 먼저 렌더링 완료');
-            this.getAddedHouseData();
+      componentDidMount() {                             // 렌더링전에 DOM에서 먼저 현재위치 불러오기
+        this._unsubscribe = this.props.navigation.addListener('focus', () => {
+          const { params } = this.props.route;
+          if (params?.address) {
+            this.setState({
+              address: params.address,
+              region: {
+                latitude: params.region.latitude,
+                longitude: params.region.longitude,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005 
+              },
+              markerPosition: {
+                latitude: params.region.latitude,
+                longitude: params.region.longitude
+              }
+            });
+          }
         });
-    }
-    componentWillUnmount() {              // 렌더링하기전에 DOM에서 기존 숙소정보 먼저 불러오기
-        if (this.focusListener) {
-            console.log('DOM에서 해당 리스너 제거완료');
-            this.focusListener();
-        }
-    }
-      
-    componentDidUpdate(prevProps) {
-        console.log("Current Props:", this.props.route.params);
-        console.log("Previous Props:", prevProps.route.params);
-      
-        if (prevProps.route.params.address !== this.props.route.params.address ||
-            JSON.stringify(prevProps.route.params.region) !== JSON.stringify(this.props.route.params.region)) {
-          this.setState({
-            address: this.props.route.params.address,
-            region: {
-              latitude: this.props.route.params.region.latitude,
-              longitude: this.props.route.params.region.longitude,
-              latitudeDelta: 0.003,
-              longitudeDelta: 0.003,
-            },
-            markerPosition: {
-              latitude: this.props.route.params.region.latitude,
-              longitude: this.props.route.params.region.longitude
-            }
-          });
-        }
+      }
+      componentWillUnmount() {
+        this._unsubscribe();
       }
       
-      
-    async getAddedHouseData() {         // 숙소등록시 숙소와 관련된 데이터들을 서버에 보내는 함수
-        try{
-            const { houseId } = this.props.route.params;
-            const token = await getToken();
 
-            if (this.state.address === '') {
-                const response = await axios.get(`http://223.130.131.166:8080/api/v1/house/${houseId}`,{
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                console.log(response.data);
-                
-                const house = response.data;
-                let latitude = null, longitude = null;
-                const geocodingResponse = await Geocoder.from(house.address);
-                if (geocodingResponse.results.length > 0) {
-                    latitude = geocodingResponse.results[0].geometry.location.lat;
-                    longitude = geocodingResponse.results[0].geometry.location.lng;
-                }
-
-                this.setState({
-                    hostName: house.hostName,
-                    introText: house.houseIntroduction ,
-                    freeService: house.freeService,
-                    address: house.address ,
-                    phoneNumber: house.phoneNumber ,
-                    price: house.pricePerNight.toString(),
-                    maximumGuestNumber: house.maxNumPeople.toString(),
-                    imageUri: house.photos || [],
-                    region: {
-                        latitude: latitude || this.state.region.latitude,
-                        longitude: longitude || this.state.region.longitude, 
-                        latitudeDelta: 0.003,
-                        longitudeDelta: 0.003
-                    },
-                    markerPosition: {
-                        latitude: latitude || this.state.region.latitude,
-                        longitude: longitude || this.state.region.longitude
-                    }
-                });
-            }
-        } catch(error) {
-            if (error.response) {
-            console.log('Error status:', error.response.status);
-            console.log('Error data:', error.response.data);
-            console.log('Error headers:', error.response.headers);
-            } else if (error.request) {
-            console.log('No response received:', error.request);
-            } else {
-            console.log('Error message:', error.message);
-            }
-            console.log('Error config:', error.config);
-        }
-    }
-
-    async PutHouseModifyData() {
-        try {
-            const {
-                hostName, introText, phoneNumber, freeService, price,
-                address, maximumGuestNumber, selectedDates, photosToDelete, imageUri
+    async postHouseData() {         // 숙소등록시 숙소와 관련된 데이터들을 서버에 보내는 함수
+        try {   
+            const {                 	// 서버에 보내야하는 데이터들을 관리
+                hostName,
+                introText,
+                phoneNumber,
+                freeService,
+                price,
+                address,
+                maximumGuestNumber,
+                imageUri,
+                imageType,
+                selectedDates
             } = this.state;
     
-            const formData = new FormData();
+            const formData = new FormData();      // fromData를 사용하기위해 FormData객체를 선언해주기
     
             const dto = {
-                hostName,
-                houseIntroduction: introText,
-                freeService,
-                photos: photosToDelete, 
-                phoneNumber,
-                pricePerNight: Number(price.replace(/\D/g, '')),
-                address,
-                maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
-                availableDates: Object.keys(selectedDates),
+            hostName,
+            houseIntroduction: introText,
+            freeService,
+            phoneNumber,
+            registrantId: 1,
+            pricePerNight: Number(price.replace(/\D/g, '')),
+            address,
+            maxNumPeople: Number(maximumGuestNumber.replace(/\D/g, '')),
+            availableDates: Object.keys(selectedDates)
             };
     
+
             const jsonString = JSON.stringify(dto);
             const fileName = 'dto.json';
             const filePath = `${RNFS.TemporaryDirectoryPath}/${fileName}`;
+
             await RNFS.writeFile(filePath, jsonString, 'utf8');
+
             formData.append('dto', {
                 uri: `file://${filePath}`,
                 type: 'application/json',
                 name: fileName
             });
-    
-            imageUri.forEach((uri, index) => {
-                formData.append('photos', {
-                    uri: uri,
-                    name: `image-${index}.jpg`,
-                    type: 'image/jpeg',
+
+            this.state.imageUri.forEach((uri, index) => {
+            RNFS.stat(uri)
+                .then((stats) => {
+                    console.log(`Image ${index}:`, stats);
+                    if (stats.isFile()) {
+                        console.log(`파일이 저장된 Uri: ${uri}`);
+                        console.log(`파일크기: ${stats.size} bytes`);
+                        console.log(`최근 수정일: ${stats.mtime}`);
+                        console.log(`파일 존재여부: ${stats.isFile()}`);
+                    }
+                })
+                .catch((error) => {
+                    console.error(`Error retrieving file stats for URI ${uri}:`, error);
                 });
             });
     
-            const { houseId } = this.state;
+            imageUri.forEach((filePath, index) => {
+            formData.append('photos', {
+                uri: filePath,
+                name: `image-${index}.jpg`,
+                type: imageType,
+            });
+            });
+
+            for (let pair of formData._parts) {
+            console.log(pair[0] + ': ' + JSON.stringify(pair[1]));
+            }
+    
     
             const token = await getToken();
-            const response = await fetch(`http://223.130.131.166:8080/api/v1/house/${houseId}`, {
-                method: 'PUT',
+    
+            const response = await fetch('http://223.130.131.166:8080/api/v1/house', {
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data',
+                    // 'Content-Type': 'multipart/form-data',
                 },
                 body: formData,
             });
-    
-            if (!response.ok) throw new Error('Failed to update house info');
-    
+        
             const responseData = await response.json();
             console.log("Response JSON:", responseData);
             this.props.navigation.navigate('메인', { refresh: true });
-    
         } catch (error) {
-            console.error('Failed to send house modification data:', error);
+            console.log('숙소 데이터 보내는 도중 에러발생:', error);
+            if (error.response) {
+            console.log('Error status:', error.response.status);
+            console.log('Error data:', error.response.data);
+            console.log('Error headers:', error.response.headers);
+            } else if (error.request) {
+            console.log('Request that triggered error:', error.request);
+            } else {
+            console.log('Error message:', error.message);
+            }
         }
     }
-    
-   
 
-    async deleteHouseData() {                        // 수정한 숙소 삭제하는 함수
-        const { houseId } = this.props.route.params;
-        const token = await getToken();
-        const response = await axios.delete(`http://223.130.131.166:8080/api/v1/house/${houseId}`,{     // 기존 숙소 데이터 먼저 삭제
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-    }
-    
     onMarkerDragEnd = (coordinate) => {
         this.setState({
             markerPosition: {
@@ -308,34 +255,18 @@ class HouseInfoModifyScreen extends Component {
         return Object.keys(selectedDates).join(',  ');
     }
     
-    removeImage = (index) => {
+    removeImage = (index) => {                      // image-picker에서 이미지 선택 취소
         this.setState(prevState => {
-            const imageUri = [...prevState.imageUri];
-            const uriToRemove = imageUri[index]; // 제거할 이미지의 URI 저장
-            const updatedImages = imageUri.filter((_, i) => i !== index);
-    
-            // 이미지 URL을 photosToDelete 배열에 추가
-            const photosToDeleteUpdate = [...prevState.photosToDelete, uriToRemove];
-    
-            return {
-                imageUri: updatedImages,
-                photosToDelete: photosToDeleteUpdate
-            };
+            const imageUri = prevState.imageUri.filter((_, i) => i !== index);
+            return { imageUri };
         });
     };
     
     
-    formatAddress(address) {                        // 정규식을 활용하여 도로명을 주소명으로 바꾸기
-        const regex = /([\S]+[도시])\s*([\S]+[구군시])?\s*([\S]*[동리면읍가구])?/;
-        const match = address.match(regex);
-        console.log("Original Address:", address);
-        console.log("Matched Segments:", match);
-        return match ? match.slice(1).join(' ') : "주소를 불러오는데 문제가 발생하였습니다.";
-    }
     
 render() {
 
-    const { hostName, phoneNumber, address,  maximumGuestNumber, price, freeService, introText, houseId } = this.state;
+    const { hostName, phoneNumber, address,  maximumGuestNumber, price, freeService, introText } = this.state;
     const { selectedDate } = this.state;
 
     // 달력 한국어 텍스트 커스텀
@@ -363,7 +294,7 @@ render() {
                     <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
                     <Image style={styles.backBtnIcon} source={backBtnIMG} />  
                     </TouchableOpacity>
-                    <Text style={styles.houseAddText}> 숙소정보 수정하기 </Text>
+                    <Text style={styles.houseAddText}> 숙소 등록하기 </Text>
                 </View>
                 <View style={styles.grayHorizontalLine}/>
 
@@ -400,7 +331,7 @@ render() {
                             )}
                         </ScrollView>
                         <TouchableOpacity style={styles.ModifySelectView}  onPress={this.toggleCalendar}>
-                            <Text style={styles.houseModifyBtn}>{this.state.isCalendarVisible ? '예약 가능 날짜 선택완료' : '예약 가능 날짜 선택하기'}</Text>
+                            <Text style={styles.houseAddBtn}>{this.state.isCalendarVisible ? '예약 가능 날짜 선택완료' : '예약 가능 날짜 선택하기'}</Text>
                         </TouchableOpacity>
                     </View>
                     
@@ -450,7 +381,7 @@ render() {
                         </MapView>
                     </View>
 
-                    <TouchableOpacity style={styles.locationSelectView}  onPress={() => this.props.navigation.navigate('숙소구글지도', { houseId: houseId } )} >
+                    <TouchableOpacity style={styles.locationSelectView}  onPress={() => this.props.navigation.navigate('구글지도')} >
                         <Text style={styles.locationSelectBtn}>지도에서 숙소위치 선택하기</Text>
                     </TouchableOpacity>
                     <TextInput style={styles.hostInfoAddressText} onChangeText={this.changeAddress} placeholder="지도에서 위치를 선택해주세요" placeholderTextColor="#B1B1B1" editable={false} multiline={true} numberOfLines={4} >{address}</TextInput>
@@ -510,8 +441,8 @@ render() {
                     <Text style={styles.ruleAlertText}> ※위 규칙을 3회이상 어길 시, 호스트에게 숙박비의 30%에 해당하는 벌금이 발생할 수 있습니다. </Text>
                 </View>
 
-                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.PutHouseModifyData()}>
-                    <Image style={styles.reservationBtnText} source={houseModifyBtn}/>
+                <TouchableOpacity style={styles.reservationBtn} onPress={() => this.postHouseData()}>
+                    <Image style={styles.reservationBtnText} source={houseAddBtn}/>
                 </TouchableOpacity>
 
                 <View style={styles.barMargin}><Text> </Text></View>
@@ -665,7 +596,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         // backgroundColor: 'blue',
     },
-    houseModifyBtn:{                           // 숙소 예약일자선택 버튼
+    houseAddBtn:{                           // 숙소 예약일자선택 버튼
         fontSize: 14,
         color: "#00D282",  
         borderWidth: 1,
@@ -865,4 +796,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default HouseInfoModifyScreen;
+export default HouseAddScreen;

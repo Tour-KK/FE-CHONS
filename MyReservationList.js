@@ -1,18 +1,20 @@
 import React, {Component} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getToken } from './token'
 import axios from 'axios';
 
 //이미지
 import backBtnIMG from './Image/뒤로가기_아이콘.png';
 import modifyBtnIcon from './Image/수정하기버튼_아이콘.png';
+import deleteBtnIcon from './Image/닫기버튼_아이콘2.png';
 import reviewIconIMG from './Image/평점_별아이콘.png';
 import noImage from './Image/이미지없음표시.png';
-import deleteBtnIcon from './Image/닫기버튼_아이콘2.png';
 import locationFilterGrayIcon from './Image/검색화면_클릭전_지역필터링아이콘.png';
+import Reservation from 'react-native-calendars/src/agenda/reservation-list/reservation';
 
-class HouseInfoModifyListScreen extends Component {
+class MyReservationListScreen extends Component {
       state = {
         places: [                                   // 목록에 띄울 데이터들 관리
             { id: 1, 
@@ -36,7 +38,7 @@ class HouseInfoModifyListScreen extends Component {
     componentDidMount() {               // 렌더링하기전에 DOM에서 숙소 리스트 먼저 불러오기
         this.focusListener = this.props.navigation.addListener('focus', () => {
             console.log('DOM에서 먼저 렌더링 완료');
-            this.getAddedHouseListData();
+            this.getReservaionDataList();
         });
     }
     componentWillUnmount() {            // 렌더링하기전에 DOM에서 숙소 리스트 먼저 불러오기
@@ -47,27 +49,29 @@ class HouseInfoModifyListScreen extends Component {
     }
     
 
-    async getAddedHouseListData() {                      // axios를 활용한 api통신을 통해 서버로부터 등록한 숙소 상세정보를 불러오는 함수
+    async getReservaionDataList() {                      // axios를 활용한 api통신을 통해 서버로부터 예약완료된 숙소 정보들 리스트 불러오기
         try{
             const token = await getToken();
+            const userId = await AsyncStorage.getItem("userId");
+
+            console.log("userId: ",userId);
             
-            const response = await axios.get(`http://223.130.131.166:8080/api/v1/house/list/user`,{
+            const response = await axios.get(`http://223.130.131.166:8080/api/v1/reservation/user/${userId}`,{
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
             console.log(response.data);
             
-            const data = response.data.map(house => ({
-                id: house.id,
-                name: house.hostName,
-                address: house.address,
-                formattedAddress: this.formatAddress(house.address),
-                price: house.pricePerNight,
-                imageUri: house.photos, 
-                reviewScore: house.starAvg, 
-                reviewCount: house.reviewNum, 
-                favoriteState: house.liked, 
+            const data = response.data.map(Reservation => ({
+                id: Reservation.reservationId,
+                name: Reservation.hostName,
+                address: Reservation.address,
+                formattedAddress: this.formatAddress(Reservation.address),
+                price: Reservation.price,
+                imageUri: Reservation.photos, 
+                reviewScore: Reservation.starAvg, 
+                reviewCount: Reservation.reviewNum, 
             }));
 
             this.setState({ places: data });
@@ -86,20 +90,21 @@ class HouseInfoModifyListScreen extends Component {
         }
     }
 
-    async deleteHouse(houseId) {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 등록 취소 요청하기
+
+    async deleteReservation(reservationId) {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 예약취소 요청하기
         try{
             const token = await getToken();
 
-            console.log("houseId: ",houseId);
+            console.log("reservaionId: ",reservationId);
             
-            const response = await axios.delete(`http://223.130.131.166:8080/api/v1/house/${houseId}`,{
+            const response = await axios.delete(`http://223.130.131.166:8080/api/v1/reservation/${reservationId}`,{
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
             console.log(response.data);
 
-            this.getAddedHouseListData();
+            this.getReservaionDataList();
         } catch(error) {
             if (error.response) {
             console.log('Error status:', error.response.status);
@@ -136,15 +141,15 @@ render() {
                 <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
                 <Image style={styles.backBtnIcon} source={backBtnIMG} />  
                 </TouchableOpacity>
-                <Text style={styles.houseAddText}> 수정가능한 나의 숙소 목록 </Text>
+                <Text style={styles.houseAddText}> 나의 예약 내역 </Text>
             </View>
             <View style={styles.grayHorizontalLine}/>
 
             {places.map((place) => (    
                         <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
-                            {place.imageUri.length > 0 ? (
+                            {/* {place.imageUri.length > 0 ? (
                                 <Image source={{uri : place.imageUri[0]}} style={styles.houseIMG}/>
-                            ): ( <Image source={noImage} style={styles.houseIMG}/>)}
+                            ): ( <Image source={noImage} style={styles.houseIMG}/>)} */}
                             <View style={styles.Info}>
                                 <Text style={styles.houseName}>{place.name}님의 거주지</Text>
                                 <View style={styles.addressView}>
@@ -155,14 +160,14 @@ render() {
                                     <Image style={styles.reviewIcon} source={reviewIconIMG} />
                                     <Text style={styles.houseReview}>{parseFloat(place.reviewScore).toFixed(1)}</Text>
                                     <Text style={styles.houseReview}>(리뷰 {place.reviewCount}개)</Text>
-                                    </TouchableOpacity>
+                                </TouchableOpacity>
                                 <Text style={styles.housePrice}>₩{place.price}원<Text style={styles.PriceSubText}> /박</Text></Text>
                             </View>
                             <View style={styles.menuBtnView}>
-                                <TouchableOpacity style={styles.deleteIconTouchView} onPress={ ()=>this.deleteHouse(place.id) }>
+                                <TouchableOpacity style={styles.deleteIconTouchView} onPress={ ()=>this.deleteReservation(place.id) }>
                                     <Image style={styles.deleteBtnIcon} source={deleteBtnIcon} />
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.modifyIconTouchView} onPress={ ()=>this.props.navigation.navigate('숙소정보수정',{houseId: place.id})}>
+                                <TouchableOpacity style={styles.modifyIconTouchView} onPress={ ()=>this.props.navigation.navigate('나의예약수정',{reservationId: place.id})}>
                                     <Image style={styles.modifyBtnIcon} source={modifyBtnIcon} />
                                 </TouchableOpacity>
                             </View>
@@ -314,7 +319,7 @@ background: {                     // 전체화면 세팅
         height: 150,
      //   backgroundColor: 'blue',
     },
-    deleteIconTouchView: {          // 삭제버튼 담는 View
+    deleteIconTouchView: {          // 삭제버튼 담는 VIew
         width: 40,  
         height: 40,
         alignItems: "flex-start",
@@ -343,4 +348,4 @@ background: {                     // 전체화면 세팅
     },
 });
   
-export default HouseInfoModifyListScreen;
+export default MyReservationListScreen;

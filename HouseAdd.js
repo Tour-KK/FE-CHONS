@@ -246,9 +246,11 @@ class HouseAddScreen extends Component {
             } else {
                 selectedDates[dateString] = { selected: true, marked: true }; 
             }
+            console.log("Updated Selected Dates:", selectedDates);
             return { selectedDates };
         });
     }
+    
 
     renderSelectedDates = () => {
         const { selectedDates } = this.state;

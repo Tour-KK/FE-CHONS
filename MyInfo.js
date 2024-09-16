@@ -91,7 +91,7 @@ class MyInfoScreen extends Component {
                     <Text style={styles.optionText}> 숙소정보 수정하기</Text>    
                     <Image style={styles.nextBtn} source={nextBtnIMG}/>
                 </TouchableOpacity>                                    
-                <TouchableOpacity style={styles.settingOption} >
+                <TouchableOpacity style={styles.settingOption} onPress={() => this.props.navigation.navigate('나의예약리스트')}>
                     <Text style={styles.optionText}> 나의 예약내역 보기</Text>    
                     <Image style={styles.nextBtn} source={nextBtnIMG}/>
                 </TouchableOpacity>                                    

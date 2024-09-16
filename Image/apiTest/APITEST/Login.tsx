@@ -51,14 +51,8 @@ class LoginScreen extends Component {
       });
       console.log('제대로 보내졌나? 응답 메세지:', response.data);
 
-      const { accessToken, refreshToken, userId } = response.data;
-
-      await AsyncStorage.multiSet([
-        ['accessToken', accessToken],
-        ['refreshToken', refreshToken],
-        ['userId', userId.toString()]
-      ]);
-      console.log("Stored userId:", userId);
+      const { accessToken, refreshToken } = response.data;
+      await setToken(accessToken, refreshToken);
 
       this.props.navigation.navigate('메인');
     } catch (error) {

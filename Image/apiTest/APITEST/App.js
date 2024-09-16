@@ -30,8 +30,6 @@ import KakaoAPIScreen from './KakaoAPI';
 import NaverAPIScreen from './NaverAPI';
 import GoogleMapScreen from './GoogleMap';
 import HouseModifyGoogleMapScreen from './HouseModifyGoogleMap';
-import MyReservationListScreen from './MyReservationList';
-import MyReservationModifyScreen from './MyReservationModify';
 
 
 const Tab = createBottomTabNavigator();
@@ -127,8 +125,6 @@ class App extends Component {
                     <Stack.Screen name="숙소정보수정" component={HouseInfoModifyScreen} />
                     <Stack.Screen name="축제정보" component={FestivalInfoScreen} />
                     <Stack.Screen name="테스트" component={AxiosTestScreen} />
-                    <Stack.Screen name="나의예약리스트" component={MyReservationListScreen} />
-                    <Stack.Screen name="나의예약수정" component={MyReservationModifyScreen} />
                     <Stack.Screen name="구글API" component={GoogleAPIScreen} />
                     <Stack.Screen name="카카오API" component={KakaoAPIScreen} />
                     <Stack.Screen name="네이버API" component={NaverAPIScreen} />
