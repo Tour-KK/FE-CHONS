@@ -48,11 +48,11 @@ class MyInfoScreen extends Component {
                 try {
                   const newToken = await refreshAccessToken();
                   console.log('새로운 엑세스 토큰: ' + newToken);
-                  const response = await axios.get('http://223.130.131.166:8080/api/v1/user', {
+                  const response = await axios.get('http://223.130.131.166:8080/api/v1/user',{
                     headers: {
-                      'Authorization': `Bearer ${newToken}`
+                        'Authorization': `Bearer ${newToken}`
                     }
-                  });
+                });
                   console.log('응답받은 데이터:', response.data);
                   return response.data;
                 } catch (refreshError) {

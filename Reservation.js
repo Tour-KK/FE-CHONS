@@ -23,12 +23,14 @@ class ReservationScreen extends Component {
 
     state = {
         value: 1,
-        labels: ["소극", "보통", "적극"],
+        labels: ["적음", "보통", "많음"],
         houseId: 1,
         reservationId: 1,
         formattedAddresses: {},
         maximumGuestNumber: '',
         phoneNumber: '', 
+        availableDates : [],
+        interestLevel: "보통",
         
 
         editHostNameState: false,
@@ -64,9 +66,12 @@ class ReservationScreen extends Component {
             this.getHouseData();
       }
 
-    sliderValueChange = (value) => {                // 호스트 관심도 세팅 슬라이드 바
+      sliderValueChange = (value) => {                // 호스트 관심도 세팅 슬라이드 바
         const roundedValue = parseFloat(value.toFixed(1));
-        this.setState({ value: roundedValue });
+        this.setState({ 
+            value: roundedValue,
+            interestLevel: this.state.labels[roundedValue]  
+        });
     }
 
     placeInfoDelivery = (houseId) => {             // 숙소 컨텐츠 클릭시 해당 숙소 정보를 같이 보내 숙소정보화면으로 이동
@@ -77,18 +82,20 @@ class ReservationScreen extends Component {
     async postReserationInfoData() {
         try {
             const token = await getToken();
-            const { houseId, checkInDate, checkOutDate, maximumGuestNumber, phoneNumber } = this.state;
+            const { houseId, checkInDate, checkOutDate, maximumGuestNumber, phoneNumber, interestLevel } = this.state;
     
             console.log("startAt:", checkInDate);
             console.log("endAt:", checkOutDate);
             console.log("personNum:",  Number(maximumGuestNumber.replace(/\D/g, '')));
             console.log("phoneNum:", phoneNumber.replace(/\D/g, ''));
+            console.log("interestLevel:", interestLevel);
             const response = await axios.post(`http://223.130.131.166:8080/api/v1/reservation/${houseId}`, 
                 {
                     startAt: checkInDate,
                     endAt: checkOutDate,
                     personNum: Number(maximumGuestNumber.replace(/\D/g, '')),
                     phoneNum: phoneNumber.replace(/\D/g, ''),
+                    interestLevel: interestLevel,
                 },
                 {
                     headers: {
@@ -123,35 +130,35 @@ class ReservationScreen extends Component {
         }
     }
 
-    async joinReservationState() {                          // 예약상태 확인 테스트용
-        try {
-            const token = await getToken();
-            const { reservationId } = this.state;  
-            console.log("접근중인 reservationId: "+reservationId);
+    // async joinReservationState() {                          // 예약상태 확인 테스트용
+    //     try {
+    //         const token = await getToken();
+    //         const { reservationId } = this.state;  
+    //         console.log("접근중인 reservationId: "+reservationId);
     
-            const response = await axios.get(`http://223.130.131.166:8080/api/v1/reservation/${reservationId}`, 
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
+    //         const response = await axios.get(`http://223.130.131.166:8080/api/v1/reservation/${reservationId}`, 
+    //             {
+    //                 headers: {
+    //                     'Authorization': `Bearer ${token}`
+    //                 }
+    //             }
+    //         );
     
-            console.log('응답받은 데이터:', response.data);
+    //         console.log('응답받은 데이터:', response.data);
     
-        } catch (error) {
-            console.error('예약 조회 요청 중 에러 발생:', error);
-            if (error.response) {
-                console.log('Error status:', error.response.status);
-                console.log('Error data:', error.response.data);
-                console.log('Error headers:', error.response.headers);
-            } else if (error.request) {
-                console.log('No response received:', error.request);
-            } else {
-                console.log('Error message:', error.message);
-            }
-        }
-    }
+    //     } catch (error) {
+    //         console.error('예약 조회 요청 중 에러 발생:', error);
+    //         if (error.response) {
+    //             console.log('Error status:', error.response.status);
+    //             console.log('Error data:', error.response.data);
+    //             console.log('Error headers:', error.response.headers);
+    //         } else if (error.request) {
+    //             console.log('No response received:', error.request);
+    //         } else {
+    //             console.log('Error message:', error.message);
+    //         }
+    //     }
+    // }
     
     async getHouseData() {                      // axios를 활용한 api통신을 통해 서버로부터 숙소 리스트들을 불러오는 함수
         try {
@@ -182,16 +189,32 @@ class ReservationScreen extends Component {
                 favoriteState: house.liked,
                 reservationState: false,
                 clearReservation: false,
+                availableDates: house.availableDates,
               }];
               
 
-            this.setState({ places: data });
+            this.setState({ places: data, availableDates: house.availableDates });
 
         } catch (error) {
             console.error('Error fetching house data:', error);
         }
     }
         
+    getMarkedDates() {                          // availableDates를 Calendar 컴포넌트의 markedDates로 변환하는 함수
+        const { availableDates } = this.state;
+    
+        let markedDates = {};
+    
+        availableDates.forEach(date => {
+            markedDates[date] = {
+                selected: false,
+                marked: true,
+                disabled: false,  // 예약 가능한 날짜는 선택 가능
+            };
+        });
+    
+        return markedDates;
+    }
    
     formatAddress(address) {                        // 정규식을 활용하여 도로명을 주소명으로 바꾸기
         const regex = /([\S]+[도시])\s*([\S]+[구군시])?\s*([\S]*[동리면읍가구])?/;
@@ -216,20 +239,15 @@ class ReservationScreen extends Component {
     };
 
 
-    onCheckInSelect = (day) => {                                  // 입실 날짜 선택한 날짜들 관리 
-        const { dateString } = day;
-        this.setState({ checkInDate: dateString });
-    };
+    // onCheckInSelect = (day) => {                                  // 입실 날짜 선택한 날짜들 관리 
+    //     const { dateString } = day;
+    //     this.setState({ checkInDate: dateString });
+    // };
     
-    onCheckOutSelect = (day) => {
-        const { dateString } = day;
-        this.setState({ checkOutDate: dateString });
-    };
-    
-    onCheckOutSelect = (day) => {                                 // 퇴실 날짜 선택한 날짜들 관리
-        const { dateString } = day;
-        this.setState({ checkOutDate: dateString });
-    };
+    // onCheckOutSelect = (day) => {                                 // 퇴실 날짜 선택한 날짜들 관리
+    //     const { dateString } = day;
+    //     this.setState({ checkOutDate: dateString });
+    // };
 
 
     renderCheckInSelectedDate = () => {                             // 캘린더에서 입실날짜 관련 선택한 날짜들 렌더링 처리하기 위해 따로 다룸
@@ -284,9 +302,11 @@ class ReservationScreen extends Component {
         // 오늘 날짜 눌럿을때 생기는 이벤트 효과 동일적용
         const today = new Date().toISOString().split('T')[0];
         
-        const markedDates = {
-            [selectedDate]: { selected: true, marked: true, selectedColor: 'green' }
-        };
+        const markedDates = this.getMarkedDates();
+        
+        // const markedDates = {
+        //     [selectedDate]: { selected: true, marked: true, selectedColor: 'green' }
+        // };
         
         return (
             <ScrollView style={styles.background} showsVerticalScrollIndicator={false}>
@@ -338,8 +358,14 @@ class ReservationScreen extends Component {
                             monthNames={monthNames}
                             dayNames={dayNames}
                             dayNamesShort={dayNamesShort}
-                            markedDates={{
-                                [this.state.checkInDate]: { selected: true, marked: true, selectedColor: 'green' }
+                            markedDates={markedDates}
+                            onDayPress={(day) => {
+                                const selectedDate = day.dateString;
+                                if (markedDates[selectedDate] && !markedDates[selectedDate].disabled) {
+                                    this.setState({ checkInDate: selectedDate });
+                                } else {
+                                    Alert.alert("선택 불가", "예약할 수 없는 날짜입니다.");
+                                }
                             }}
                             locale={'ko'} 
                             theme={{
@@ -347,7 +373,6 @@ class ReservationScreen extends Component {
                                 selectedDayBackgroundColor: '#00D282',
                                 selectedDayTextColor: '#ffffff'
                             }}
-                            onDayPress={this.onCheckInSelect}
                         />
                     )}  
                 </View>
@@ -369,8 +394,14 @@ class ReservationScreen extends Component {
                             monthNames={monthNames}
                             dayNames={dayNames}
                             dayNamesShort={dayNamesShort}
-                            markedDates={{
-                                [this.state.checkOutDate]: { selected: true, marked: true, selectedColor: 'green' }
+                            markedDates={markedDates}
+                            onDayPress={(day) => {
+                                const selectedDate = day.dateString;
+                                if (markedDates[selectedDate] && !markedDates[selectedDate].disabled) {
+                                    this.setState({ checkOutDate: selectedDate });
+                                } else {
+                                    Alert.alert("선택 불가", "예약할 수 없는 날짜입니다.");
+                                }
                             }}
                             locale={'ko'} 
                             theme={{
@@ -378,7 +409,6 @@ class ReservationScreen extends Component {
                                 selectedDayBackgroundColor: '#00D282',
                                 selectedDayTextColor: '#ffffff'
                             }}
-                            onDayPress={this.onCheckOutSelect}
                         />
                     )}
                 </View>
@@ -430,7 +460,7 @@ class ReservationScreen extends Component {
                 </View>
                 <View style={styles.grayHorizontalWideLine2}/>
 
-                <Text style={styles.payText}> 결제하기 </Text>
+                {/* <Text style={styles.payText}> 결제하기 </Text>
                 <View style={styles.payMethodView}>
                     <TouchableOpacity style={styles.payMethodTouchView} onPress={()=> alert('api 버전호환문제 고치는중')}>
                     <View style={styles.payMethod}>
@@ -459,7 +489,7 @@ class ReservationScreen extends Component {
                         <Text style={styles.tossPayText}> 토스 페이로 결제하기 </Text>
                     </View>
                     </TouchableOpacity>
-                </View>
+                </View> */}
 
                 <Text style={styles.houseRuleText}> 유의사항 </Text>
                 <View style={styles.columnMiidle}>

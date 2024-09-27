@@ -68,7 +68,7 @@ class MyReservationListScreen extends Component {
                 name: Reservation.hostName,
                 address: Reservation.address,
                 formattedAddress: this.formatAddress(Reservation.address),
-                price: Reservation.price,
+                price: Reservation.pricePerNight,
                 imageUri: Reservation.photos, 
                 reviewScore: Reservation.starAvg, 
                 reviewCount: Reservation.reviewNum, 
@@ -147,9 +147,9 @@ render() {
 
             {places.map((place) => (    
                         <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
-                            {/* {place.imageUri.length > 0 ? (
+                            {place.imageUri.length > 0 ? (
                                 <Image source={{uri : place.imageUri[0]}} style={styles.houseIMG}/>
-                            ): ( <Image source={noImage} style={styles.houseIMG}/>)} */}
+                            ): ( <Image source={noImage} style={styles.houseIMG}/>)}
                             <View style={styles.Info}>
                                 <Text style={styles.houseName}>{place.name}님의 거주지</Text>
                                 <View style={styles.addressView}>
@@ -167,7 +167,7 @@ render() {
                                 <TouchableOpacity style={styles.deleteIconTouchView} onPress={ ()=>this.deleteReservation(place.id) }>
                                     <Image style={styles.deleteBtnIcon} source={deleteBtnIcon} />
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.modifyIconTouchView} onPress={ ()=>this.props.navigation.navigate('나의예약수정',{reservationId: place.id})}>
+                                <TouchableOpacity style={styles.modifyIconTouchView} onPress={ ()=>this.props.navigation.navigate('나의예약수정',{reservationId: 2, houseId: place.id})}>
                                     <Image style={styles.modifyBtnIcon} source={modifyBtnIcon} />
                                 </TouchableOpacity>
                             </View>
