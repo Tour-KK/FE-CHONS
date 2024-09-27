@@ -53,8 +53,14 @@ class MyInfoScreen extends Component {
                         'Authorization': `Bearer ${newToken}`
                     }
                 });
-                  console.log('응답받은 데이터:', response.data);
-                  return response.data;
+    
+                if (response.data) {
+                    const { name, email, phoneNum } = response.data;
+                    this.setState({
+                        name: name || '정보 없음',  
+                        });
+                        console.log('응답받은 데이터:', response.data);
+                }
                 } catch (refreshError) {
                   console.error('토큰 갱신 및 데이터 불러오기 실패:', refreshError);
                 }

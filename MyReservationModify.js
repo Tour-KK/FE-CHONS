@@ -27,7 +27,7 @@ class MyReservationModifyScreen extends Component {
         availableDates : [],
         interestLevel: "보통",
         introText: "???",
-        hostName: "미구현",
+        userName: "미구현",
         
 
         editHostNameState: false,
@@ -84,7 +84,7 @@ class MyReservationModifyScreen extends Component {
     async modifyReserationInfoData() {
         try {
             const token = await getToken();
-            const { houseId, checkInDate, checkOutDate, maximumGuestNumber, phoneNumber, interestLevel, introText } = this.state;
+            const { houseId, checkInDate, checkOutDate, maximumGuestNumber, phoneNumber, interestLevel, introText, userName } = this.state;
     
             console.log("startAt:", checkInDate);
             console.log("endAt:", checkOutDate);
@@ -92,6 +92,7 @@ class MyReservationModifyScreen extends Component {
             console.log("phoneNum:", phoneNumber.replace(/\D/g, ''));
             console.log("interestLevel:", interestLevel);
             console.log("reservationRequest:", String(introText));
+            console.log("userName:", (userName));
 
             const response = await axios.patch(`http://223.130.131.166:8080/api/v1/reservation/${houseId}`, 
                 {
@@ -101,6 +102,7 @@ class MyReservationModifyScreen extends Component {
                     phoneNum: phoneNumber.replace(/\D/g, ''),
                     interestLevel: interestLevel,
                     reservationRequest: String(introText),
+                    userName: userName, 
                 },
                 {
                     headers: {
@@ -195,6 +197,7 @@ class MyReservationModifyScreen extends Component {
                 maximumGuestNumber: String(reservation.personNum)+'명' || '정보없음',
                 phoneNumber: formattedPhoneNumber || '정보없음',     
                 introText: String(reservation.reservationRequest) || '정보없음', 
+                userName: reservation.userName || '정보없음', 
             });
 
             console.log("interestLevel: ",reservation.interestLevel)
@@ -263,8 +266,8 @@ class MyReservationModifyScreen extends Component {
     };
     
 
-    changeHostName = (inputText) => {
-        this.setState({ hostName: inputText });
+    changeUserxName = (inputText) => {
+        this.setState({ userName: inputText });
     };
     changePhoneNumber = (inputText) => {
         this.setState({ phoneNumber: inputText });
@@ -422,10 +425,12 @@ class MyReservationModifyScreen extends Component {
                         <Text style={styles.nameInfo}> 이름 </Text>
                         <TextInput 
                         style={styles.nameInfoText} 
-                        value={this.state.hostName} // value to display
-                        onChangeText={this.changeHostName} 
+                        value={this.state.userName} 
+                        onChangeText={false} 
                         placeholder="ex) 이진석" 
-                        placeholderTextColor="#B1B1B1" 
+                        placeholderTextColor="#B1B1B1"
+                        editable={false}
+                        color="gray"
                         />
                     </View>
 

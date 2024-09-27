@@ -153,8 +153,10 @@ class MyInfoModifyScreen extends Component {
                 await this.naverLogout();
             } else {
                 console.log("socialType 인식실패");
+                await this.googleSignout();							        
+                await this.signOutWithKakao();
+                await this.naverLogout();
             }
-            // await this.naverLogout();
           }
           
           await AsyncStorage.removeItem('userToken');

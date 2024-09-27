@@ -74,9 +74,9 @@ android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
-    namespace "com.apitest"
+    namespace "com.konkukTour"
     defaultConfig {
-        applicationId "com.apitest"     // 이부분
+        applicationId "com.konkukTour"     // 이부분
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

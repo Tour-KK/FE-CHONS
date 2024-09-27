@@ -31,6 +31,7 @@ class ReservationScreen extends Component {
         phoneNumber: '', 
         availableDates : [],
         interestLevel: "보통",
+        reservationRequest: '',
         
 
         editHostNameState: false,
@@ -43,7 +44,7 @@ class ReservationScreen extends Component {
         checkInDate: '',
         checkOutDate: '',
 
-        places: [                                   // 목록에 띄울 데이터들 관
+        places: [                                   // 목록에 띄울 데이터들 관리
             { id: 1, 
                 name: "김갑순님의 거주지", 
                 address:'강원도 속초시 신림면', 
@@ -82,13 +83,14 @@ class ReservationScreen extends Component {
     async postReserationInfoData() {
         try {
             const token = await getToken();
-            const { houseId, checkInDate, checkOutDate, maximumGuestNumber, phoneNumber, interestLevel } = this.state;
+            const { houseId, checkInDate, checkOutDate, maximumGuestNumber, phoneNumber, interestLevel, name, reservationRequest } = this.state;
     
             console.log("startAt:", checkInDate);
             console.log("endAt:", checkOutDate);
             console.log("personNum:",  Number(maximumGuestNumber.replace(/\D/g, '')));
             console.log("phoneNum:", phoneNumber.replace(/\D/g, ''));
             console.log("interestLevel:", interestLevel);
+            console.log("reservationRequest:", reservationRequest);
             const response = await axios.post(`http://223.130.131.166:8080/api/v1/reservation/${houseId}`, 
                 {
                     startAt: checkInDate,
@@ -96,6 +98,8 @@ class ReservationScreen extends Component {
                     personNum: Number(maximumGuestNumber.replace(/\D/g, '')),
                     phoneNum: phoneNumber.replace(/\D/g, ''),
                     interestLevel: interestLevel,
+                    userName: name,  
+                    reservationRequest: reservationRequest,
                 },
                 {
                     headers: {
@@ -271,7 +275,7 @@ class ReservationScreen extends Component {
         this.setState({ maximumGuestNumber: inputText });
     };
     changeIntroText = (inputText) => {
-        this.setState({ introText: inputText });
+        this.setState({ reservationRequest: inputText });
     };
     
 
@@ -280,7 +284,7 @@ class ReservationScreen extends Component {
         const { checkInDate, checkOutDate, isCheckInPickerVisible, isCheckOutPickerVisible  } = this.state;
 
         const { hostName, editHostNameState, phoneNumber, editPhoneNumberState, maximumGuestNumber, editMaximumGuestNumberState, 
-            price, editPriceState, introText, editIntroTextState } = this.state;
+            price, editPriceState, reservationRequest, editIntroTextState } = this.state;
 
         const { selectedDate } = this.state;
 
@@ -416,10 +420,10 @@ class ReservationScreen extends Component {
 
                 <Text style={styles.reservationInfoText}> 예약 정보 </Text>
                 <View style={styles.reservationInfoView}> 
-                    <View style={styles.nameInfoView}>
+                    {/* <View style={styles.nameInfoView}>
                         <Text style={styles.nameInfo}> 이름 </Text>
                         <TextInput style={styles.nameInfoText} onChangeText={this.changeHostName} placeholder="ex) 이진석" placeholderTextColor="#B1B1B1">{hostName}</TextInput>
-                    </View>
+                    </View> */}
 
                     <View style={styles.GuestNumberInfoView}>
                         <Text style={styles.GuestNumberInfo}> 예약 인원 </Text>
@@ -449,7 +453,7 @@ class ReservationScreen extends Component {
                     <Text style={styles.hostAttentionInfoText}>  {labels[value]} </Text>
                     
                     <Text style={styles.requestInfo}> 요청사항 </Text>
-                    <TextInput style={styles.requestInfoText} onChangeText={this.changeIntroText} placeholder="ex) 1박 2일 동안 잘 부탁드립니다~!" placeholderTextColor="#B1B1B1" multiline={true}>{introText}</TextInput>
+                    <TextInput style={styles.requestInfoText} onChangeText={this.changeIntroText} placeholder="ex) 1박 2일 동안 잘 부탁드립니다~!" placeholderTextColor="#B1B1B1" multiline={true}>{reservationRequest}</TextInput>
                 </View>
 
                 <View style={styles.explanationView}>

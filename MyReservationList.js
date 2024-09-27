@@ -18,6 +18,7 @@ class MyReservationListScreen extends Component {
       state = {
         places: [                                   // 목록에 띄울 데이터들 관리
             { id: 1, 
+                houseId: 0,
                 hostName: '김갑순', 
                 phoneNumber: '010-1122-3344',
                 maximumGuestNumber: '2명',
@@ -65,6 +66,7 @@ class MyReservationListScreen extends Component {
 
             const data = response.data.map(Reservation => ({
                 id: Reservation.reservationId,
+                houseId : Reservation.houseId,
                 name: Reservation.hostName,
                 address: Reservation.address,
                 formattedAddress: this.formatAddress(Reservation.address),
@@ -72,6 +74,7 @@ class MyReservationListScreen extends Component {
                 imageUri: Reservation.photos, 
                 reviewScore: Reservation.starAvg, 
                 reviewCount: Reservation.reviewNum, 
+                
             }));
 
             this.setState({ places: data });
@@ -146,7 +149,7 @@ render() {
             <View style={styles.grayHorizontalLine}/>
 
             {places.map((place) => (    
-                        <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.id)}>
+                        <TouchableOpacity key={place.id} style={styles.content} onPress={() => this.placeInfoDelivery(place.houseId)}>
                             {place.imageUri.length > 0 ? (
                                 <Image source={{uri : place.imageUri[0]}} style={styles.houseIMG}/>
                             ): ( <Image source={noImage} style={styles.houseIMG}/>)}
@@ -167,7 +170,7 @@ render() {
                                 <TouchableOpacity style={styles.deleteIconTouchView} onPress={ ()=>this.deleteReservation(place.id) }>
                                     <Image style={styles.deleteBtnIcon} source={deleteBtnIcon} />
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.modifyIconTouchView} onPress={ ()=>this.props.navigation.navigate('나의예약수정',{reservationId: 2, houseId: place.id})}>
+                                <TouchableOpacity style={styles.modifyIconTouchView} onPress={ ()=>this.props.navigation.navigate('나의예약수정',{reservationId:  place.id, houseId: place.houseId})}>
                                     <Image style={styles.modifyBtnIcon} source={modifyBtnIcon} />
                                 </TouchableOpacity>
                             </View>

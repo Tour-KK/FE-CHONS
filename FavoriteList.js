@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, ScrollView} from 'react-native';
 import axios from 'axios';
-import { getToken } from './token';
+import { getToken, refreshAccessToken } from './token';
 
 //이미지
 import checkFavoriteIconIMG from './Image/체크된_즐겨찾기_아이콘.png';
@@ -70,18 +70,53 @@ class FavoriteListScreen extends Component {
             this.setState({ places: data });
 
         } catch(error) {
+            if (error.response && error.response.status === 401) {              // 토큰 재발급 예외처리 후 다시 실행
+                try {
+                  const newToken = await refreshAccessToken();
+                  console.log('새로운 엑세스 토큰: ' + newToken);
+
+                  const response = await axios.get('http://223.130.131.166:8080/api/v1/house/list/like',{
+                    headers: {
+                        'Authorization': `Bearer ${newToken}`
+                    }
+                });
+                console.log(response.data);
+                
+                const data = response.data.map(house => ({
+                    id: house.id,
+                    name: house.hostName,
+                    address: house.address,
+                    formattedAddress: this.formatAddress(house.address),
+                    price: house.pricePerNight,
+                    imageUri: house.photos, 
+                    reviewScore: house.starAvg, 
+                    reviewCount: house.reviewNum, 
+                    favoriteState: house.liked, 
+                    reservationState: false, 
+                    clearReservation: false 
+                }));
+    
+                this.setState({ places: data });
+    
+    
+                } catch (refreshError) {
+                  console.error('토큰 갱신 및 데이터 불러오기 실패:', refreshError);
+                }
+              } else {
+                console.error('데이터 불러오기 실패:', error);
+            }
             if (error.response) {
-              console.log('Error status:', error.response.status);
-              console.log('Error data:', error.response.data);
-              console.log('Error headers:', error.response.headers);
+            console.log('Error status:', error.response.status);
+            console.log('Error data:', error.response.data);
+            console.log('Error headers:', error.response.headers);
             } else if (error.request) {
-              console.log('No response received:', error.request);
+            console.log('No response received:', error.request);
             } else {
-              console.log('Error message:', error.message);
+            console.log('Error message:', error.message);
             }
             console.log('Error config:', error.config);
-          }
-    }
+        }
+}
 
     
 

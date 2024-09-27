@@ -1,4 +1,4 @@
-package com.apitest
+package com.konkukTour
 
 import android.app.Application
 import com.facebook.react.PackageList
